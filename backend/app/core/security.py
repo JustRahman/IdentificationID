@@ -16,10 +16,17 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-def create_access_token(user_id: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_access_ttl_min)
+def create_access_token(
+    user_id: str,
+    token_type: str = "access",
+    ttl_hours: float | None = None,
+) -> str:
+    if ttl_hours is not None:
+        expire = datetime.now(timezone.utc) + timedelta(hours=ttl_hours)
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_access_ttl_min)
     return jwt.encode(
-        {"sub": user_id, "exp": expire, "type": "access"},
+        {"sub": user_id, "exp": expire, "type": token_type},
         settings.jwt_secret,
         algorithm=settings.jwt_algorithm,
     )

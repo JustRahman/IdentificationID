@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,12 +21,17 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User, UserRole
+from app.services.email import send_verification_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=TokenResponse)
-async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
+async def register(
+    body: RegisterRequest,
+    background: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none():
         raise Conflict("Email already registered")
@@ -39,6 +44,10 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     )
     db.add(user)
     await db.flush()
+
+    # Send verification email in background
+    verify_token = create_access_token(str(user.id), token_type="email_verify", ttl_hours=24)
+    background.add_task(send_verification_email, body.email, verify_token)
 
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
@@ -98,12 +107,35 @@ async def get_me(user: User = Depends(get_current_user)):
 
 @router.post("/email/verify")
 async def verify_email(
-    user: User = Depends(get_current_user),
+    token: str,
     db: AsyncSession = Depends(get_db),
 ):
+    payload = decode_token(token)
+    if not payload or payload.get("type") != "email_verify":
+        raise ValidationError("Invalid or expired verification link")
+
+    user_id = payload.get("sub")
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise ValidationError("User not found")
+
     if user.email_verified_at:
         return {"message": "Email already verified"}
 
     user.email_verified_at = datetime.now(timezone.utc)
     await db.flush()
     return {"message": "Email verified successfully"}
+
+
+@router.post("/email/resend")
+async def resend_verification(
+    background: BackgroundTasks,
+    user: User = Depends(get_current_user),
+):
+    if user.email_verified_at:
+        return {"message": "Email already verified"}
+
+    verify_token = create_access_token(str(user.id), token_type="email_verify", ttl_hours=24)
+    background.add_task(send_verification_email, user.email, verify_token)
+    return {"message": "Verification email sent"}

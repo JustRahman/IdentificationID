@@ -19,7 +19,6 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def fix_database_url(self):
-        # Railway provides postgresql://, we need postgresql+asyncpg://
         if self.database_url.startswith("postgresql://"):
             self.database_url = self.database_url.replace(
                 "postgresql://", "postgresql+asyncpg://", 1
@@ -36,19 +35,20 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
 
-    # Storage (S3 / Supabase Storage)
-    s3_bucket: str = ""
-    s3_region: str = "us-east-1"
-    s3_access_key: str = ""
-    s3_secret_key: str = ""
-    s3_endpoint: str = ""
+    # Supabase
+    supabase_url: str = ""
+    supabase_service_role_key: str = ""
+    supabase_storage_bucket: str = "documents"
 
     # Stripe
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
 
-    # Email
-    sendgrid_api_key: str = ""
+    # Email (SMTP)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
     from_email: str = "noreply@identificationid.com"
 
     # CORS

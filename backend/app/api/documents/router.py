@@ -6,7 +6,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.documents.schemas import DocumentResponse, DocumentVersionResponse
-from app.core.config import settings
 from app.core.deps import get_db, get_verified_manufacturer
 from app.core.exceptions import NotFound, ValidationError
 from app.models.company import Company
@@ -14,7 +13,7 @@ from app.models.product import Product
 from app.models.product_document import DocType, ProductDocument
 from app.models.product_document_version import ProductDocumentVersion
 from app.models.user import User
-from app.services.storage import get_s3_client
+from app.services import storage
 
 router = APIRouter(prefix="/manufacturer", tags=["documents"])
 
@@ -59,15 +58,10 @@ async def upload_document(
     sha256 = hashlib.sha256(content).hexdigest()
     file_key = f"documents/{product.id}/{uuid.uuid4()}.pdf"
 
-    # Upload to S3 if configured
-    if settings.s3_bucket:
-        s3 = get_s3_client()
-        s3.put_object(
-            Bucket=settings.s3_bucket,
-            Key=file_key,
-            Body=content,
-            ContentType="application/pdf",
-        )
+    # Upload to Supabase Storage if configured
+    file_url = None
+    if storage.is_configured():
+        file_url = storage.upload_file(file_key, content, "application/pdf")
 
     # Create document
     document = ProductDocument(
@@ -162,14 +156,8 @@ async def upload_new_version(
     sha256 = hashlib.sha256(content).hexdigest()
     file_key = f"documents/{document.product_id}/{uuid.uuid4()}.pdf"
 
-    if settings.s3_bucket:
-        s3 = get_s3_client()
-        s3.put_object(
-            Bucket=settings.s3_bucket,
-            Key=file_key,
-            Body=content,
-            ContentType="application/pdf",
-        )
+    if storage.is_configured():
+        storage.upload_file(file_key, content, "application/pdf")
 
     version = ProductDocumentVersion(
         document_id=document.id,

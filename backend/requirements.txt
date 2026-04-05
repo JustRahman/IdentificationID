@@ -16,14 +16,12 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.2.1
 python-multipart==0.0.20
 
-# Storage
-boto3==1.35.86
+# Storage + Email (Supabase)
+supabase==2.10.0
+aiosmtplib==3.0.1
 
 # Payments
 stripe==11.4.1
-
-# Email
-sendgrid==6.11.0
 
 # Utilities
 httpx==0.28.1
