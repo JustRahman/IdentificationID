@@ -6,9 +6,10 @@ import type { Product, ProductTranslation } from "@/types";
 
 interface DocumentInfo {
   id: string;
+  product_id: string;
   doc_type: string;
   title: string | null;
-  versions: { version: number; file_name: string; size_bytes: number }[];
+  current_version_id: string | null;
 }
 
 const tabItems = ["Details", "Description", "Documents", "Publish"];
@@ -351,9 +352,7 @@ export default function EditProductPage({
                     className="p-3 border border-border rounded-lg"
                   >
                     <p className="text-sm font-medium">{doc.title || doc.doc_type}</p>
-                    <p className="text-xs text-muted">
-                      Type: {doc.doc_type} · {doc.versions.length} version(s)
-                    </p>
+                    <p className="text-xs text-muted">Type: {doc.doc_type}</p>
                   </div>
                 ))}
               </div>
