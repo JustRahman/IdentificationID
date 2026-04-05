@@ -1,0 +1,8 @@
+{
+  "setup-worktree": [
+    "cd backend && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "cp $ROOT_WORKTREE_PATH/backend/.env backend/.env",
+    "cd frontend && npm install",
+    "cp $ROOT_WORKTREE_PATH/frontend/.env.local frontend/.env.local"
+  ]
+}
