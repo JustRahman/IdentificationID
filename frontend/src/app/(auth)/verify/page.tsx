@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/services/api";
@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 
 type Status = "checking" | "pending" | "success" | "error" | "resending" | "resent";
 
-export default function VerifyPage() {
+function VerifyContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { token: authToken } = useAuth();
@@ -115,7 +115,7 @@ export default function VerifyPage() {
     );
   }
 
-  // status === "pending" — landed here without a token
+  // status === "pending"
   return (
     <div className="text-center">
       <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-5">
@@ -136,5 +136,17 @@ export default function VerifyPage() {
         Resend email
       </button>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="text-center">
+        <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
   );
 }
