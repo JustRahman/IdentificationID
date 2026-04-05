@@ -23,24 +23,11 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Seed admin user if not exists
+    # Seed mock data
     from app.core.database import AsyncSessionLocal
-    from app.models.user import User, UserRole
-    from app.core.security import hash_password
-    from sqlalchemy import select
+    from app.seed import seed_data
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            select(User).where(User.email == "danilbobrow1234@gmail.com")
-        )
-        if not result.scalar_one_or_none():
-            admin = User(
-                email="danilbobrow1234@gmail.com",
-                password_hash=hash_password("123123123"),
-                role=UserRole.admin,
-                is_active=True,
-            )
-            session.add(admin)
-            await session.commit()
+        await seed_data(session)
 
     yield
 
