@@ -41,7 +41,7 @@ async def _get_owned_product(product_id: str, user: User, db: AsyncSession) -> P
 async def upload_document(
     product_id: str,
     file: UploadFile = File(...),
-    doc_type: str = Form(...),
+    doc_type: str = Form("manual"),
     title: str = Form(None),
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),

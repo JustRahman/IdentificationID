@@ -27,6 +27,7 @@ export default function EditProductPage({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [docType, setDocType] = useState("manual");
 
   // Details form
   const [name, setName] = useState("");
@@ -122,7 +123,21 @@ export default function EditProductPage({
     setError("");
     setMessage("");
     try {
-      await api.upload(`/manufacturer/products/${id}/documents`, file);
+      const form = new FormData();
+      form.append("file", file);
+      form.append("doc_type", docType);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/manufacturer/products/${id}/documents`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+          body: form,
+        }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw err;
+      }
       const d = await api.get<DocumentInfo[]>(`/manufacturer/products/${id}/documents`);
       setDocuments(d);
       setMessage("Document uploaded.");
@@ -306,6 +321,19 @@ export default function EditProductPage({
         {activeTab === "Documents" && (
           <div className="space-y-4">
             <p className="text-xs text-muted">Upload PDF documents (manual, warranty, certificate).</p>
+            <div>
+              <label className="block text-sm font-medium mb-1">Document Type</label>
+              <select
+                value={docType}
+                onChange={(e) => setDocType(e.target.value)}
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+              >
+                <option value="manual">Manual</option>
+                <option value="warranty">Warranty</option>
+                <option value="certificate">Certificate</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
             <input
               type="file"
               accept="application/pdf"
