@@ -17,6 +17,11 @@ from app.api.admin.router import router as admin_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Auto-create all tables on startup
+    from app.core.database import engine
+    from app.models import Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
 
 

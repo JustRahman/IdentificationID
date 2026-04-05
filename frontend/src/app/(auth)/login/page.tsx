@@ -70,8 +70,8 @@ export default function LoginPage() {
           <span className="bg-background px-3 text-xs text-muted">or</span>
         </div>
       </div>
-      <button className="w-full border border-border text-foreground py-2.5 rounded-lg text-sm hover:bg-surface">
-        Continue with Google
+      <button disabled className="w-full border border-border text-muted py-2.5 rounded-lg text-sm cursor-not-allowed">
+        Continue with Google (coming soon)
       </button>
       <p className="mt-5 text-center text-sm text-muted">
         Don&apos;t have an account?{" "}
