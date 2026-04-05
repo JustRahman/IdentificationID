@@ -1,5 +1,9 @@
 [build]
 builder = "nixpacks"
+nixpacksVersion = "1.38.0"
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["nodejs_20", "npm-10_x"]
 
 [deploy]
 startCommand = "npm run start -- -p ${PORT:-3000}"
