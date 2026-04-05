@@ -15,9 +15,9 @@ from app.services.id_generator import generate_identification_id
 
 
 async def seed_data(session: AsyncSession) -> None:
-    # Check if already seeded
+    # Check if mock data already seeded (use a mock user, not admin)
     result = await session.execute(
-        select(User).where(User.email == "danilbobrow1234@gmail.com")
+        select(User).where(User.email == "john@acmecorp.com")
     )
     if result.scalar_one_or_none():
         return  # Already seeded
@@ -25,12 +25,20 @@ async def seed_data(session: AsyncSession) -> None:
     now = datetime.now(timezone.utc)
 
     # ── Users ──
-    admin = User(
-        email="danilbobrow1234@gmail.com",
-        password_hash=hash_password("123123123"),
-        role=UserRole.admin,
-        is_active=True,
+    # Admin may already exist from previous deploy
+    result = await session.execute(
+        select(User).where(User.email == "danilbobrow1234@gmail.com")
     )
+    if not result.scalar_one_or_none():
+        admin = User(
+            email="danilbobrow1234@gmail.com",
+            password_hash=hash_password("123123123"),
+            role=UserRole.admin,
+            is_active=True,
+        )
+        session.add(admin)
+        await session.flush()
+
     john = User(
         email="john@acmecorp.com",
         password_hash=hash_password("demo12345678"),
@@ -55,7 +63,7 @@ async def seed_data(session: AsyncSession) -> None:
         role=UserRole.consumer,
         is_active=True,
     )
-    session.add_all([admin, john, sarah, mike, consumer])
+    session.add_all([john, sarah, mike, consumer])
     await session.flush()
 
     # ── Companies ──
