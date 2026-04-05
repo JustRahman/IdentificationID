@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/services/api";
+import { api } from "@/services/api";
 import { useAuth } from "@/lib/auth";
 
 type Status = "checking" | "pending" | "success" | "error" | "resending" | "resent";
@@ -22,12 +22,10 @@ export default function VerifyPage() {
       return;
     }
 
-    apiFetch(`/auth/email/verify?token=${encodeURIComponent(token)}`, {
-      method: "POST",
-    })
+    api.post(`/auth/email/verify?token=${encodeURIComponent(token)}`)
       .then(() => setStatus("success"))
-      .catch((err: Error) => {
-        setErrorMsg(err.message || "Invalid or expired link");
+      .catch((err: { error?: { message?: string } }) => {
+        setErrorMsg(err?.error?.message || "Invalid or expired link");
         setStatus("error");
       });
   }, [searchParams]);
@@ -39,11 +37,11 @@ export default function VerifyPage() {
     }
     setStatus("resending");
     try {
-      await apiFetch("/auth/email/resend", { method: "POST" });
+      await api.post("/auth/email/resend");
       setStatus("resent");
     } catch (err: unknown) {
-      const e = err as Error;
-      setErrorMsg(e.message || "Failed to resend");
+      const e = err as { error?: { message?: string } };
+      setErrorMsg(e?.error?.message || "Failed to resend");
       setStatus("error");
     }
   }
