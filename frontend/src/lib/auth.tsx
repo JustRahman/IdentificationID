@@ -36,20 +36,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const fetchUser = useCallback(async (accessToken: string) => {
+  const fetchUser = useCallback(async (accessToken: string): Promise<User | null> => {
     try {
       const res = await fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (res.ok) {
-        const data = await res.json();
+        const data: User = await res.json();
         setUser(data);
-        return true;
+        return data;
       }
     } catch {
       // ignore
     }
-    return false;
+    return null;
   }, []);
 
   // Refresh tokens
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("access_token", tokens.access_token);
         localStorage.setItem("refresh_token", tokens.refresh_token);
         setToken(tokens.access_token);
-        return await fetchUser(tokens.access_token);
+        return !!(await fetchUser(tokens.access_token));
       }
     } catch {
       // ignore
@@ -82,8 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem("access_token");
       if (stored) {
         setToken(stored);
-        const ok = await fetchUser(stored);
-        if (!ok) {
+        const fetchedUser = await fetchUser(stored);
+        if (!fetchedUser) {
           const refreshed = await refreshTokens();
           if (!refreshed) {
             localStorage.removeItem("access_token");
@@ -110,8 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("access_token", tokens.access_token);
     localStorage.setItem("refresh_token", tokens.refresh_token);
     setToken(tokens.access_token);
-    await fetchUser(tokens.access_token);
-    router.push("/dashboard");
+    const loggedInUser = await fetchUser(tokens.access_token);
+    router.push(loggedInUser?.role === "admin" ? "/admin/companies" : "/dashboard");
   };
 
   const register = async (email: string, password: string) => {
