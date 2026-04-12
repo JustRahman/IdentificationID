@@ -13,6 +13,7 @@ from app.api.documents.router import router as documents_router
 from app.api.billing.router import router as billing_router
 from app.api.public.router import router as public_router
 from app.api.admin.router import router as admin_router
+from app.api.images.router import router as images_router
 
 
 @asynccontextmanager
@@ -60,6 +61,7 @@ app.include_router(documents_router, prefix=API_V1)
 app.include_router(billing_router, prefix=API_V1)
 app.include_router(public_router, prefix=API_V1)
 app.include_router(admin_router, prefix=API_V1)
+app.include_router(images_router, prefix=API_V1)
 
 
 @app.get("/health")

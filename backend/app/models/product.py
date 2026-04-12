@@ -14,6 +14,7 @@ from app.models.base import Base, TimestampMixin, UUIDMixin
 if TYPE_CHECKING:
     from app.models.company import Company
     from app.models.product_document import ProductDocument
+    from app.models.product_image import ProductImage
     from app.models.product_translation import ProductTranslation
 
 
@@ -47,3 +48,4 @@ class Product(Base, UUIDMixin, TimestampMixin):
     company: Mapped[Company] = relationship(back_populates="products")
     translations: Mapped[list[ProductTranslation]] = relationship(back_populates="product")
     documents: Mapped[list[ProductDocument]] = relationship(back_populates="product")
+    images: Mapped[list[ProductImage]] = relationship(back_populates="product", order_by="ProductImage.display_order")
