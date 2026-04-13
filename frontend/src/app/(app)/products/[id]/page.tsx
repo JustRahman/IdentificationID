@@ -166,15 +166,31 @@ export default function EditProductPage({
     setTranslating(true);
     setError("");
     try {
-      // Translate each field separately to avoid separator issues
+      // Save the source language first so it's not lost on reload
+      await api.post(`/manufacturer/products/${id}/translations`, {
+        lang: activeLang,
+        short_description: src.short || null,
+        full_description: src.full || null,
+        usage_instructions: src.usage || null,
+      });
+
+      // Translate each field separately
       const enFields = { ...getLang("en") };
       if (src.short) enFields.short = await translateText(src.short, activeLang);
       if (src.full) enFields.full = await translateText(src.full, activeLang);
       if (src.usage) enFields.usage = await translateText(src.usage, activeLang);
 
+      // Save English translation too
+      await api.post(`/manufacturer/products/${id}/translations`, {
+        lang: "en",
+        short_description: enFields.short || null,
+        full_description: enFields.full || null,
+        usage_instructions: enFields.usage || null,
+      });
+
       setDescFields((prev) => ({ ...prev, en: enFields }));
       setActiveLang("en");
-      setMessage("Translated to English. Review and save.");
+      setMessage("Translated and saved both languages.");
     } catch {
       setError("Auto-translate failed. Please try again.");
     } finally {
