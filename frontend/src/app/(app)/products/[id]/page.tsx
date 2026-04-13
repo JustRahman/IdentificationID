@@ -118,30 +118,31 @@ export default function EditProductPage({
     }));
   }
 
+  async function translateText(text: string, fromLang: string): Promise<string> {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang}|en`;
+    const res = await fetch(url);
+    const data = await res.json();
+    // Accept 200 (exact) and 206 (partial match) as success
+    if (data.responseStatus !== 200 && data.responseStatus !== 206) {
+      throw new Error(`Translation error: ${data.responseStatus}`);
+    }
+    return data.responseData.translatedText as string;
+  }
+
   async function autoTranslate() {
     const src = getLang(activeLang);
-    const parts = [src.short, src.full, src.usage].filter(Boolean);
-    const textToTranslate = parts.join("\n\n---SEP---\n\n");
-    if (!textToTranslate.trim()) {
+    if (!src.short && !src.full && !src.usage) {
       setError("Nothing to translate — fill in the current language fields first.");
       return;
     }
     setTranslating(true);
     setError("");
     try {
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=${activeLang}|en`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.responseStatus !== 200) throw new Error("Translation API error");
-
-      const translated: string = data.responseData.translatedText;
-      const translatedParts = translated.split(/\n\n---SEP---\n\n/);
-
-      let idx = 0;
+      // Translate each field separately to avoid separator issues
       const enFields = { ...getLang("en") };
-      if (src.short) enFields.short = translatedParts[idx++] || "";
-      if (src.full) enFields.full = translatedParts[idx++] || "";
-      if (src.usage) enFields.usage = translatedParts[idx++] || "";
+      if (src.short) enFields.short = await translateText(src.short, activeLang);
+      if (src.full) enFields.full = await translateText(src.full, activeLang);
+      if (src.usage) enFields.usage = await translateText(src.usage, activeLang);
 
       setDescFields((prev) => ({ ...prev, en: enFields }));
       setActiveLang("en");
