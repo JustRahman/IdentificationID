@@ -10,6 +10,8 @@ interface DocumentInfo {
   doc_type: string;
   title: string | null;
   current_version_id: string | null;
+  file_url: string | null;
+  file_name: string | null;
 }
 
 interface ImageInfo {
@@ -516,9 +518,24 @@ export default function EditProductPage({
             {documents.length > 0 ? (
               <div className="space-y-2 mt-4">
                 {documents.map((doc) => (
-                  <div key={doc.id} className="p-3 border border-border rounded-lg">
-                    <p className="text-sm font-medium">{doc.title || doc.doc_type}</p>
-                    <p className="text-xs text-muted">Type: {doc.doc_type}</p>
+                  <div key={doc.id} className="p-3 border border-border rounded-lg flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{doc.title || doc.doc_type}</p>
+                      <p className="text-xs text-muted">{doc.file_name || doc.doc_type}</p>
+                    </div>
+                    {doc.file_url && (
+                      <a
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs bg-accent text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1 shrink-0"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Open
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>

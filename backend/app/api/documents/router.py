@@ -94,6 +94,8 @@ async def upload_document(
         doc_type=document.doc_type.value,
         title=document.title,
         current_version_id=str(version.id),
+        file_url=file_url,
+        file_name=version.file_name,
     )
 
 
@@ -107,16 +109,34 @@ async def list_documents(
     result = await db.execute(
         select(ProductDocument).where(ProductDocument.product_id == product.id)
     )
-    return [
-        DocumentResponse(
+    docs = result.scalars().all()
+
+    items = []
+    for d in docs:
+        file_url = None
+        file_name = None
+        if d.current_version_id:
+            ver_result = await db.execute(
+                select(ProductDocumentVersion).where(ProductDocumentVersion.id == d.current_version_id)
+            )
+            version = ver_result.scalar_one_or_none()
+            if version:
+                file_name = version.file_name
+                if storage.is_configured():
+                    try:
+                        file_url = storage.get_signed_url(version.file_key, expires_in=3600)
+                    except Exception:
+                        file_url = None
+        items.append(DocumentResponse(
             id=str(d.id),
             product_id=str(d.product_id),
             doc_type=d.doc_type.value,
             title=d.title,
             current_version_id=str(d.current_version_id) if d.current_version_id else None,
-        )
-        for d in result.scalars().all()
-    ]
+            file_url=file_url,
+            file_name=file_name,
+        ))
+    return items
 
 
 @router.post("/documents/{doc_id}/versions", response_model=DocumentVersionResponse)

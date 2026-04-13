@@ -7,6 +7,8 @@ class DocumentResponse(BaseModel):
     doc_type: str
     title: str | None
     current_version_id: str | None
+    file_url: str | None = None
+    file_name: str | None = None
 
     class Config:
         from_attributes = True
