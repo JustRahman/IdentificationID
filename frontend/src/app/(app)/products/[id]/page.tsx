@@ -119,14 +119,42 @@ export default function EditProductPage({
   }
 
   async function translateText(text: string, fromLang: string): Promise<string> {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang}|en`;
-    const res = await fetch(url);
-    const data = await res.json();
-    // Accept 200 (exact) and 206 (partial match) as success
-    if (data.responseStatus !== 200 && data.responseStatus !== 206) {
-      throw new Error(`Translation error: ${data.responseStatus}`);
+    // MyMemory free limit is 500 chars per request — chunk if needed
+    const MAX = 480;
+    if (text.length <= MAX) {
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang}|en`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.responseData?.translatedText) throw new Error(`No translation returned (status ${data.responseStatus})`);
+      return data.responseData.translatedText as string;
     }
-    return data.responseData.translatedText as string;
+
+    // Split into sentences, group into chunks under MAX chars
+    const sentences = text.match(/[^.!?\n]+[.!?\n]*/g) ?? [text];
+    const chunks: string[] = [];
+    let current = "";
+    for (const s of sentences) {
+      if ((current + s).length > MAX) {
+        if (current) chunks.push(current.trim());
+        current = s;
+      } else {
+        current += s;
+      }
+    }
+    if (current.trim()) chunks.push(current.trim());
+
+    const translated = await Promise.all(
+      chunks.map(async (chunk) => {
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${fromLang}|en`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data.responseData?.translatedText) throw new Error(`No translation (status ${data.responseStatus})`);
+        return data.responseData.translatedText as string;
+      })
+    );
+    return translated.join(" ");
   }
 
   async function autoTranslate() {
