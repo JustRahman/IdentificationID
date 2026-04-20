@@ -24,6 +24,9 @@ export default function PublicLayout({
             <Link href="/pricing" className="text-muted hover:text-foreground">
               Pricing
             </Link>
+            <Link href="/faq" className="text-muted hover:text-foreground">
+              FAQ
+            </Link>
             {user ? (
               <Link
                 href="/dashboard"
@@ -51,7 +54,11 @@ export default function PublicLayout({
       <footer className="border-t border-border py-8 px-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted">
           <span className="font-semibold text-foreground">Identification ID</span>
-          <p>Digital passport for every product</p>
+          <div className="flex gap-6">
+            <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
+            <Link href="/search" className="hover:text-foreground">Search Products</Link>
+            <Link href="/faq" className="hover:text-foreground">FAQ</Link>
+          </div>
         </div>
       </footer>
     </div>

@@ -4,11 +4,23 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+const EARLY_ACCESS_KEY = "early_access_submitted";
+
 const ID_PATTERN = /^IID-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
 
 export default function LandingPage() {
   const [query, setQuery] = useState("");
+  const [earlyEmail, setEarlyEmail] = useState("");
+  const [earlySubmitted, setEarlySubmitted] = useState(false);
   const router = useRouter();
+
+  function handleEarlyAccess(e: FormEvent) {
+    e.preventDefault();
+    const email = earlyEmail.trim();
+    if (!email) return;
+    setEarlySubmitted(true);
+    router.push(`/register?email=${encodeURIComponent(email)}`);
+  }
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -189,6 +201,38 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Early Access */}
+      <section className="bg-accent py-16 px-6">
+        <div className="max-w-xl mx-auto text-center">
+          <h2 className="text-2xl font-semibold text-white mb-3">Get early access</h2>
+          <p className="text-blue-100 text-sm mb-8">
+            Join manufacturers already building with Identification ID.
+            Register now and get your first 10 products free — no credit card required.
+          </p>
+          {earlySubmitted ? (
+            <p className="text-white font-medium">Redirecting you to registration...</p>
+          ) : (
+            <form onSubmit={handleEarlyAccess} className="flex gap-2 max-w-md mx-auto">
+              <input
+                type="email"
+                required
+                value={earlyEmail}
+                onChange={(e) => setEarlyEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="flex-1 border border-blue-300 rounded-xl px-4 py-3 text-sm bg-white text-foreground placeholder:text-muted"
+              />
+              <button
+                type="submit"
+                className="bg-white text-accent px-5 py-3 rounded-xl text-sm font-semibold hover:bg-blue-50 whitespace-nowrap"
+              >
+                Get Started →
+              </button>
+            </form>
+          )}
+          <p className="text-blue-200 text-xs mt-4">Free forever for up to 10 products. No spam, ever.</p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border py-8 px-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted">
@@ -196,6 +240,7 @@ export default function LandingPage() {
           <div className="flex gap-6">
             <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
             <Link href="/search" className="hover:text-foreground">Search Products</Link>
+            <Link href="/faq" className="hover:text-foreground">FAQ</Link>
             <Link href="/login" className="hover:text-foreground">Manufacturer Login</Link>
           </div>
         </div>

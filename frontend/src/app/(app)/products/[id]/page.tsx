@@ -56,6 +56,7 @@ export default function EditProductPage({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   // Details
   const [name, setName] = useState("");
@@ -323,19 +324,46 @@ export default function EditProductPage({
     }
   }
 
+  function copyId() {
+    if (!product) return;
+    navigator.clipboard.writeText(product.identification_id).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   if (loading) return <p className="text-sm text-muted">Loading...</p>;
   if (!product) return <p className="text-sm text-red-600">Product not found.</p>;
 
   const currentDesc = getLang(activeLang);
+  const publicUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/p/${product.identification_id}`
+    : `https://identificationid.com/p/${product.identification_id}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(publicUrl)}`;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold">{product.name}</h1>
-          <p className="text-sm font-semibold text-foreground font-mono">{product.identification_id}</p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <p className="text-sm font-semibold text-foreground font-mono">{product.identification_id}</p>
+            <button
+              onClick={copyId}
+              className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+            >
+              {copied ? "✓ Copied" : "Copy ID"}
+            </button>
+            <a
+              href={`/p/${product.identification_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+            >
+              Preview ↗
+            </a>
+          </div>
         </div>
-        <span className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
+        <span className={`text-xs px-2.5 py-1 rounded-lg font-medium shrink-0 ${
           product.status === "published" ? "bg-green-50 text-green-700 border border-green-200"
           : product.status === "hidden" ? "bg-red-50 text-red-700 border border-red-200"
           : "bg-gray-50 text-gray-600 border border-gray-200"
@@ -405,6 +433,21 @@ export default function EditProductPage({
               className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50">
               {saving ? "Saving..." : "Save Details"}
             </button>
+
+            {/* QR Code */}
+            <div className="pt-4 border-t border-border mt-2">
+              <p className="text-sm font-medium mb-1">Product QR Code</p>
+              <p className="text-xs text-muted mb-3">Print on packaging so customers can scan to access this product page.</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={qrUrl}
+                alt="QR Code"
+                width={160}
+                height={160}
+                className="border border-border rounded-lg p-2 bg-white"
+              />
+              <p className="text-xs font-mono text-muted mt-2">{product.identification_id}</p>
+            </div>
           </form>
         )}
 

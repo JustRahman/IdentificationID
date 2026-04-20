@@ -14,77 +14,58 @@ from app.models.user import User, UserRole
 from app.services.id_generator import generate_identification_id
 
 
+async def _get_or_create_user(session: AsyncSession, email: str, **kwargs) -> User:
+    result = await session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if not user:
+        user = User(email=email, **kwargs)
+        session.add(user)
+        await session.flush()
+    return user
+
+
+async def _get_or_create_company(session: AsyncSession, display_name: str, owner_id, **kwargs) -> Company:
+    result = await session.execute(select(Company).where(Company.display_name == display_name))
+    company = result.scalar_one_or_none()
+    if not company:
+        company = Company(owner_user_id=owner_id, display_name=display_name, **kwargs)
+        session.add(company)
+        await session.flush()
+    return company
+
+
 async def seed_data(session: AsyncSession) -> None:
+    # Check if fully seeded already (use a product that only exists in the full seed)
     result = await session.execute(
-        select(User).where(User.email == "john@acmecorp.com")
+        select(Product).where(Product.name == "DriveCam 4K Duo")
     )
     if result.scalar_one_or_none():
-        return  # Already seeded
+        return  # Already fully seeded
 
     now = datetime.now(timezone.utc)
 
     # ── Admin ──
-    result = await session.execute(
-        select(User).where(User.email == "danilbobrow1234@gmail.com")
+    await _get_or_create_user(
+        session, "danilbobrow1234@gmail.com",
+        password_hash=hash_password("123123123"),
+        role=UserRole.admin, is_active=True,
     )
-    if not result.scalar_one_or_none():
-        session.add(User(
-            email="danilbobrow1234@gmail.com",
-            password_hash=hash_password("123123123"),
-            role=UserRole.admin,
-            is_active=True,
-        ))
-        await session.flush()
 
-    # ── Users ──
-    john   = User(email="john@acmecorp.com",       password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
-    sarah  = User(email="sarah@techvision.io",      password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
-    mike   = User(email="mike@greenleaf.co",        password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
-    lisa   = User(email="lisa@novatools.com",       password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
-    carlos = User(email="carlos@casahome.es",       password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
-    yuki   = User(email="yuki@zenfit.jp",           password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
-    session.add_all([john, sarah, mike, lisa, carlos, yuki])
-    await session.flush()
+    # ── Users (get or create) ──
+    john   = await _get_or_create_user(session, "john@acmecorp.com",   password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
+    sarah  = await _get_or_create_user(session, "sarah@techvision.io", password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
+    mike   = await _get_or_create_user(session, "mike@greenleaf.co",   password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
+    lisa   = await _get_or_create_user(session, "lisa@novatools.com",  password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
+    carlos = await _get_or_create_user(session, "carlos@casahome.es",  password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
+    yuki   = await _get_or_create_user(session, "yuki@zenfit.jp",      password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
 
-    # ── Companies ──
-    acme = Company(
-        owner_user_id=john.id, legal_name="ACME Corporation LLC",
-        display_name="ACME Corp", country_code="US",
-        website="https://acmecorp.com", support_email="support@acmecorp.com",
-        status=CompanyStatus.verified, verified_at=now,
-    )
-    techvision = Company(
-        owner_user_id=sarah.id, legal_name="TechVision Industries GmbH",
-        display_name="TechVision", country_code="DE",
-        website="https://techvision.io", support_email="help@techvision.io",
-        status=CompanyStatus.verified, verified_at=now,
-    )
-    greenleaf = Company(
-        owner_user_id=mike.id, legal_name="GreenLeaf Manufacturing Ltd",
-        display_name="GreenLeaf", country_code="GB",
-        website="https://greenleaf.co", support_email="info@greenleaf.co",
-        status=CompanyStatus.verified, verified_at=now,
-    )
-    novatools = Company(
-        owner_user_id=lisa.id, legal_name="Nova Tools Inc",
-        display_name="Nova Tools", country_code="US",
-        website="https://novatools.com", support_email="support@novatools.com",
-        status=CompanyStatus.verified, verified_at=now,
-    )
-    casahome = Company(
-        owner_user_id=carlos.id, legal_name="Casa Home S.L.",
-        display_name="Casa Home", country_code="ES",
-        website="https://casahome.es", support_email="hello@casahome.es",
-        status=CompanyStatus.verified, verified_at=now,
-    )
-    zenfit = Company(
-        owner_user_id=yuki.id, legal_name="ZenFit Co. Ltd.",
-        display_name="ZenFit", country_code="JP",
-        website="https://zenfit.jp", support_email="support@zenfit.jp",
-        status=CompanyStatus.verified, verified_at=now,
-    )
-    session.add_all([acme, techvision, greenleaf, novatools, casahome, zenfit])
-    await session.flush()
+    # ── Companies (get or create) ──
+    acme       = await _get_or_create_company(session, "ACME Corp",   john.id,   legal_name="ACME Corporation LLC",         country_code="US", website="https://acmecorp.com",   support_email="support@acmecorp.com",  status=CompanyStatus.verified, verified_at=now)
+    techvision = await _get_or_create_company(session, "TechVision",  sarah.id,  legal_name="TechVision Industries GmbH",   country_code="DE", website="https://techvision.io",  support_email="help@techvision.io",    status=CompanyStatus.verified, verified_at=now)
+    greenleaf  = await _get_or_create_company(session, "GreenLeaf",   mike.id,   legal_name="GreenLeaf Manufacturing Ltd",  country_code="GB", website="https://greenleaf.co",   support_email="info@greenleaf.co",     status=CompanyStatus.verified, verified_at=now)
+    novatools  = await _get_or_create_company(session, "Nova Tools",  lisa.id,   legal_name="Nova Tools Inc",               country_code="US", website="https://novatools.com",  support_email="support@novatools.com", status=CompanyStatus.verified, verified_at=now)
+    casahome   = await _get_or_create_company(session, "Casa Home",   carlos.id, legal_name="Casa Home S.L.",               country_code="ES", website="https://casahome.es",    support_email="hello@casahome.es",     status=CompanyStatus.verified, verified_at=now)
+    zenfit     = await _get_or_create_company(session, "ZenFit",      yuki.id,   legal_name="ZenFit Co. Ltd.",              country_code="JP", website="https://zenfit.jp",      support_email="support@zenfit.jp",     status=CompanyStatus.verified, verified_at=now)
 
     products_data = [
 
@@ -182,6 +163,11 @@ async def seed_data(session: AsyncSession) -> None:
     ]
 
     for pd in products_data:
+        # Skip products that already exist
+        existing = await session.execute(select(Product).where(Product.name == pd["name"]))
+        if existing.scalar_one_or_none():
+            continue
+
         product = Product(
             company_id=pd["company"].id,
             identification_id=generate_identification_id(),

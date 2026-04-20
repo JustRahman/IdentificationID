@@ -36,6 +36,41 @@ export default function DashboardPage() {
 
   return (
     <div>
+      {/* Verification status banner */}
+      {!company && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <span className="text-amber-500 text-lg shrink-0">⚠️</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Company profile not created</p>
+            <p className="text-xs text-amber-700 mt-0.5">Create your company profile to get verified and start publishing products.</p>
+            <Link href="/company" className="inline-block mt-2 text-xs bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 font-medium">
+              Set up company →
+            </Link>
+          </div>
+        </div>
+      )}
+      {company?.status === "pending" && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <span className="text-blue-500 text-lg shrink-0">🕐</span>
+          <div>
+            <p className="text-sm font-semibold text-blue-800">Verification in progress</p>
+            <p className="text-xs text-blue-700 mt-0.5">Your company is under review — typically 1–2 business days. You'll receive an email once approved.</p>
+          </div>
+        </div>
+      )}
+      {company?.status === "rejected" && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <span className="text-red-500 text-lg shrink-0">✕</span>
+          <div>
+            <p className="text-sm font-semibold text-red-800">Verification rejected</p>
+            <p className="text-xs text-red-700 mt-0.5">Your company verification was not approved. Please update your company details or contact us at support@identificationid.com.</p>
+            <Link href="/company" className="inline-block mt-2 text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 font-medium">
+              Update company →
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Dashboard</h1>
         <Link
