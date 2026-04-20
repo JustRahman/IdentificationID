@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.deps import get_db
 from app.core.exceptions import NotFound
-from app.models.company import Company
+from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
 from app.models.product_document import ProductDocument
 from app.models.product_document_version import ProductDocumentVersion
@@ -135,4 +135,61 @@ async def search_products(
             for p in products
         ],
         "meta": {"total": total, "page": page, "per_page": per_page},
+    }
+
+
+@router.get("/featured")
+async def featured_products(
+    limit: int = Query(8, ge=1, le=24),
+    db: AsyncSession = Depends(get_db),
+):
+    """Recently published products for homepage recommendations."""
+    result = await db.execute(
+        select(Product)
+        .join(Product.company)
+        .where(Product.status == ProductStatus.published)
+        .options(selectinload(Product.company))
+        .order_by(Product.published_at.desc())
+        .limit(limit)
+    )
+    products = result.scalars().all()
+    return {
+        "success": True,
+        "data": [
+            {
+                "identification_id": p.identification_id,
+                "name": p.name,
+                "category": p.category,
+                "brand": p.brand,
+                "manufacturer": p.company.display_name,
+            }
+            for p in products
+        ],
+    }
+
+
+@router.get("/companies")
+async def list_companies(
+    db: AsyncSession = Depends(get_db),
+):
+    """Verified manufacturers for the search recommendations page."""
+    result = await db.execute(
+        select(Company, func.count(Product.id).label("product_count"))
+        .outerjoin(Product, (Product.company_id == Company.id) & (Product.status == ProductStatus.published))
+        .where(Company.status == CompanyStatus.verified)
+        .group_by(Company.id)
+        .order_by(func.count(Product.id).desc())
+    )
+    rows = result.all()
+    return {
+        "success": True,
+        "data": [
+            {
+                "display_name": company.display_name,
+                "country_code": company.country_code,
+                "website": company.website,
+                "product_count": count,
+            }
+            for company, count in rows
+        ],
     }

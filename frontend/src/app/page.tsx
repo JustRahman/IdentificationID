@@ -99,21 +99,21 @@ export default function LandingPage() {
         </p>
         <div className="flex flex-wrap gap-2 justify-center">
           {[
-            "Kitchen Appliances",
-            "Power Tools",
-            "Electronics",
-            "Furniture",
-            "Clothing",
-            "Toys",
-            "Sports",
-            "Automotive",
-          ].map((cat) => (
+            { label: "Kitchen Appliances", q: "kitchen_appliances" },
+            { label: "Power Tools",        q: "power_tools" },
+            { label: "Electronics",        q: "electronics" },
+            { label: "Furniture",          q: "furniture" },
+            { label: "Clothing",           q: "clothing" },
+            { label: "Toys",               q: "toys" },
+            { label: "Sports",             q: "sports" },
+            { label: "Automotive",         q: "automotive" },
+          ].map(({ label, q }) => (
             <Link
-              key={cat}
-              href={`/search?q=${encodeURIComponent(cat)}`}
+              key={q}
+              href={`/search?q=${q}`}
               className="text-sm border border-border rounded-full px-4 py-1.5 hover:bg-surface hover:border-accent hover:text-accent transition-colors"
             >
-              {cat}
+              {label}
             </Link>
           ))}
         </div>
