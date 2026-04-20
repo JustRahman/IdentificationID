@@ -195,21 +195,47 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
             {[
-              { label: "Kitchen", q: "kitchen_appliances", icon: "🍳" },
-              { label: "Power Tools", q: "power_tools", icon: "🔧" },
-              { label: "Electronics", q: "electronics", icon: "📱" },
-              { label: "Furniture", q: "furniture", icon: "🪑" },
-              { label: "Clothing", q: "clothing", icon: "👕" },
-              { label: "Toys", q: "toys", icon: "🧸" },
-              { label: "Sports", q: "sports", icon: "⚽" },
-              { label: "Automotive", q: "automotive", icon: "🚗" },
-            ].map(({ label, q, icon }) => (
+              {
+                label: "Kitchen", q: "kitchen_appliances",
+                path: "M8 2v4M12 2v4M16 2v4M4 10h16M5 6h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1z",
+              },
+              {
+                label: "Power Tools", q: "power_tools",
+                path: "M14.7 6.3a1 1 0 010 1.4l-1 1 2.6 2.6-4.3 4.3-2.6-2.6-5 5a2 2 0 11-2.8-2.8l5-5-2.6-2.6 4.3-4.3 2.6 2.6 1-1a1 1 0 011.4 0l1.4 1.4z",
+              },
+              {
+                label: "Electronics", q: "electronics",
+                path: "M7 4a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H7zM11 18h2",
+              },
+              {
+                label: "Furniture", q: "furniture",
+                path: "M4 18v2M20 18v2M3 10h18v6H3zM5 10V7a2 2 0 012-2h10a2 2 0 012 2v3",
+              },
+              {
+                label: "Clothing", q: "clothing",
+                path: "M8 3l-5 4 2 3 3-2v13h8V8l3 2 2-3-5-4-1 2a3 3 0 01-6 0l-1-2z",
+              },
+              {
+                label: "Toys", q: "toys",
+                path: "M12 2a5 5 0 00-5 5v3a5 5 0 0010 0V7a5 5 0 00-5-5zM4 17a4 4 0 014-4h8a4 4 0 014 4v4H4v-4z",
+              },
+              {
+                label: "Sports", q: "sports",
+                path: "M12 2a10 10 0 100 20 10 10 0 000-20zM12 2l2 5h5l-4 3.5 1.5 5.5L12 13l-4.5 3L9 10.5 5 7h5l2-5z",
+              },
+              {
+                label: "Automotive", q: "automotive",
+                path: "M5 11l2-5h10l2 5M3 16h18v-3a2 2 0 00-2-2H5a2 2 0 00-2 2v3zM7 16v2M17 16v2",
+              },
+            ].map(({ label, q, path }) => (
               <Link
                 key={q}
                 href={`/search?q=${q}`}
                 className="group text-sm bg-white border border-border rounded-full pl-3 pr-4 py-1.5 hover:border-accent hover:shadow-sm hover:-translate-y-0.5 transition-all flex items-center gap-2"
               >
-                <span className="text-base">{icon}</span>
+                <svg className="w-4 h-4 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                  <path d={path} />
+                </svg>
                 <span className="group-hover:text-accent transition-colors">{label}</span>
               </Link>
             ))}
@@ -271,7 +297,7 @@ export default function LandingPage() {
                   {[
                     { label: "Brand", value: "ACME" },
                     { label: "Model", value: "AF-550" },
-                    { label: "Made in", value: "🇺🇸 USA" },
+                    { label: "Made in", value: "United States" },
                     { label: "Manufacturer", value: "ACME Corp" },
                   ].map((f) => (
                     <div key={f.label}>
@@ -283,15 +309,26 @@ export default function LandingPage() {
 
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { icon: "📘", label: "User Manual (PDF)" },
-                    { icon: "🛡️", label: "Warranty" },
-                    { icon: "📜", label: "Safety Certificate" },
+                    {
+                      label: "User Manual (PDF)",
+                      path: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6M8 13h8M8 17h8M8 9h2",
+                    },
+                    {
+                      label: "Warranty",
+                      path: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4zM9 12l2 2 4-4",
+                    },
+                    {
+                      label: "Safety Certificate",
+                      path: "M12 15a3 3 0 100-6 3 3 0 000 6zM12 15v5M9 20h6M4 4h16v10H4z",
+                    },
                   ].map((d) => (
                     <div
                       key={d.label}
                       className="flex items-center gap-2 text-xs border border-border rounded-lg px-3 py-2 bg-surface"
                     >
-                      <span>{d.icon}</span>
+                      <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                        <path d={d.path} />
+                      </svg>
                       <span className="font-medium">{d.label}</span>
                     </div>
                   ))}
@@ -322,19 +359,19 @@ export default function LandingPage() {
             {[
               {
                 step: "1",
-                icon: "🔎",
+                iconPath: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z",
                 title: "Search or scan",
                 desc: "Type a product name, or enter the Identification ID printed on the packaging.",
               },
               {
                 step: "2",
-                icon: "✅",
+                iconPath: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z",
                 title: "Find your product",
                 desc: "Browse verified results — only registered manufacturers can publish here.",
               },
               {
                 step: "3",
-                icon: "📄",
+                iconPath: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6M8 13h8M8 17h8",
                 title: "Access everything",
                 desc: "Manuals, warranties, safety certificates, and manufacturer contacts — in seconds.",
               },
@@ -345,7 +382,11 @@ export default function LandingPage() {
                     {item.step}
                   </div>
                 </div>
-                <div className="text-3xl mb-3">{item.icon}</div>
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <path d={item.iconPath} />
+                  </svg>
+                </div>
                 <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
                 <p className="text-sm text-muted leading-relaxed max-w-xs mx-auto">{item.desc}</p>
               </div>
@@ -367,8 +408,10 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Consumers */}
             <div className="relative bg-background border border-border rounded-2xl p-8 hover:shadow-md hover:-translate-y-1 transition-all">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-2xl mb-5">
-                🛍️
+              <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-5">
+                <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2l-2 5v13a2 2 0 002 2h12a2 2 0 002-2V7l-2-5H6zM4 7h16M9 11a3 3 0 006 0" />
+                </svg>
               </div>
               <h3 className="text-xl font-semibold mb-2">For consumers</h3>
               <p className="text-sm text-muted mb-6">
@@ -403,8 +446,10 @@ export default function LandingPage() {
               <div className="absolute top-4 right-4 text-[10px] font-semibold bg-accent text-white px-2 py-0.5 rounded">
                 POPULAR
               </div>
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-2xl mb-5">
-                🏭
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-5">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 21V9l6 4V9l6 4V5l6 4v12H3zM7 17h2M13 17h2M17 17h1" />
+                </svg>
               </div>
               <h3 className="text-xl font-semibold mb-2">For manufacturers</h3>
               <p className="text-sm text-muted mb-6">
@@ -450,26 +495,30 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: "📦",
+                iconPath: "M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16zM3.27 6.96L12 12l8.73-5.04M12 22V12",
                 title: "Lost the manual?",
                 desc: "Just paste the ID from the packaging. The original manual is one click away — no digging through drawers.",
               },
               {
-                icon: "🛡️",
+                iconPath: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4zM9 12l2 2 4-4",
                 title: "Check warranty?",
                 desc: "See the warranty terms, expiration, and claim instructions directly from the manufacturer.",
               },
               {
-                icon: "🔍",
+                iconPath: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0zM9 10h4M11 8v4",
                 title: "Verify before buying?",
                 desc: "Scan the ID in the store to confirm it's a genuine, registered product from a verified manufacturer.",
               },
             ].map((u) => (
               <div
                 key={u.title}
-                className="bg-white border border-border rounded-2xl p-6 hover:border-accent hover:shadow-sm transition-all"
+                className="group bg-white border border-border rounded-2xl p-6 hover:border-accent hover:shadow-md hover:-translate-y-0.5 transition-all"
               >
-                <div className="text-3xl mb-4">{u.icon}</div>
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <path d={u.iconPath} />
+                  </svg>
+                </div>
                 <h3 className="text-base font-semibold mb-2">{u.title}</h3>
                 <p className="text-sm text-muted leading-relaxed">{u.desc}</p>
               </div>
@@ -583,7 +632,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center justify-between flex-wrap gap-2 pt-6 border-t border-border text-xs text-muted">
             <p>© {new Date().getFullYear()} Identification ID. All rights reserved.</p>
-            <p>Made with care in Vancouver 🇨🇦</p>
+            <p>Designed and built in Vancouver, Canada.</p>
           </div>
         </div>
       </footer>
