@@ -31,6 +31,8 @@ const LANGUAGES = [
   { code: "fr", label: "French" },
   { code: "es", label: "Spanish" },
   { code: "ar", label: "Arabic" },
+  { code: "ko", label: "Korean" },
+  { code: "ja", label: "Japanese" },
 ];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -331,7 +333,7 @@ export default function EditProductPage({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold">{product.name}</h1>
-          <p className="text-xs text-muted">{product.identification_id}</p>
+          <p className="text-sm font-semibold text-foreground font-mono">{product.identification_id}</p>
         </div>
         <span className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
           product.status === "published" ? "bg-green-50 text-green-700 border border-green-200"
