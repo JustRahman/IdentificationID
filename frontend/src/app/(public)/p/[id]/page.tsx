@@ -141,6 +141,27 @@ export default function PublicProductPage({
             ))}
           </div>
         </div>
+
+        {/* QR Code */}
+        <div className="mt-6 pt-6 border-t border-border flex items-center gap-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+              typeof window !== "undefined"
+                ? `${window.location.origin}/p/${product.identification_id}`
+                : `https://identificationid.com/p/${product.identification_id}`
+            )}`}
+            alt="QR Code"
+            width={120}
+            height={120}
+            className="border border-border rounded-lg p-1.5 bg-white shrink-0"
+          />
+          <div>
+            <p className="text-sm font-medium mb-1">Scan to share</p>
+            <p className="text-xs text-muted mb-2">Point your phone camera at this code to open this product page instantly.</p>
+            <p className="text-xs font-mono text-muted">{product.identification_id}</p>
+          </div>
+        </div>
       </div>
 
       {product.translation?.full_description && (
