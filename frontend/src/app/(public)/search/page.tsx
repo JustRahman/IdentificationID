@@ -12,6 +12,7 @@ interface SearchResult {
   name: string;
   category: string;
   brand: string | null;
+  manufacturer: string | null;
 }
 
 function SearchPageContent() {
@@ -26,6 +27,7 @@ function SearchPageContent() {
   const [searched, setSearched] = useState(false);
 
   useEffect(() => {
+    setQuery(initialQ);
     if (!initialQ) return;
     if (ID_PATTERN.test(initialQ)) {
       router.replace(`/p/${encodeURIComponent(initialQ.toUpperCase())}`);
@@ -125,9 +127,9 @@ function SearchPageContent() {
                     {categoryLabel[r.category] ?? r.category}
                   </span>
                 </div>
-                {r.brand && (
-                  <p className="text-xs text-muted mb-3">{r.brand}</p>
-                )}
+                <p className="text-xs text-muted mb-3">
+                  {[r.brand, r.manufacturer].filter(Boolean).join(" · ")}
+                </p>
                 <p className="text-xs font-mono text-muted">{r.identification_id}</p>
               </Link>
             ))}

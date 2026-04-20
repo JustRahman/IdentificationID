@@ -68,7 +68,7 @@ export default function LandingPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, e.g. "Air Fryer" or paste an ID…"
+              placeholder="Search by name, e.g. Air Fryer, or paste an ID..."
               className="flex-1 border border-border rounded-xl px-4 py-3.5 text-sm bg-background"
               autoFocus
             />

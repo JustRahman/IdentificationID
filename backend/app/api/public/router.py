@@ -96,8 +96,18 @@ async def search_products(
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ):
-    base = select(Product).where(Product.status == ProductStatus.published)
-    search_filter = Product.name.ilike(f"%{q}%")
+    like = f"%{q}%"
+    base = (
+        select(Product)
+        .join(Product.company)
+        .where(Product.status == ProductStatus.published)
+    )
+    search_filter = (
+        Product.name.ilike(like)
+        | Product.brand.ilike(like)
+        | Product.category.ilike(like)
+        | Company.display_name.ilike(like)
+    )
     query = base.where(search_filter).order_by(Product.published_at.desc())
 
     count_q = select(func.count()).select_from(
@@ -106,7 +116,9 @@ async def search_products(
     total = (await db.execute(count_q)).scalar() or 0
 
     result = await db.execute(
-        query.offset((page - 1) * per_page).limit(per_page)
+        query.options(selectinload(Product.company))
+        .offset((page - 1) * per_page)
+        .limit(per_page)
     )
     products = result.scalars().all()
 
@@ -118,6 +130,7 @@ async def search_products(
                 "name": p.name,
                 "category": p.category,
                 "brand": p.brand,
+                "manufacturer": p.company.display_name,
             }
             for p in products
         ],
