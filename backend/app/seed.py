@@ -9,9 +9,113 @@ from app.core.security import hash_password
 from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
 from app.models.product_document import ProductDocument, DocType
+from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
 from app.models.user import User, UserRole
 from app.services.id_generator import generate_identification_id
+
+# ---------------------------------------------------------------------------
+# Mock images: 2–3 Picsum Photos URLs per product.
+# URLs are deterministic (same seed → same image) and never 404.
+# Format: https://picsum.photos/seed/{seed}/800/600
+# ---------------------------------------------------------------------------
+MOCK_IMAGES: dict[str, list[tuple[str, str]]] = {
+    "ProChef Air Fryer 5.5L": [
+        ("https://picsum.photos/seed/airfryer-main/800/600",   "ProChef Air Fryer 5.5L – front view"),
+        ("https://picsum.photos/seed/airfryer-basket/800/600", "ProChef Air Fryer 5.5L – basket detail"),
+        ("https://picsum.photos/seed/airfryer-food/800/600",   "ProChef Air Fryer 5.5L – cooked food result"),
+    ],
+    "BrewMaster Coffee Maker": [
+        ("https://picsum.photos/seed/brewmaster-main/800/600",  "BrewMaster Coffee Maker – front view"),
+        ("https://picsum.photos/seed/brewmaster-carafe/800/600","BrewMaster Coffee Maker – thermal carafe"),
+        ("https://picsum.photos/seed/brewmaster-brew/800/600",  "BrewMaster Coffee Maker – brewing in progress"),
+    ],
+    "SilentBlend 1200W": [
+        ("https://picsum.photos/seed/silentblend-main/800/600",   "SilentBlend 1200W – full unit"),
+        ("https://picsum.photos/seed/silentblend-enclosure/800/600", "SilentBlend 1200W – acoustic enclosure"),
+        ("https://picsum.photos/seed/silentblend-smoothie/800/600","SilentBlend 1200W – smoothie result"),
+    ],
+    "PowerDrill Pro 3000": [
+        ("https://picsum.photos/seed/powerdrill-main/800/600",  "PowerDrill Pro 3000 – front view"),
+        ("https://picsum.photos/seed/powerdrill-side/800/600",  "PowerDrill Pro 3000 – side with battery"),
+        ("https://picsum.photos/seed/powerdrill-bits/800/600",  "PowerDrill Pro 3000 – included bit set"),
+    ],
+    "CircularSaw 7.25\" Pro": [
+        ("https://picsum.photos/seed/circularsaw-main/800/600", "CircularSaw 7.25\" Pro – full unit"),
+        ("https://picsum.photos/seed/circularsaw-blade/800/600","CircularSaw 7.25\" Pro – blade detail"),
+        ("https://picsum.photos/seed/circularsaw-cut/800/600",  "CircularSaw 7.25\" Pro – cutting wood"),
+    ],
+    "OrbitalSander OS-5": [
+        ("https://picsum.photos/seed/sander-main/800/600",   "OrbitalSander OS-5 – top view"),
+        ("https://picsum.photos/seed/sander-pad/800/600",    "OrbitalSander OS-5 – sanding pad"),
+        ("https://picsum.photos/seed/sander-action/800/600", "OrbitalSander OS-5 – in use on wood"),
+    ],
+    "SmartThermo X1": [
+        ("https://picsum.photos/seed/thermostat-main/800/600", "SmartThermo X1 – wall mounted"),
+        ("https://picsum.photos/seed/thermostat-app/800/600",  "SmartThermo X1 – companion app"),
+        ("https://picsum.photos/seed/thermostat-room/800/600", "SmartThermo X1 – installed in room"),
+    ],
+    "VisionCam Pro 4K": [
+        ("https://picsum.photos/seed/visioncam-main/800/600",    "VisionCam Pro 4K – camera unit"),
+        ("https://picsum.photos/seed/visioncam-mount/800/600",   "VisionCam Pro 4K – mounted outdoors"),
+        ("https://picsum.photos/seed/visioncam-nightvision/800/600","VisionCam Pro 4K – night vision sample"),
+    ],
+    "SmartLock V2": [
+        ("https://picsum.photos/seed/smartlock-main/800/600",   "SmartLock V2 – front panel"),
+        ("https://picsum.photos/seed/smartlock-finger/800/600", "SmartLock V2 – fingerprint sensor"),
+        ("https://picsum.photos/seed/smartlock-door/800/600",   "SmartLock V2 – installed on door"),
+    ],
+    "StandDesk Pro 160": [
+        ("https://picsum.photos/seed/standdesk-main/800/600",      "StandDesk Pro 160 – standing position"),
+        ("https://picsum.photos/seed/standdesk-sitting/800/600",   "StandDesk Pro 160 – sitting position"),
+        ("https://picsum.photos/seed/standdesk-controls/800/600",  "StandDesk Pro 160 – control panel"),
+    ],
+    "ErgoChair Lumbar Pro": [
+        ("https://picsum.photos/seed/ergochair-main/800/600",   "ErgoChair Lumbar Pro – front view"),
+        ("https://picsum.photos/seed/ergochair-back/800/600",   "ErgoChair Lumbar Pro – mesh back"),
+        ("https://picsum.photos/seed/ergochair-lumbar/800/600", "ErgoChair Lumbar Pro – lumbar support detail"),
+    ],
+    "TrailRunner Jacket": [
+        ("https://picsum.photos/seed/trailrunner-main/800/600",    "TrailRunner Jacket – front view"),
+        ("https://picsum.photos/seed/trailrunner-packed/800/600",  "TrailRunner Jacket – packed into pocket"),
+        ("https://picsum.photos/seed/trailrunner-running/800/600", "TrailRunner Jacket – worn while running"),
+    ],
+    "ZenFit Compression Tights": [
+        ("https://picsum.photos/seed/compression-main/800/600",  "ZenFit Compression Tights – full length"),
+        ("https://picsum.photos/seed/compression-fabric/800/600","ZenFit Compression Tights – fabric detail"),
+        ("https://picsum.photos/seed/compression-sport/800/600", "ZenFit Compression Tights – worn during workout"),
+    ],
+    "RoboKit STEM Builder": [
+        ("https://picsum.photos/seed/robokit-main/800/600",   "RoboKit STEM Builder – assembled robot"),
+        ("https://picsum.photos/seed/robokit-parts/800/600",  "RoboKit STEM Builder – all components"),
+        ("https://picsum.photos/seed/robokit-coding/800/600", "RoboKit STEM Builder – coding interface"),
+    ],
+    "WoodCraft Junior Set": [
+        ("https://picsum.photos/seed/woodcraft-main/800/600",  "WoodCraft Junior Set – full set laid out"),
+        ("https://picsum.photos/seed/woodcraft-build/800/600", "WoodCraft Junior Set – built structure"),
+        ("https://picsum.photos/seed/woodcraft-pieces/800/600","WoodCraft Junior Set – wooden piece detail"),
+    ],
+    "ZenMat Pro 6mm": [
+        ("https://picsum.photos/seed/zenmat-main/800/600",    "ZenMat Pro 6mm – rolled out"),
+        ("https://picsum.photos/seed/zenmat-texture/800/600", "ZenMat Pro 6mm – surface texture"),
+        ("https://picsum.photos/seed/zenmat-yoga/800/600",    "ZenMat Pro 6mm – in use during yoga"),
+    ],
+    "ResistaBand Set X5": [
+        ("https://picsum.photos/seed/resistaband-main/800/600",  "ResistaBand Set X5 – full set"),
+        ("https://picsum.photos/seed/resistaband-colors/800/600","ResistaBand Set X5 – colour-coded bands"),
+        ("https://picsum.photos/seed/resistaband-workout/800/600","ResistaBand Set X5 – workout demo"),
+    ],
+    "JumpStart Pro 2000A": [
+        ("https://picsum.photos/seed/jumpstart-main/800/600",  "JumpStart Pro 2000A – unit front"),
+        ("https://picsum.photos/seed/jumpstart-clamps/800/600","JumpStart Pro 2000A – clamp cables"),
+        ("https://picsum.photos/seed/jumpstart-car/800/600",   "JumpStart Pro 2000A – connected to battery"),
+    ],
+    "DriveCam 4K Duo": [
+        ("https://picsum.photos/seed/drivecam-main/800/600",  "DriveCam 4K Duo – front camera"),
+        ("https://picsum.photos/seed/drivecam-rear/800/600",  "DriveCam 4K Duo – rear camera"),
+        ("https://picsum.photos/seed/drivecam-mount/800/600", "DriveCam 4K Duo – windshield mounted"),
+    ],
+}
 
 
 async def _get_or_create_user(session: AsyncSession, email: str, **kwargs) -> User:
@@ -35,12 +139,19 @@ async def _get_or_create_company(session: AsyncSession, display_name: str, owner
 
 
 async def seed_data(session: AsyncSession) -> None:
-    # Check if fully seeded already (use a product that only exists in the full seed)
+    # Check if products are already seeded
     result = await session.execute(
         select(Product).where(Product.name == "DriveCam 4K Duo")
     )
-    if result.scalar_one_or_none():
-        return  # Already fully seeded
+    drivecam = result.scalar_one_or_none()
+    products_done = drivecam is not None
+
+    # Check if images are already seeded (look for any ProductImage row)
+    img_check = await session.execute(select(ProductImage).limit(1))
+    images_done = img_check.scalar_one_or_none() is not None
+
+    if products_done and images_done:
+        return  # Fully seeded — nothing to do
 
     now = datetime.now(timezone.utc)
 
@@ -51,7 +162,7 @@ async def seed_data(session: AsyncSession) -> None:
         role=UserRole.admin, is_active=True,
     )
 
-    # ── Users (get or create) ──
+    # ── Users ──
     john   = await _get_or_create_user(session, "john@acmecorp.com",   password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
     sarah  = await _get_or_create_user(session, "sarah@techvision.io", password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
     mike   = await _get_or_create_user(session, "mike@greenleaf.co",   password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
@@ -59,7 +170,7 @@ async def seed_data(session: AsyncSession) -> None:
     carlos = await _get_or_create_user(session, "carlos@casahome.es",  password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
     yuki   = await _get_or_create_user(session, "yuki@zenfit.jp",      password_hash=hash_password("demo12345678"), role=UserRole.manufacturer, is_active=True)
 
-    # ── Companies (get or create) ──
+    # ── Companies ──
     acme       = await _get_or_create_company(session, "ACME Corp",   john.id,   legal_name="ACME Corporation LLC",         country_code="US", website="https://acmecorp.com",   support_email="support@acmecorp.com",  status=CompanyStatus.verified, verified_at=now)
     techvision = await _get_or_create_company(session, "TechVision",  sarah.id,  legal_name="TechVision Industries GmbH",   country_code="DE", website="https://techvision.io",  support_email="help@techvision.io",    status=CompanyStatus.verified, verified_at=now)
     greenleaf  = await _get_or_create_company(session, "GreenLeaf",   mike.id,   legal_name="GreenLeaf Manufacturing Ltd",  country_code="GB", website="https://greenleaf.co",   support_email="info@greenleaf.co",     status=CompanyStatus.verified, verified_at=now)
@@ -163,38 +274,52 @@ async def seed_data(session: AsyncSession) -> None:
     ]
 
     for pd in products_data:
-        # Skip products that already exist
+        # Get existing product or create it
         existing = await session.execute(select(Product).where(Product.name == pd["name"]))
-        if existing.scalar_one_or_none():
-            continue
+        product = existing.scalar_one_or_none()
 
-        product = Product(
-            company_id=pd["company"].id,
-            identification_id=generate_identification_id(),
-            name=pd["name"],
-            category=pd["category"],
-            brand=pd["brand"],
-            model=pd["model"],
-            country_of_origin=pd["country"],
-            status=pd["status"],
-            published_at=now if pd["status"] == ProductStatus.published else None,
-        )
-        session.add(product)
-        await session.flush()
+        if not product:
+            product = Product(
+                company_id=pd["company"].id,
+                identification_id=generate_identification_id(),
+                name=pd["name"],
+                category=pd["category"],
+                brand=pd["brand"],
+                model=pd["model"],
+                country_of_origin=pd["country"],
+                status=pd["status"],
+                published_at=now if pd["status"] == ProductStatus.published else None,
+            )
+            session.add(product)
+            await session.flush()
 
-        session.add(ProductTranslation(
-            product_id=product.id,
-            lang="en",
-            short_description=pd["short"],
-            full_description=pd["full"],
-            usage_instructions=pd["usage"],
-        ))
-
-        if pd["status"] == ProductStatus.published:
-            session.add(ProductDocument(
+            session.add(ProductTranslation(
                 product_id=product.id,
-                doc_type=DocType.manual,
-                title=f"{pd['name']} — User Manual",
+                lang="en",
+                short_description=pd["short"],
+                full_description=pd["full"],
+                usage_instructions=pd["usage"],
             ))
+
+            if pd["status"] == ProductStatus.published:
+                session.add(ProductDocument(
+                    product_id=product.id,
+                    doc_type=DocType.manual,
+                    title=f"{pd['name']} — User Manual",
+                ))
+
+        # ── Seed mock images (idempotent — skipped if already present) ──
+        existing_img = await session.execute(
+            select(ProductImage).where(ProductImage.product_id == product.id).limit(1)
+        )
+        if not existing_img.scalar_one_or_none():
+            for order, (url, alt) in enumerate(MOCK_IMAGES.get(pd["name"], [])):
+                session.add(ProductImage(
+                    product_id=product.id,
+                    file_key=f"mock/images/{product.id}/{order + 1}.jpg",
+                    url=url,
+                    display_order=order,
+                    alt_text=alt,
+                ))
 
     await session.commit()
