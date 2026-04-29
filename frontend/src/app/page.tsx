@@ -41,7 +41,8 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navbar — sticky with scroll shadow */}
+
+      {/* ── Navbar ── */}
       <nav
         className={`sticky top-0 z-50 bg-background/80 backdrop-blur-md transition-all ${
           scrolled ? "border-b border-border shadow-sm" : "border-b border-transparent"
@@ -55,18 +56,10 @@ export default function LandingPage() {
             <span>Identification ID</span>
           </Link>
           <div className="hidden md:flex items-center gap-7 text-sm">
-            <Link href="/search" className="text-muted hover:text-foreground transition-colors">
-              Search
-            </Link>
-            <Link href="/pricing" className="text-muted hover:text-foreground transition-colors">
-              Pricing
-            </Link>
-            <Link href="/faq" className="text-muted hover:text-foreground transition-colors">
-              FAQ
-            </Link>
-            <Link href="/login" className="text-muted hover:text-foreground transition-colors">
-              Log in
-            </Link>
+            <Link href="/search" className="text-muted hover:text-foreground transition-colors">Search</Link>
+            <Link href="/pricing" className="text-muted hover:text-foreground transition-colors">Pricing</Link>
+            <Link href="/faq" className="text-muted hover:text-foreground transition-colors">FAQ</Link>
+            <Link href="/login" className="text-muted hover:text-foreground transition-colors">Log in</Link>
             <Link
               href="/register"
               className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors shadow-sm"
@@ -83,9 +76,8 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero — gradient backdrop */}
+      {/* ── Hero ── */}
       <section className="relative overflow-hidden">
-        {/* Decorative gradient blobs */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-b from-blue-50 via-blue-50/30 to-transparent rounded-full blur-3xl opacity-70" />
           <div className="absolute top-40 right-0 w-96 h-96 bg-gradient-to-br from-indigo-100 to-transparent rounded-full blur-3xl opacity-40" />
@@ -94,41 +86,48 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto text-center pt-20 pb-10 px-6">
           <div className="inline-flex items-center gap-2 text-xs font-medium bg-white text-accent px-3.5 py-1.5 rounded-full mb-8 border border-blue-100 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Verified product information · Live
+            Глобальный реестр товаров · Live
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-semibold leading-[1.05] tracking-tight mb-6">
-            Find any product.
-            <br />
-            <span className="bg-gradient-to-r from-accent to-indigo-600 bg-clip-text text-transparent">
-              Know what you bought.
-            </span>
+            Identification ID
           </h1>
 
-          <p className="text-lg text-muted mb-10 leading-relaxed max-w-xl mx-auto">
-            Search by product name or paste an Identification ID to instantly access
-            manuals, specs, certificates, and verified manufacturer info.
+          <p className="text-xl text-muted mb-4 leading-relaxed max-w-2xl mx-auto font-medium">
+            Это глобальный онлайн-реестр товаров, где каждый товар получает уникальный ID
           </p>
 
-          {/* Search bar with integrated icon */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {[
+              { icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253", label: "Wikipedia" },
+              { icon: "M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z", label: "GS1 / Штрих-коды" },
+              { icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", label: "Цифровой паспорт" },
+            ].map(({ icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-2 text-sm bg-white border border-border rounded-full px-4 py-2 shadow-sm"
+              >
+                <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                  <path d={icon} />
+                </svg>
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {/* Search */}
           <form onSubmit={handleSearch} className="max-w-xl mx-auto">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-indigo-500/20 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
               <div className="relative flex items-center bg-white rounded-2xl border border-border shadow-sm focus-within:border-accent focus-within:shadow-md transition-all">
-                <svg
-                  className="w-5 h-5 text-muted ml-5 shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
+                <svg className="w-5 h-5 text-muted ml-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search 'Air Fryer' or paste IID-4F9A-2K7Q..."
+                  placeholder="Введите название товара или ID..."
                   className="flex-1 px-4 py-4 text-sm bg-transparent border-none focus:outline-none focus:ring-0"
                   style={{ boxShadow: "none" }}
                   autoFocus
@@ -137,48 +136,31 @@ export default function LandingPage() {
                   type="submit"
                   className="m-1.5 bg-accent text-white px-5 py-3 rounded-xl text-sm font-medium hover:bg-accent-hover whitespace-nowrap transition-colors shadow-sm"
                 >
-                  Search →
+                  Найти →
                 </button>
               </div>
             </div>
-
             <p className="text-xs text-muted mt-4">
-              Try:{" "}
-              <button
-                type="button"
-                onClick={() => setQuery("IID-4F9A-2K7Q")}
-                className="font-mono text-foreground hover:text-accent underline-offset-4 hover:underline transition-colors"
-              >
+              Попробуйте:{" "}
+              <button type="button" onClick={() => setQuery("IID-4F9A-2K7Q")} className="font-mono text-foreground hover:text-accent underline-offset-4 hover:underline transition-colors">
                 IID-4F9A-2K7Q
               </button>
               {" · "}
-              <button
-                type="button"
-                onClick={() => setQuery("Air Fryer")}
-                className="hover:text-accent transition-colors"
-              >
-                Air Fryer
-              </button>
+              <button type="button" onClick={() => setQuery("Air Fryer")} className="hover:text-accent transition-colors">Air Fryer</button>
               {" · "}
-              <button
-                type="button"
-                onClick={() => setQuery("Drill")}
-                className="hover:text-accent transition-colors"
-              >
-                Drill
-              </button>
+              <button type="button" onClick={() => setQuery("Drill")} className="hover:text-accent transition-colors">Drill</button>
             </p>
           </form>
         </div>
 
-        {/* Trust stats bar */}
-        <div className="max-w-3xl mx-auto px-6 pb-4">
+        {/* Trust stats */}
+        <div className="max-w-3xl mx-auto px-6 pb-16">
           <div className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm">
             {[
-              { n: "1,200+", label: "Verified products" },
-              { n: "50+", label: "Trusted manufacturers" },
-              { n: "30+", label: "Countries" },
-              { n: "100%", label: "Free for consumers" },
+              { n: "1 200+", label: "Зарегистрированных товаров" },
+              { n: "50+", label: "Производителей" },
+              { n: "30+", label: "Стран" },
+              { n: "100%", label: "Бесплатно для потребителей" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-lg font-semibold tracking-tight">{s.n}</p>
@@ -187,243 +169,85 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Categories */}
-        <div className="max-w-3xl mx-auto px-6 pt-10 pb-20">
-          <p className="text-xs text-muted text-center mb-4 uppercase tracking-wider font-semibold">
-            Or browse by category
-          </p>
-          <div className="flex flex-wrap gap-2 justify-center">
+      {/* ── What is Identification ID ── */}
+      <section className="bg-gradient-to-b from-surface to-background py-20 px-6 border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Что это такое</p>
+            <h2 className="text-3xl font-semibold tracking-tight mb-4">
+              Единый цифровой паспорт для каждого товара
+            </h2>
+            <p className="text-muted max-w-2xl mx-auto leading-relaxed">
+              Identification ID — это система независимого единого цифрового паспорта товара,
+              а также международный каталог товаров. Единый стандарт описания товара и паспорт изделия.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               {
-                label: "Kitchen", q: "kitchen_appliances",
-                path: "M8 2v4M12 2v4M16 2v4M4 10h16M5 6h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1z",
+                icon: "M7 20l4-16m2 16l4-16M6 9h14M4 15h14",
+                title: "Уникальный ID для каждого товара",
+                desc: "Каждый товар получает уникальный идентификатор, который остаётся с ним навсегда — от производства до потребителя.",
               },
               {
-                label: "Power Tools", q: "power_tools",
-                path: "M14.7 6.3a1 1 0 010 1.4l-1 1 2.6 2.6-4.3 4.3-2.6-2.6-5 5a2 2 0 11-2.8-2.8l5-5-2.6-2.6 4.3-4.3 2.6 2.6 1-1a1 1 0 011.4 0l1.4 1.4z",
+                icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4",
+                title: "Вся информация в одном месте",
+                desc: "Документы, инструкции, сертификаты, фотографии — всё хранится в единой системе и всегда доступно по ID.",
               },
               {
-                label: "Electronics", q: "electronics",
-                path: "M7 4a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H7zM11 18h2",
+                icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z",
+                title: "Проверка информации потребителем",
+                desc: "Любой потребитель может получить и проверить полную информацию о товаре по его ID — быстро и бесплатно.",
               },
               {
-                label: "Furniture", q: "furniture",
-                path: "M4 18v2M20 18v2M3 10h18v6H3zM5 10V7a2 2 0 012-2h10a2 2 0 012 2v3",
+                icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
+                title: "Цифровой паспорт товара",
+                desc: "Производители получают живой цифровой паспорт — обновляют информацию без перепечатки инструкций и экономят на бумажной документации.",
               },
-              {
-                label: "Clothing", q: "clothing",
-                path: "M8 3l-5 4 2 3 3-2v13h8V8l3 2 2-3-5-4-1 2a3 3 0 01-6 0l-1-2z",
-              },
-              {
-                label: "Toys", q: "toys",
-                path: "M12 2a5 5 0 00-5 5v3a5 5 0 0010 0V7a5 5 0 00-5-5zM4 17a4 4 0 014-4h8a4 4 0 014 4v4H4v-4z",
-              },
-              {
-                label: "Sports", q: "sports",
-                path: "M12 2a10 10 0 100 20 10 10 0 000-20zM12 2l2 5h5l-4 3.5 1.5 5.5L12 13l-4.5 3L9 10.5 5 7h5l2-5z",
-              },
-              {
-                label: "Automotive", q: "automotive",
-                path: "M5 11l2-5h10l2 5M3 16h18v-3a2 2 0 00-2-2H5a2 2 0 00-2 2v3zM7 16v2M17 16v2",
-              },
-            ].map(({ label, q, path }) => (
-              <Link
-                key={q}
-                href={`/search?q=${q}`}
-                className="group text-sm bg-white border border-border rounded-full pl-3 pr-4 py-1.5 hover:border-accent hover:shadow-sm hover:-translate-y-0.5 transition-all flex items-center gap-2"
-              >
-                <svg className="w-4 h-4 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-                  <path d={path} />
-                </svg>
-                <span className="group-hover:text-accent transition-colors">{label}</span>
-              </Link>
+            ].map((item) => (
+              <div key={item.title} className="bg-white border border-border rounded-2xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center mb-4">
+                  <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <path d={item.icon} />
+                  </svg>
+                </div>
+                <h3 className="font-semibold mb-2">{item.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Product showcase preview — real-ish mockup */}
-      <section className="bg-gradient-to-b from-surface to-background py-20 px-6 border-y border-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">What you'll see</p>
-            <h2 className="text-3xl font-semibold tracking-tight mb-3">Every product, fully documented</h2>
-            <p className="text-muted max-w-xl mx-auto">
-              No more lost manuals or missing warranty cards. Every registered product comes with complete, verified information.
-            </p>
-          </div>
-
-          {/* Mock product card */}
-          <div className="relative max-w-3xl mx-auto">
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-3xl blur-2xl opacity-50" />
-            <div className="relative bg-white border border-border rounded-2xl shadow-lg overflow-hidden">
-              {/* Fake browser bar */}
-              <div className="border-b border-border px-4 py-2.5 flex items-center gap-2 bg-surface">
-                <div className="flex gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                </div>
-                <div className="flex-1 bg-background border border-border rounded-md px-3 py-1 text-xs text-muted font-mono ml-3 truncate">
-                  identificationid.com/p/IID-4F9A-2K7Q
-                </div>
-              </div>
-
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h3 className="text-2xl font-semibold mb-2">ProChef Air Fryer 5.5L</h3>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs bg-surface text-muted px-2 py-1 rounded border border-border">
-                        Kitchen Appliances
-                      </span>
-                      <span className="text-xs font-mono text-muted">IID-4F9A-2K7Q</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200 flex items-center gap-1.5 shrink-0">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Verified
-                  </span>
-                </div>
-
-                <p className="text-sm text-muted mb-6 leading-relaxed">
-                  Large 5.5L digital air fryer with 8 cooking presets. Cook with up to 80% less fat than traditional frying.
-                </p>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  {[
-                    { label: "Brand", value: "ACME" },
-                    { label: "Model", value: "AF-550" },
-                    { label: "Made in", value: "United States" },
-                    { label: "Manufacturer", value: "ACME Corp" },
-                  ].map((f) => (
-                    <div key={f.label}>
-                      <p className="text-xs text-muted mb-0.5">{f.label}</p>
-                      <p className="text-sm font-medium">{f.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    {
-                      label: "User Manual (PDF)",
-                      path: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6M8 13h8M8 17h8M8 9h2",
-                    },
-                    {
-                      label: "Warranty",
-                      path: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4zM9 12l2 2 4-4",
-                    },
-                    {
-                      label: "Safety Certificate",
-                      path: "M12 15a3 3 0 100-6 3 3 0 000 6zM12 15v5M9 20h6M4 4h16v10H4z",
-                    },
-                  ].map((d) => (
-                    <div
-                      key={d.label}
-                      className="flex items-center gap-2 text-xs border border-border rounded-lg px-3 py-2 bg-surface"
-                    >
-                      <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-                        <path d={d.path} />
-                      </svg>
-                      <span className="font-medium">{d.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works — timeline layout */}
+      {/* ── For Consumers & Manufacturers split ── */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Simple flow</p>
+            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Для всех сторон</p>
             <h2 className="text-3xl font-semibold tracking-tight mb-3">
-              Three steps, zero friction
-            </h2>
-            <p className="text-muted max-w-xl mx-auto">
-              No app to install, no account needed. Just find your product and get what you need.
-            </p>
-          </div>
-
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Connecting line (desktop only) */}
-            <div className="hidden md:block absolute top-6 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-
-            {[
-              {
-                step: "1",
-                iconPath: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z",
-                title: "Search or scan",
-                desc: "Type a product name, or enter the Identification ID printed on the packaging.",
-              },
-              {
-                step: "2",
-                iconPath: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z",
-                title: "Find your product",
-                desc: "Browse verified results — only registered manufacturers can publish here.",
-              },
-              {
-                step: "3",
-                iconPath: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6M8 13h8M8 17h8",
-                title: "Access everything",
-                desc: "Manuals, warranties, safety certificates, and manufacturer contacts — in seconds.",
-              },
-            ].map((item) => (
-              <div key={item.step} className="relative text-center">
-                <div className="relative inline-flex items-center justify-center mb-5">
-                  <div className="w-12 h-12 bg-white border-2 border-accent text-accent rounded-full flex items-center justify-center text-sm font-bold relative z-10">
-                    {item.step}
-                  </div>
-                </div>
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-                    <path d={item.iconPath} />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                <p className="text-sm text-muted leading-relaxed max-w-xs mx-auto">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Audience split — cleaner cards */}
-      <section className="py-20 px-6 bg-surface border-y border-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Built for everyone</p>
-            <h2 className="text-3xl font-semibold tracking-tight mb-3">
-              One platform. Two sides. Zero headaches.
+              Одна платформа — для потребителей и производителей
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Consumers */}
-            <div className="relative bg-background border border-border rounded-2xl p-8 hover:shadow-md hover:-translate-y-1 transition-all">
+            <div className="bg-background border border-border rounded-2xl p-8 hover:shadow-md hover:-translate-y-1 transition-all">
               <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-5">
                 <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 2l-2 5v13a2 2 0 002 2h12a2 2 0 002-2V7l-2-5H6zM4 7h16M9 11a3 3 0 006 0" />
+                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">For consumers</h3>
-              <p className="text-sm text-muted mb-6">
-                Find manuals, verify authenticity, and get support — without registering.
-              </p>
+              <h3 className="text-xl font-semibold mb-2">Для потребителей</h3>
+              <p className="text-sm text-muted mb-6">Identification ID позволяет потребителям:</p>
               <ul className="space-y-3 text-sm mb-6">
                 {[
-                  "Find manuals without registering",
-                  "Verify authenticity before you buy",
-                  "Download warranties and certificates",
-                  "Works for any registered product",
-                  "No app required — just the website",
+                  "Быстрый доступ к данным по ID",
+                  "Описание и инструкцию по пользованию на разных языках",
+                  "Проверку подлинности товара",
+                  "Бесплатно — без регистрации и приложений",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <svg className="w-4 h-4 text-green-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -433,35 +257,32 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/search"
-                className="inline-flex items-center gap-1.5 text-sm text-accent font-medium hover:gap-2.5 transition-all"
-              >
-                Start searching <span>→</span>
+              <Link href="/search" className="inline-flex items-center gap-1.5 text-sm text-accent font-medium hover:gap-2.5 transition-all">
+                Найти товар <span>→</span>
               </Link>
             </div>
 
             {/* Manufacturers */}
-            <div className="relative bg-background border border-border rounded-2xl p-8 hover:shadow-md hover:-translate-y-1 transition-all">
+            <div className="bg-background border border-border rounded-2xl p-8 hover:shadow-md hover:-translate-y-1 transition-all relative">
               <div className="absolute top-4 right-4 text-[10px] font-semibold bg-accent text-white px-2 py-0.5 rounded">
-                POPULAR
+                ДЛЯ БИЗНЕСА
               </div>
               <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-5">
                 <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 21V9l6 4V9l6 4V5l6 4v12H3zM7 17h2M13 17h2M17 17h1" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">For manufacturers</h3>
-              <p className="text-sm text-muted mb-6">
-                Register once, connect every customer who buys your product.
-              </p>
+              <h3 className="text-xl font-semibold mb-2">Для производителей</h3>
+              <p className="text-sm text-muted mb-6">После регистрации на платформе производитель получает:</p>
               <ul className="space-y-3 text-sm mb-6">
                 {[
-                  "Register products with unique IDs",
-                  "Upload manuals, specs, certificates",
-                  "Update info anytime — no reprinting",
-                  "Auto-translate descriptions globally",
-                  "Track product lookups and analytics",
+                  "Регистрацию товара и уникальный ID для него",
+                  "Верификацию производителя",
+                  "Создание карточки товара",
+                  "Загрузку документов и фото",
+                  "Генерацию Identification ID",
+                  "Генерацию QR-кода",
+                  "Редактирование информации в любое время",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <svg className="w-4 h-4 text-green-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -471,84 +292,259 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors"
-              >
-                Register as Manufacturer <span>→</span>
+              <Link href="/register" className="inline-flex items-center gap-2 bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors">
+                Зарегистрировать товар <span>→</span>
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Use cases */}
+      {/* ── Anti-Counterfeit ── */}
+      <section className="py-20 px-6 bg-surface border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+              <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-3">Защита от подделок</p>
+              <h2 className="text-3xl font-semibold tracking-tight mb-4">
+                Anti&#8209;Counterfeit платформа
+              </h2>
+              <p className="text-muted mb-8 leading-relaxed">
+                Identification ID — это надёжная система защиты от подделок. Уникальный код
+                для каждой единицы товара позволяет мгновенно подтвердить оригинальность.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", text: "Подтверждение оригинальности по номеру ID на товаре" },
+                  { icon: "M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z", text: "Уникальный код для каждой единицы товара" },
+                  { icon: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0zM9 10h4M11 8v4", text: "Моментальная проверка перед покупкой — прямо в магазине" },
+                  { icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z", text: "Защита репутации бренда от контрафакта" },
+                ].map(({ icon, text }) => (
+                  <li key={text} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-white border border-border flex items-center justify-center shrink-0 mt-0.5">
+                      <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                        <path d={icon} />
+                      </svg>
+                    </div>
+                    <span className="text-sm leading-relaxed pt-1">{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Fake badge mockup */}
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-green-100 to-blue-100 rounded-3xl blur-2xl opacity-50" />
+              <div className="relative bg-white border border-border rounded-2xl p-8 text-center shadow-lg">
+                <div className="w-20 h-20 rounded-full bg-green-50 border-4 border-green-200 flex items-center justify-center mx-auto mb-5">
+                  <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-xs text-muted font-mono mb-1">IID-4F9A-2K7Q</p>
+                <p className="text-lg font-semibold text-green-700 mb-1">Оригинальный товар</p>
+                <p className="text-sm text-muted mb-4">Подтверждено Identification ID</p>
+                <div className="text-left space-y-2 text-sm border-t border-border pt-4">
+                  {[
+                    ["Производитель", "ACME Corp"],
+                    ["Страна", "United States"],
+                    ["Дата регистрации", "2024-01-15"],
+                  ].map(([label, val]) => (
+                    <div key={label} className="flex justify-between">
+                      <span className="text-muted">{label}</span>
+                      <span className="font-medium">{val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PIM System ── */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Use cases</p>
-            <h2 className="text-3xl font-semibold tracking-tight mb-3">
-              Real problems, solved in seconds
+            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Для производителей</p>
+            <h2 className="text-3xl font-semibold tracking-tight mb-4">
+              PIM-система управления товарами
             </h2>
+            <p className="text-muted max-w-xl mx-auto">
+              Identification ID — это полноценная PIM-система (Product Information Management)
+              для производителей. Всё в одном месте, всегда актуально.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
             {[
               {
-                iconPath: "M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16zM3.27 6.96L12 12l8.73-5.04M12 22V12",
-                title: "Lost the manual?",
-                desc: "Just paste the ID from the packaging. The original manual is one click away — no digging through drawers.",
+                icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4",
+                title: "Хранит все данные о товаре",
+                desc: "Централизованное хранилище для спецификаций, документов, фото и медиафайлов.",
               },
               {
-                iconPath: "M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4zM9 12l2 2 4-4",
-                title: "Check warranty?",
-                desc: "See the warranty terms, expiration, and claim instructions directly from the manufacturer.",
+                icon: "M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z",
+                title: "Генерирует QR / ID",
+                desc: "Автоматическая генерация уникального Identification ID и QR-кода для каждого товара.",
               },
               {
-                iconPath: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0zM9 10h4M11 8v4",
-                title: "Verify before buying?",
-                desc: "Scan the ID in the store to confirm it's a genuine, registered product from a verified manufacturer.",
+                icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
+                title: "Обновляет инструкции",
+                desc: "Меняйте документы и инструкции без перепечатки. Потребители всегда видят актуальную версию.",
               },
-            ].map((u) => (
-              <div
-                key={u.title}
-                className="group bg-white border border-border rounded-2xl p-6 hover:border-accent hover:shadow-md hover:-translate-y-0.5 transition-all"
-              >
+              {
+                icon: "M13 10V3L4 14h7v7l9-11h-7z",
+                title: "Без бумажной документации",
+                desc: "Просто укажите на товаре или упаковке Identification ID — и никаких распечатанных инструкций.",
+              },
+              {
+                icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
+                title: "Интегрируется с маркетплейсами",
+                desc: "Прямая интеграция с крупнейшими торговыми площадками для синхронизации данных о товаре.",
+              },
+              {
+                icon: "M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129",
+                title: "Мультиязычные описания",
+                desc: "Автоматический перевод описаний и инструкций — ваш товар понятен потребителям по всему миру.",
+              },
+            ].map((item) => (
+              <div key={item.title} className="bg-white border border-border rounded-2xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all group">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
-                    <path d={u.iconPath} />
+                    <path d={item.icon} />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold mb-2">{u.title}</h3>
-                <p className="text-sm text-muted leading-relaxed">{u.desc}</p>
+                <h3 className="font-semibold mb-2 text-sm">{item.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Early Access — richer CTA */}
+      {/* ── Pricing ── */}
+      <section className="py-20 px-6 bg-surface border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Тарифы</p>
+            <h2 className="text-3xl font-semibold tracking-tight mb-4">Pay Per Product</h2>
+            <p className="text-muted max-w-xl mx-auto">
+              Производители товаров при регистрации на платформе выбирают подходящий план.
+              Потребители всегда используют платформу бесплатно.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              {
+                name: "Basic",
+                price: "$3",
+                period: "за товар / мес",
+                desc: "Для единичных товаров",
+                features: ["1 товар", "Уникальный ID", "QR-код", "Карточка товара"],
+                accent: false,
+              },
+              {
+                name: "Small Business",
+                price: "$29",
+                period: "/ месяц",
+                desc: "До 50 товаров",
+                features: ["До 50 товаров", "Все функции Basic", "Загрузка документов", "Мультиязычность"],
+                accent: false,
+              },
+              {
+                name: "Medium",
+                price: "$99",
+                period: "/ месяц",
+                desc: "До 500 товаров",
+                features: ["До 500 товаров", "Все функции Small", "PIM-система", "Интеграция маркетплейсов"],
+                accent: true,
+              },
+              {
+                name: "Enterprise",
+                price: "$299",
+                period: "/ месяц",
+                desc: "Без ограничений",
+                features: ["Неограниченно товаров", "Все функции Medium", "API-доступ", "Приоритетная поддержка"],
+                accent: false,
+              },
+            ].map((plan) => (
+              <div
+                key={plan.name}
+                className={`relative rounded-2xl p-6 border transition-all hover:-translate-y-1 hover:shadow-md ${
+                  plan.accent
+                    ? "bg-accent border-accent text-white shadow-lg"
+                    : "bg-white border-border"
+                }`}
+              >
+                {plan.accent && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold bg-white text-accent px-3 py-1 rounded-full shadow border border-blue-100">
+                    ПОПУЛЯРНЫЙ
+                  </div>
+                )}
+                <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${plan.accent ? "text-blue-100" : "text-muted"}`}>
+                  {plan.name}
+                </p>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-3xl font-bold">{plan.price}</span>
+                </div>
+                <p className={`text-xs mb-1 ${plan.accent ? "text-blue-100" : "text-muted"}`}>{plan.period}</p>
+                <p className={`text-sm mb-5 font-medium ${plan.accent ? "text-blue-50" : "text-muted"}`}>{plan.desc}</p>
+                <ul className="space-y-2 mb-6">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm">
+                      <svg className={`w-3.5 h-3.5 shrink-0 ${plan.accent ? "text-green-300" : "text-green-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/register"
+                  className={`block text-center text-sm font-medium py-2.5 rounded-xl transition-colors ${
+                    plan.accent
+                      ? "bg-white text-accent hover:bg-blue-50"
+                      : "bg-accent text-white hover:bg-accent-hover"
+                  }`}
+                >
+                  Выбрать план
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-sm text-muted mt-8">
+            Нужен индивидуальный план?{" "}
+            <a href="mailto:support@identificationid.com" className="text-accent hover:underline">
+              Напишите нам
+            </a>
+          </p>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
       <section className="relative py-20 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-accent via-blue-600 to-indigo-700" />
         <div className="absolute inset-0 opacity-20" style={{
           backgroundImage: "radial-gradient(circle at 20% 20%, white 1px, transparent 1px), radial-gradient(circle at 80% 70%, white 1px, transparent 1px)",
           backgroundSize: "60px 60px, 80px 80px",
         }} />
-
         <div className="relative max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 text-xs font-medium bg-white/10 text-white px-3 py-1.5 rounded-full mb-6 border border-white/20 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Limited early access · Free forever tier
+            Ранний доступ · Бесплатный тариф навсегда
           </div>
           <h2 className="text-4xl font-semibold text-white mb-4 tracking-tight">
-            Ready to register your products?
+            Готовы зарегистрировать свои товары?
           </h2>
           <p className="text-blue-100 text-base mb-8 leading-relaxed">
-            Join the manufacturers already building with Identification ID.
-            Your first 10 products are on us — no credit card required.
+            Присоединяйтесь к производителям, которые уже используют Identification ID.
+            Первые 10 товаров — бесплатно, без карты.
           </p>
           {earlySubmitted ? (
-            <p className="text-white font-medium">Redirecting you to registration...</p>
+            <p className="text-white font-medium">Перенаправляем на регистрацию...</p>
           ) : (
             <form onSubmit={handleEarlyAccess} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input
@@ -563,34 +559,24 @@ export default function LandingPage() {
                 type="submit"
                 className="bg-white text-accent px-6 py-3.5 rounded-xl text-sm font-semibold hover:bg-blue-50 whitespace-nowrap shadow-lg transition-colors"
               >
-                Get Started →
+                Начать →
               </button>
             </form>
           )}
-          <div className="flex items-center justify-center gap-4 mt-6 text-blue-100 text-xs">
-            <span className="flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              Free up to 10 products
-            </span>
-            <span className="flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              No credit card
-            </span>
-            <span className="flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              Cancel anytime
-            </span>
+          <div className="flex items-center justify-center gap-4 mt-6 text-blue-100 text-xs flex-wrap">
+            {["10 товаров бесплатно", "Без кредитной карты", "Отмена в любой момент"].map((t) => (
+              <span key={t} className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                {t}
+              </span>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer — multi-column */}
+      {/* ── Footer ── */}
       <footer className="border-t border-border py-12 px-6 bg-surface">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
@@ -602,29 +588,25 @@ export default function LandingPage() {
                 <span>Identification ID</span>
               </Link>
               <p className="text-sm text-muted max-w-xs leading-relaxed">
-                The verified digital passport for every product. Search, scan, and know exactly what you bought.
+                Глобальный онлайн-реестр товаров. Цифровой паспорт продукта, защита от подделок и международный каталог.
               </p>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
-                Product
-              </h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">Платформа</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/search" className="text-foreground hover:text-accent transition-colors">Search products</Link></li>
-                <li><Link href="/pricing" className="text-foreground hover:text-accent transition-colors">Pricing</Link></li>
-                <li><Link href="/register" className="text-foreground hover:text-accent transition-colors">For manufacturers</Link></li>
+                <li><Link href="/search" className="text-foreground hover:text-accent transition-colors">Поиск товаров</Link></li>
+                <li><Link href="/pricing" className="text-foreground hover:text-accent transition-colors">Тарифы</Link></li>
+                <li><Link href="/register" className="text-foreground hover:text-accent transition-colors">Для производителей</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
-                Company
-              </h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">Компания</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link href="/faq" className="text-foreground hover:text-accent transition-colors">FAQ</Link></li>
-                <li><Link href="/login" className="text-foreground hover:text-accent transition-colors">Log in</Link></li>
+                <li><Link href="/login" className="text-foreground hover:text-accent transition-colors">Войти</Link></li>
                 <li>
                   <a href="mailto:support@identificationid.com" className="text-foreground hover:text-accent transition-colors">
-                    Contact
+                    Контакты
                   </a>
                 </li>
               </ul>
@@ -632,7 +614,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center justify-between flex-wrap gap-2 pt-6 border-t border-border text-xs text-muted">
             <p>© {new Date().getFullYear()} Identification ID. All rights reserved.</p>
-            <p>Designed and built in Vancouver, Canada.</p>
+            <p>Глобальный реестр товаров · Wikipedia + GS1 + Digital Passport</p>
           </div>
         </div>
       </footer>
