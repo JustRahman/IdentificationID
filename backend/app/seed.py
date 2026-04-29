@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_password
@@ -15,105 +15,87 @@ from app.models.user import User, UserRole
 from app.services.id_generator import generate_identification_id
 
 # ---------------------------------------------------------------------------
-# Mock images: 2–3 Picsum Photos URLs per product.
-# URLs are deterministic (same seed → same image) and never 404.
-# Format: https://picsum.photos/seed/{seed}/800/600
+# Real product images from Unsplash (free, no attribution required).
+# All URLs use the Unsplash CDN: images.unsplash.com/photo-{id}
 # ---------------------------------------------------------------------------
+_U = "https://images.unsplash.com/photo-{}?auto=format&fit=crop&w=800&q=80"
+
 MOCK_IMAGES: dict[str, list[tuple[str, str]]] = {
     "ProChef Air Fryer 5.5L": [
-        ("https://picsum.photos/seed/airfryer-main/800/600",   "ProChef Air Fryer 5.5L – front view"),
-        ("https://picsum.photos/seed/airfryer-basket/800/600", "ProChef Air Fryer 5.5L – basket detail"),
-        ("https://picsum.photos/seed/airfryer-food/800/600",   "ProChef Air Fryer 5.5L – cooked food result"),
+        (_U.format("1628557044797-f21a177c37ec"), "ProChef Air Fryer 5.5L – main view"),
+        (_U.format("1556909114-f6e7ad7d3136"),    "ProChef Air Fryer 5.5L – cooked result"),
     ],
     "BrewMaster Coffee Maker": [
-        ("https://picsum.photos/seed/brewmaster-main/800/600",  "BrewMaster Coffee Maker – front view"),
-        ("https://picsum.photos/seed/brewmaster-carafe/800/600","BrewMaster Coffee Maker – thermal carafe"),
-        ("https://picsum.photos/seed/brewmaster-brew/800/600",  "BrewMaster Coffee Maker – brewing in progress"),
+        (_U.format("1495474472287-4d71bcdd2085"), "BrewMaster Coffee Maker – main view"),
+        (_U.format("1509042239860-f550ce710b93"), "BrewMaster Coffee Maker – brewing"),
     ],
     "SilentBlend 1200W": [
-        ("https://picsum.photos/seed/silentblend-main/800/600",   "SilentBlend 1200W – full unit"),
-        ("https://picsum.photos/seed/silentblend-enclosure/800/600", "SilentBlend 1200W – acoustic enclosure"),
-        ("https://picsum.photos/seed/silentblend-smoothie/800/600","SilentBlend 1200W – smoothie result"),
+        (_U.format("1570197788417-0e82375c9371"), "SilentBlend 1200W – full unit"),
+        (_U.format("1577003833619-76bbd7f3948a"), "SilentBlend 1200W – smoothie result"),
     ],
     "PowerDrill Pro 3000": [
-        ("https://picsum.photos/seed/powerdrill-main/800/600",  "PowerDrill Pro 3000 – front view"),
-        ("https://picsum.photos/seed/powerdrill-side/800/600",  "PowerDrill Pro 3000 – side with battery"),
-        ("https://picsum.photos/seed/powerdrill-bits/800/600",  "PowerDrill Pro 3000 – included bit set"),
+        (_U.format("1572981779307-38b8cabb2407"), "PowerDrill Pro 3000 – main view"),
+        (_U.format("1504222498345-5a17b44a7bde"), "PowerDrill Pro 3000 – in use"),
     ],
     "CircularSaw 7.25\" Pro": [
-        ("https://picsum.photos/seed/circularsaw-main/800/600", "CircularSaw 7.25\" Pro – full unit"),
-        ("https://picsum.photos/seed/circularsaw-blade/800/600","CircularSaw 7.25\" Pro – blade detail"),
-        ("https://picsum.photos/seed/circularsaw-cut/800/600",  "CircularSaw 7.25\" Pro – cutting wood"),
+        (_U.format("1504526502898-f31e219e57ab"), "CircularSaw 7.25\" Pro – cutting wood"),
+        (_U.format("1504222498345-5a17b44a7bde"), "CircularSaw 7.25\" Pro – power tool"),
     ],
     "OrbitalSander OS-5": [
-        ("https://picsum.photos/seed/sander-main/800/600",   "OrbitalSander OS-5 – top view"),
-        ("https://picsum.photos/seed/sander-pad/800/600",    "OrbitalSander OS-5 – sanding pad"),
-        ("https://picsum.photos/seed/sander-action/800/600", "OrbitalSander OS-5 – in use on wood"),
+        (_U.format("1540479859555-17af45c78602"), "OrbitalSander OS-5 – sanding"),
+        (_U.format("1504526502898-f31e219e57ab"), "OrbitalSander OS-5 – woodworking"),
     ],
     "SmartThermo X1": [
-        ("https://picsum.photos/seed/thermostat-main/800/600", "SmartThermo X1 – wall mounted"),
-        ("https://picsum.photos/seed/thermostat-app/800/600",  "SmartThermo X1 – companion app"),
-        ("https://picsum.photos/seed/thermostat-room/800/600", "SmartThermo X1 – installed in room"),
+        (_U.format("1558618666-fcd25c85cd64"), "SmartThermo X1 – wall mounted"),
+        (_U.format("1585771724684-38269d6639fd"), "SmartThermo X1 – smart home app"),
     ],
     "VisionCam Pro 4K": [
-        ("https://picsum.photos/seed/visioncam-main/800/600",    "VisionCam Pro 4K – camera unit"),
-        ("https://picsum.photos/seed/visioncam-mount/800/600",   "VisionCam Pro 4K – mounted outdoors"),
-        ("https://picsum.photos/seed/visioncam-nightvision/800/600","VisionCam Pro 4K – night vision sample"),
+        (_U.format("1557804506-669a67965ba0"), "VisionCam Pro 4K – camera unit"),
+        (_U.format("1510511459019-5dda7724fd87"), "VisionCam Pro 4K – mounted outdoors"),
     ],
     "SmartLock V2": [
-        ("https://picsum.photos/seed/smartlock-main/800/600",   "SmartLock V2 – front panel"),
-        ("https://picsum.photos/seed/smartlock-finger/800/600", "SmartLock V2 – fingerprint sensor"),
-        ("https://picsum.photos/seed/smartlock-door/800/600",   "SmartLock V2 – installed on door"),
+        (_U.format("1580618865001-3771a2fb5c48"), "SmartLock V2 – smart door lock"),
+        (_U.format("1558618666-fcd25c85cd64"),    "SmartLock V2 – smart device panel"),
     ],
     "StandDesk Pro 160": [
-        ("https://picsum.photos/seed/standdesk-main/800/600",      "StandDesk Pro 160 – standing position"),
-        ("https://picsum.photos/seed/standdesk-sitting/800/600",   "StandDesk Pro 160 – sitting position"),
-        ("https://picsum.photos/seed/standdesk-controls/800/600",  "StandDesk Pro 160 – control panel"),
+        (_U.format("1518455027359-f3f8164ba6bd"), "StandDesk Pro 160 – workspace setup"),
+        (_U.format("1593642632559-0c6d3fc62b89"), "StandDesk Pro 160 – home office"),
     ],
     "ErgoChair Lumbar Pro": [
-        ("https://picsum.photos/seed/ergochair-main/800/600",   "ErgoChair Lumbar Pro – front view"),
-        ("https://picsum.photos/seed/ergochair-back/800/600",   "ErgoChair Lumbar Pro – mesh back"),
-        ("https://picsum.photos/seed/ergochair-lumbar/800/600", "ErgoChair Lumbar Pro – lumbar support detail"),
+        (_U.format("1523726491678-bf852e717f6a"), "ErgoChair Lumbar Pro – main view"),
+        (_U.format("1580480055273-228ff5388ef8"), "ErgoChair Lumbar Pro – side profile"),
     ],
     "TrailRunner Jacket": [
-        ("https://picsum.photos/seed/trailrunner-main/800/600",    "TrailRunner Jacket – front view"),
-        ("https://picsum.photos/seed/trailrunner-packed/800/600",  "TrailRunner Jacket – packed into pocket"),
-        ("https://picsum.photos/seed/trailrunner-running/800/600", "TrailRunner Jacket – worn while running"),
+        (_U.format("1542291026-7eec264c27ff"), "TrailRunner Jacket – main view"),
+        (_U.format("1551698618-1dfe5d97d256"), "TrailRunner Jacket – running outdoors"),
     ],
     "ZenFit Compression Tights": [
-        ("https://picsum.photos/seed/compression-main/800/600",  "ZenFit Compression Tights – full length"),
-        ("https://picsum.photos/seed/compression-fabric/800/600","ZenFit Compression Tights – fabric detail"),
-        ("https://picsum.photos/seed/compression-sport/800/600", "ZenFit Compression Tights – worn during workout"),
+        (_U.format("1506629082955-511b1aa562c8"), "ZenFit Compression Tights – full length"),
+        (_U.format("1581009146145-b5ef050c2e1e"), "ZenFit Compression Tights – workout"),
     ],
     "RoboKit STEM Builder": [
-        ("https://picsum.photos/seed/robokit-main/800/600",   "RoboKit STEM Builder – assembled robot"),
-        ("https://picsum.photos/seed/robokit-parts/800/600",  "RoboKit STEM Builder – all components"),
-        ("https://picsum.photos/seed/robokit-coding/800/600", "RoboKit STEM Builder – coding interface"),
+        (_U.format("1485827404703-89b55fcc595e"), "RoboKit STEM Builder – assembled robot"),
+        (_U.format("1561144257-e32e8506e12a"),    "RoboKit STEM Builder – STEM components"),
     ],
     "WoodCraft Junior Set": [
-        ("https://picsum.photos/seed/woodcraft-main/800/600",  "WoodCraft Junior Set – full set laid out"),
-        ("https://picsum.photos/seed/woodcraft-build/800/600", "WoodCraft Junior Set – built structure"),
-        ("https://picsum.photos/seed/woodcraft-pieces/800/600","WoodCraft Junior Set – wooden piece detail"),
+        (_U.format("1515488042361-ee00e0ddd4e4"), "WoodCraft Junior Set – wooden blocks"),
+        (_U.format("1566576912321-d58ddd7a6088"), "WoodCraft Junior Set – colorful toy set"),
     ],
     "ZenMat Pro 6mm": [
-        ("https://picsum.photos/seed/zenmat-main/800/600",    "ZenMat Pro 6mm – rolled out"),
-        ("https://picsum.photos/seed/zenmat-texture/800/600", "ZenMat Pro 6mm – surface texture"),
-        ("https://picsum.photos/seed/zenmat-yoga/800/600",    "ZenMat Pro 6mm – in use during yoga"),
+        (_U.format("1544367567-0f2fcb009e0b"), "ZenMat Pro 6mm – yoga mat"),
+        (_U.format("1599901860904-17e6ed7083a0"), "ZenMat Pro 6mm – in use"),
     ],
     "ResistaBand Set X5": [
-        ("https://picsum.photos/seed/resistaband-main/800/600",  "ResistaBand Set X5 – full set"),
-        ("https://picsum.photos/seed/resistaband-colors/800/600","ResistaBand Set X5 – colour-coded bands"),
-        ("https://picsum.photos/seed/resistaband-workout/800/600","ResistaBand Set X5 – workout demo"),
+        (_U.format("1517836357463-d25dfeac3438"), "ResistaBand Set X5 – resistance training"),
+        (_U.format("1595078475328-1ab05d0a6a0e"), "ResistaBand Set X5 – band set"),
     ],
     "JumpStart Pro 2000A": [
-        ("https://picsum.photos/seed/jumpstart-main/800/600",  "JumpStart Pro 2000A – unit front"),
-        ("https://picsum.photos/seed/jumpstart-clamps/800/600","JumpStart Pro 2000A – clamp cables"),
-        ("https://picsum.photos/seed/jumpstart-car/800/600",   "JumpStart Pro 2000A – connected to battery"),
+        (_U.format("1492144534655-ae79c964c9d7"), "JumpStart Pro 2000A – car battery"),
+        (_U.format("1503376780353-7e6692767b70"), "JumpStart Pro 2000A – automotive"),
     ],
     "DriveCam 4K Duo": [
-        ("https://picsum.photos/seed/drivecam-main/800/600",  "DriveCam 4K Duo – front camera"),
-        ("https://picsum.photos/seed/drivecam-rear/800/600",  "DriveCam 4K Duo – rear camera"),
-        ("https://picsum.photos/seed/drivecam-mount/800/600", "DriveCam 4K Duo – windshield mounted"),
+        (_U.format("1503376780353-7e6692767b70"), "DriveCam 4K Duo – dashboard view"),
+        (_U.format("1494976388531-d1058494cdd8"), "DriveCam 4K Duo – car interior"),
     ],
 }
 
@@ -146,9 +128,10 @@ async def seed_data(session: AsyncSession) -> None:
     drivecam = result.scalar_one_or_none()
     products_done = drivecam is not None
 
-    # Check if images are already seeded (look for any ProductImage row)
+    # Check if images are already seeded with REAL images (not Picsum placeholders)
     img_check = await session.execute(select(ProductImage).limit(1))
-    images_done = img_check.scalar_one_or_none() is not None
+    first_img_row = img_check.scalar_one_or_none()
+    images_done = first_img_row is not None and "picsum" not in (first_img_row.url or "")
 
     if products_done and images_done:
         return  # Fully seeded — nothing to do
@@ -308,11 +291,19 @@ async def seed_data(session: AsyncSession) -> None:
                     title=f"{pd['name']} — User Manual",
                 ))
 
-        # ── Seed mock images (idempotent — skipped if already present) ──
+        # ── Seed mock images (auto-replaces Picsum placeholders with real ones) ──
         existing_img = await session.execute(
             select(ProductImage).where(ProductImage.product_id == product.id).limit(1)
         )
-        if not existing_img.scalar_one_or_none():
+        cur_img = existing_img.scalar_one_or_none()
+        # Replace old Picsum placeholder images with real Unsplash product photos
+        if cur_img and "picsum" in (cur_img.url or ""):
+            await session.execute(
+                delete(ProductImage).where(ProductImage.product_id == product.id)
+            )
+            await session.flush()
+            cur_img = None
+        if not cur_img:
             for order, (url, alt) in enumerate(MOCK_IMAGES.get(pd["name"], [])):
                 session.add(ProductImage(
                     product_id=product.id,
