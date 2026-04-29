@@ -13,6 +13,7 @@ interface SearchResult {
   category: string;
   brand: string | null;
   manufacturer: string | null;
+  cover_image: string | null;
 }
 
 interface CompanyResult {
@@ -51,20 +52,41 @@ function ProductCard({ r }: { r: SearchResult }) {
   return (
     <Link
       href={`/p/${encodeURIComponent(r.identification_id)}`}
-      className="border border-border rounded-xl p-5 hover:border-accent hover:shadow-sm transition-all bg-background group block"
+      className="border border-border rounded-xl overflow-hidden hover:border-accent hover:shadow-md transition-all bg-background group block"
     >
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="text-sm font-semibold group-hover:text-accent transition-colors leading-snug">
-          {r.name}
-        </h3>
-        <span className="text-xs bg-surface border border-border text-muted px-2 py-0.5 rounded shrink-0">
-          {CATEGORY_LABELS[r.category] ?? r.category}
-        </span>
+      {/* Cover image */}
+      <div className="aspect-[4/3] bg-surface overflow-hidden">
+        {r.cover_image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={r.cover_image}
+            alt={r.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <svg className="w-10 h-10 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5M21 12V6.75A2.25 2.25 0 0018.75 4.5H5.25A2.25 2.25 0 003 6.75V15" />
+            </svg>
+          </div>
+        )}
       </div>
-      <p className="text-xs text-muted mb-3">
-        {[r.brand, r.manufacturer].filter(Boolean).join(" · ")}
-      </p>
-      <p className="text-xs font-mono text-muted">{r.identification_id}</p>
+
+      {/* Info */}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-1.5">
+          <h3 className="text-sm font-semibold group-hover:text-accent transition-colors leading-snug line-clamp-2">
+            {r.name}
+          </h3>
+          <span className="text-xs bg-surface border border-border text-muted px-2 py-0.5 rounded shrink-0">
+            {CATEGORY_LABELS[r.category] ?? r.category}
+          </span>
+        </div>
+        <p className="text-xs text-muted mb-2">
+          {[r.brand, r.manufacturer].filter(Boolean).join(" · ")}
+        </p>
+        <p className="text-xs font-mono text-muted/70">{r.identification_id}</p>
+      </div>
     </Link>
   );
 }

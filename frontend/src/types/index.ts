@@ -26,6 +26,12 @@ export interface Company {
   verified_at: string | null;
 }
 
+export interface ProductImage {
+  url: string;
+  alt_text: string | null;
+  display_order: number;
+}
+
 export interface Product {
   id: string;
   identification_id: string;
@@ -36,6 +42,7 @@ export interface Product {
   country_of_origin: string | null;
   status: ProductStatus;
   published_at: string | null;
+  images?: ProductImage[];
 }
 
 export interface ProductTranslation {

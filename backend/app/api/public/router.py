@@ -9,6 +9,7 @@ from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
 from app.models.product_document import ProductDocument
 from app.models.product_document_version import ProductDocumentVersion
+from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -30,6 +31,7 @@ async def lookup_product(
             selectinload(Product.company),
             selectinload(Product.translations),
             selectinload(Product.documents).selectinload(ProductDocument.versions),
+            selectinload(Product.images),
         )
     )
     product = result.scalar_one_or_none()
@@ -68,6 +70,14 @@ async def lookup_product(
                 "full_description": translation.full_description,
                 "usage_instructions": translation.usage_instructions,
             } if translation else None,
+            "images": [
+                {
+                    "url": img.url,
+                    "alt_text": img.alt_text,
+                    "display_order": img.display_order,
+                }
+                for img in product.images
+            ],
             "documents": [
                 {
                     "id": str(doc.id),
@@ -116,7 +126,7 @@ async def search_products(
     total = (await db.execute(count_q)).scalar() or 0
 
     result = await db.execute(
-        query.options(selectinload(Product.company))
+        query.options(selectinload(Product.company), selectinload(Product.images))
         .offset((page - 1) * per_page)
         .limit(per_page)
     )
@@ -131,6 +141,7 @@ async def search_products(
                 "category": p.category,
                 "brand": p.brand,
                 "manufacturer": p.company.display_name,
+                "cover_image": p.images[0].url if p.images else None,
             }
             for p in products
         ],
@@ -148,7 +159,7 @@ async def featured_products(
         select(Product)
         .join(Product.company)
         .where(Product.status == ProductStatus.published)
-        .options(selectinload(Product.company))
+        .options(selectinload(Product.company), selectinload(Product.images))
         .order_by(Product.published_at.desc())
         .limit(limit)
     )
@@ -162,6 +173,7 @@ async def featured_products(
                 "category": p.category,
                 "brand": p.brand,
                 "manufacturer": p.company.display_name,
+                "cover_image": p.images[0].url if p.images else None,
             }
             for p in products
         ],
