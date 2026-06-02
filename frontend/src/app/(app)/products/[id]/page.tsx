@@ -3,6 +3,8 @@
 import { useEffect, useState, type FormEvent, use } from "react";
 import { api } from "@/services/api";
 import type { Product, ProductTranslation } from "@/types";
+import { CATEGORIES, LANGUAGES } from "@/lib/constants";
+import { translateText } from "@/lib/translate";
 
 interface DocumentInfo {
   id: string;
@@ -22,18 +24,6 @@ interface ImageInfo {
 }
 
 const tabItems = ["Details", "Images", "Description", "Documents", "Publish"];
-
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "zh", label: "Chinese" },
-  { code: "ru", label: "Russian" },
-  { code: "de", label: "German" },
-  { code: "fr", label: "French" },
-  { code: "es", label: "Spanish" },
-  { code: "ar", label: "Arabic" },
-  { code: "ko", label: "Korean" },
-  { code: "ja", label: "Japanese" },
-];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -123,45 +113,6 @@ export default function EditProductPage({
     }));
   }
 
-  async function translateText(text: string, fromLang: string): Promise<string> {
-    // MyMemory free limit is 500 chars per request — chunk if needed
-    const MAX = 480;
-    if (text.length <= MAX) {
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang}|en`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.responseData?.translatedText) throw new Error(`No translation returned (status ${data.responseStatus})`);
-      return data.responseData.translatedText as string;
-    }
-
-    // Split into sentences, group into chunks under MAX chars
-    const sentences = text.match(/[^.!?\n]+[.!?\n]*/g) ?? [text];
-    const chunks: string[] = [];
-    let current = "";
-    for (const s of sentences) {
-      if ((current + s).length > MAX) {
-        if (current) chunks.push(current.trim());
-        current = s;
-      } else {
-        current += s;
-      }
-    }
-    if (current.trim()) chunks.push(current.trim());
-
-    const translated = await Promise.all(
-      chunks.map(async (chunk) => {
-        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${fromLang}|en`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (!data.responseData?.translatedText) throw new Error(`No translation (status ${data.responseStatus})`);
-        return data.responseData.translatedText as string;
-      })
-    );
-    return translated.join(" ");
-  }
-
   async function autoTranslate() {
     const src = getLang(activeLang);
     if (!src.short && !src.full && !src.usage) {
@@ -181,9 +132,9 @@ export default function EditProductPage({
 
       // Translate each field separately
       const enFields = { ...getLang("en") };
-      if (src.short) enFields.short = await translateText(src.short, activeLang);
-      if (src.full) enFields.full = await translateText(src.full, activeLang);
-      if (src.usage) enFields.usage = await translateText(src.usage, activeLang);
+      if (src.short) enFields.short = await translateText(src.short, activeLang, "en");
+      if (src.full) enFields.full = await translateText(src.full, activeLang, "en");
+      if (src.usage) enFields.usage = await translateText(src.usage, activeLang, "en");
 
       // Save English translation too
       await api.post(`/manufacturer/products/${id}/translations`, {
@@ -405,10 +356,9 @@ export default function EditProductPage({
               <label className="block text-sm font-medium mb-1">Category</label>
               <select value={category} onChange={(e) => setCategory(e.target.value)}
                 className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background">
-                <option value="electronics">Electronics</option>
-                <option value="home_appliances">Home Appliances</option>
-                <option value="medical">Medical</option>
-                <option value="other">Other</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
               </select>
             </div>
             <div className="grid grid-cols-2 gap-4">

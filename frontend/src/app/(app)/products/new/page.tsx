@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 import type { Product } from "@/types";
+import { CATEGORIES } from "@/lib/constants";
 
 export default function CreateProductPage() {
   const router = useRouter();
@@ -72,10 +73,9 @@ export default function CreateProductPage() {
               className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
             >
               <option value="">Select category</option>
-              <option value="electronics">Electronics</option>
-              <option value="home_appliances">Home Appliances</option>
-              <option value="medical">Medical</option>
-              <option value="other">Other</option>
+              {CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-4">

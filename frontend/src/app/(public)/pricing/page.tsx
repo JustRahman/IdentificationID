@@ -1,38 +1,23 @@
 import Link from "next/link";
+import { PLANS } from "@/lib/constants";
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "",
-    desc: "For trying it out",
-    features: ["10 products", "Basic product page", "Email support"],
-  },
-  {
-    name: "Starter",
-    price: "$29",
-    period: "/mo",
-    desc: "For growing businesses",
-    features: ["100 products", "Priority support", "Analytics"],
-    popular: true,
-  },
-  {
-    name: "Pro",
-    price: "$99",
-    period: "/mo",
-    desc: "For large manufacturers",
-    features: ["Unlimited products", "API access", "Dedicated support"],
-  },
-];
+const plans = PLANS.map((p) => ({
+  name: p.en.name,
+  price: `$${p.priceCents / 100}`,
+  period: p.en.period,
+  desc: p.en.desc,
+  features: p.en.features,
+  popular: p.popular,
+}));
 
 export default function PricingPage() {
   return (
-    <div className="max-w-4xl mx-auto py-16 px-6">
+    <div className="max-w-5xl mx-auto py-16 px-6">
       <h1 className="text-2xl font-semibold text-center mb-2">Pricing</h1>
       <p className="text-muted text-center mb-12">
         Start free. No credit card required.
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {plans.map((plan) => (
           <div
             key={plan.name}
@@ -49,7 +34,7 @@ export default function PricingPage() {
             <p className="text-sm text-muted mb-4">{plan.desc}</p>
             <div className="mb-5">
               <span className="text-3xl font-semibold">{plan.price}</span>
-              <span className="text-sm text-muted">{plan.period}</span>
+              <span className="text-sm text-muted"> {plan.period}</span>
             </div>
             <ul className="space-y-2 mb-6">
               {plan.features.map((f) => (

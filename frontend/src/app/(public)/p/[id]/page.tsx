@@ -2,9 +2,24 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
+import { LANGUAGES } from "@/lib/constants";
+import { translateText } from "@/lib/translate";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+interface TranslationFields {
+  lang: string;
+  short_description: string | null;
+  full_description: string | null;
+  usage_instructions: string | null;
+}
+
+interface ProductImage {
+  url: string;
+  alt_text: string | null;
+  display_order: number;
+}
 
 interface ProductData {
   identification_id: string;
@@ -20,18 +35,35 @@ interface ProductData {
     website: string | null;
     support_email: string | null;
   };
-  translation: {
-    lang: string;
-    short_description: string | null;
-    full_description: string | null;
-    usage_instructions: string | null;
-  } | null;
+  translation: TranslationFields | null;
+  translations: TranslationFields[];
+  images: ProductImage[];
   documents: {
     id: string;
     doc_type: string;
     title: string | null;
-    versions: { version: number; file_name: string; size_bytes: number; created_at: string }[];
+    versions: {
+      version: number;
+      file_name: string;
+      size_bytes: number;
+      created_at: string;
+      file_url: string | null;
+    }[];
   }[];
+}
+
+type DescFields = { short: string; full: string; usage: string };
+
+function toFields(t: TranslationFields | null): DescFields {
+  return {
+    short: t?.short_description || "",
+    full: t?.full_description || "",
+    usage: t?.usage_instructions || "",
+  };
+}
+
+function hasContent(f: DescFields): boolean {
+  return !!(f.short || f.full || f.usage);
 }
 
 export default function PublicProductPage({
@@ -44,6 +76,17 @@ export default function PublicProductPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Image gallery
+  const [activeImage, setActiveImage] = useState(0);
+
+  // Language / translation
+  const [activeLang, setActiveLang] = useState("en");
+  const [translating, setTranslating] = useState(false);
+  // cache[lang] = translated/stored fields; machine = set of langs that were auto-translated
+  const [cache, setCache] = useState<Record<string, DescFields>>({});
+  const [machineLangs, setMachineLangs] = useState<Set<string>>(new Set());
+  const [storedLangs, setStoredLangs] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     async function load() {
       try {
@@ -53,7 +96,26 @@ export default function PublicProductPage({
           return;
         }
         const json = await res.json();
-        setProduct(json.data);
+        const data: ProductData = json.data;
+        setProduct(data);
+
+        // Seed the cache with all stored translations that have content.
+        const seeded: Record<string, DescFields> = {};
+        const stored = new Set<string>();
+        for (const t of data.translations || []) {
+          const f = toFields(t);
+          if (hasContent(f)) {
+            seeded[t.lang] = f;
+            stored.add(t.lang);
+          }
+        }
+        // Ensure an English baseline exists (fall back to the picked translation).
+        if (!seeded.en && data.translation) {
+          seeded.en = toFields(data.translation);
+          if (hasContent(seeded.en)) stored.add("en");
+        }
+        setCache(seeded);
+        setStoredLangs(stored);
       } catch {
         setError("Failed to load product");
       } finally {
@@ -62,6 +124,30 @@ export default function PublicProductPage({
     }
     load();
   }, [id]);
+
+  async function selectLang(lang: string) {
+    setActiveLang(lang);
+    if (cache[lang]) return; // already have it (stored or previously translated)
+
+    // Machine-translate from the English baseline.
+    const base = cache.en;
+    if (!base) return;
+    setTranslating(true);
+    try {
+      const [short, full, usage] = await Promise.all([
+        translateText(base.short, "en", lang),
+        translateText(base.full, "en", lang),
+        translateText(base.usage, "en", lang),
+      ]);
+      setCache((prev) => ({ ...prev, [lang]: { short, full, usage } }));
+      setMachineLangs((prev) => new Set(prev).add(lang));
+    } catch {
+      // On failure, fall back to English so the page is never blank.
+      setActiveLang("en");
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -83,6 +169,11 @@ export default function PublicProductPage({
     );
   }
 
+  const images = [...product.images].sort((a, b) => a.display_order - b.display_order);
+  const desc = cache[activeLang] || cache.en || { short: "", full: "", usage: "" };
+  const isMachine = machineLangs.has(activeLang);
+  const hasAnyDesc = hasContent(desc);
+
   return (
     <div className="max-w-3xl mx-auto py-12 px-6">
       <p className="text-sm text-muted mb-6">
@@ -92,6 +183,40 @@ export default function PublicProductPage({
         {" / "}
         {product.name}
       </p>
+
+      {/* Image gallery */}
+      {images.length > 0 && (
+        <div className="bg-background border border-border rounded-xl p-4 mb-6">
+          <div className="aspect-[4/3] bg-surface rounded-lg overflow-hidden mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={images[activeImage]?.url}
+              alt={images[activeImage]?.alt_text || product.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {images.length > 1 && (
+            <div className="flex gap-2 flex-wrap">
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImage(i)}
+                  className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                    i === activeImage ? "border-accent" : "border-border hover:border-muted"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.url}
+                    alt={img.alt_text || `${product.name} ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-background border border-border rounded-xl p-6 mb-6">
         <div className="flex items-start justify-between mb-6">
@@ -106,8 +231,8 @@ export default function PublicProductPage({
           </span>
         </div>
 
-        {product.translation?.short_description && (
-          <p className="text-sm text-muted mb-6">{product.translation.short_description}</p>
+        {desc.short && (
+          <p className="text-sm text-muted mb-6">{desc.short}</p>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -164,17 +289,46 @@ export default function PublicProductPage({
         </div>
       </div>
 
-      {product.translation?.full_description && (
+      {/* Language selector + description */}
+      {hasAnyDesc && (
         <div className="bg-background border border-border rounded-xl p-6 mb-6">
-          <h3 className="text-sm font-semibold text-muted mb-4">Description</h3>
-          <p className="text-sm whitespace-pre-line">{product.translation.full_description}</p>
-        </div>
-      )}
+          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+            <h3 className="text-sm font-semibold text-muted">Description</h3>
+            <div className="flex items-center gap-2">
+              {isMachine && (
+                <span className="text-xs text-muted bg-surface border border-border px-2 py-0.5 rounded">
+                  machine translated
+                </span>
+              )}
+              <select
+                value={activeLang}
+                onChange={(e) => selectLang(e.target.value)}
+                disabled={translating}
+                className="text-xs border border-border rounded-lg px-2 py-1 bg-background disabled:opacity-50"
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.label}
+                    {storedLangs.has(l.code) ? " ✓" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      {product.translation?.usage_instructions && (
-        <div className="bg-background border border-border rounded-xl p-6 mb-6">
-          <h3 className="text-sm font-semibold text-muted mb-4">Usage Instructions</h3>
-          <p className="text-sm whitespace-pre-line">{product.translation.usage_instructions}</p>
+          {translating ? (
+            <p className="text-sm text-muted">Translating…</p>
+          ) : (
+            <>
+              {desc.full && <p className="text-sm whitespace-pre-line mb-6">{desc.full}</p>}
+              {desc.usage && (
+                <>
+                  <h4 className="text-sm font-semibold text-muted mb-2">Usage Instructions</h4>
+                  <p className="text-sm whitespace-pre-line">{desc.usage}</p>
+                </>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -184,15 +338,33 @@ export default function PublicProductPage({
           <p className="text-sm text-muted">No documents available.</p>
         ) : (
           <div className="space-y-3">
-            {product.documents.map((doc) => (
-              <div key={doc.id} className="p-3 border border-border rounded-lg">
-                <p className="text-sm font-medium">{doc.title || doc.doc_type}</p>
-                <p className="text-xs text-muted">
-                  Type: {doc.doc_type} · {doc.versions.length} version(s)
-                  {doc.versions[0] && ` · ${(doc.versions[0].size_bytes / 1024).toFixed(0)} KB`}
-                </p>
-              </div>
-            ))}
+            {product.documents.map((doc) => {
+              const latest = doc.versions[0];
+              return (
+                <div key={doc.id} className="p-3 border border-border rounded-lg flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{doc.title || doc.doc_type}</p>
+                    <p className="text-xs text-muted">
+                      Type: {doc.doc_type} · {doc.versions.length} version(s)
+                      {latest && ` · ${(latest.size_bytes / 1024).toFixed(0)} KB`}
+                    </p>
+                  </div>
+                  {latest?.file_url && (
+                    <a
+                      href={latest.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs bg-accent text-white px-3 py-1.5 rounded-lg hover:bg-accent-hover transition-colors flex items-center gap-1 shrink-0"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      Open
+                    </a>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

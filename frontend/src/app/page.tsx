@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { PLANS } from "@/lib/constants";
 
 const ID_PATTERN = /^IID-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
 
@@ -436,40 +437,14 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              {
-                name: "Basic",
-                price: "$3",
-                period: "за товар / мес",
-                desc: "Для единичных товаров",
-                features: ["1 товар", "Уникальный ID", "QR-код", "Карточка товара"],
-                accent: false,
-              },
-              {
-                name: "Small Business",
-                price: "$29",
-                period: "/ месяц",
-                desc: "До 50 товаров",
-                features: ["До 50 товаров", "Все функции Basic", "Загрузка документов", "Мультиязычность"],
-                accent: false,
-              },
-              {
-                name: "Medium",
-                price: "$99",
-                period: "/ месяц",
-                desc: "До 500 товаров",
-                features: ["До 500 товаров", "Все функции Small", "PIM-система", "Интеграция маркетплейсов"],
-                accent: true,
-              },
-              {
-                name: "Enterprise",
-                price: "$299",
-                period: "/ месяц",
-                desc: "Без ограничений",
-                features: ["Неограниченно товаров", "Все функции Medium", "API-доступ", "Приоритетная поддержка"],
-                accent: false,
-              },
-            ].map((plan) => (
+            {PLANS.map((p) => ({
+              name: p.ru.name,
+              price: `$${p.priceCents / 100}`,
+              period: p.ru.period,
+              desc: p.ru.desc,
+              features: p.ru.features,
+              accent: p.popular,
+            })).map((plan) => (
               <div
                 key={plan.name}
                 className={`relative rounded-2xl p-6 border transition-all hover:-translate-y-1 hover:shadow-md ${
