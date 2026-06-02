@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
+import { PLANS } from "@/lib/constants";
 
 interface PlanData {
   plan: string;
@@ -107,21 +108,22 @@ export default function BillingPage() {
           </p>
         )}
         {(!plan || plan.plan === "free") && (
-          <div className="flex gap-3">
-            <button
-              onClick={() => handleUpgrade("pro")}
-              disabled={upgrading}
-              className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
-            >
-              Upgrade to Pro ($29/mo)
-            </button>
-            <button
-              onClick={() => handleUpgrade("enterprise")}
-              disabled={upgrading}
-              className="border border-border text-foreground px-5 py-2.5 rounded-lg text-sm hover:bg-surface disabled:opacity-50"
-            >
-              Enterprise ($99/mo)
-            </button>
+          <div className="grid grid-cols-2 gap-3">
+            {PLANS.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => handleUpgrade(p.key)}
+                disabled={upgrading}
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 ${
+                  p.popular
+                    ? "bg-accent text-white hover:bg-accent-hover"
+                    : "border border-border text-foreground hover:bg-surface"
+                }`}
+              >
+                {p.en.name} (${p.priceCents / 100}
+                {p.perProduct ? "/product" : "/mo"})
+              </button>
+            ))}
           </div>
         )}
       </div>

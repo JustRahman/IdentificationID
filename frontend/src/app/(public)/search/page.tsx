@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { CATEGORIES as ALL_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 const ID_PATTERN = /^IID-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
@@ -23,30 +24,8 @@ interface CompanyResult {
   product_count: number;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  electronics: "Electronics",
-  home_appliances: "Home Appliances",
-  kitchen_appliances: "Kitchen Appliances",
-  power_tools: "Power Tools",
-  furniture: "Furniture",
-  clothing: "Clothing",
-  toys: "Toys",
-  sports: "Sports",
-  automotive: "Automotive",
-  medical: "Medical",
-  other: "Other",
-};
-
-const CATEGORIES = [
-  { label: "Kitchen Appliances", q: "kitchen_appliances" },
-  { label: "Power Tools",        q: "power_tools" },
-  { label: "Electronics",        q: "electronics" },
-  { label: "Furniture",          q: "furniture" },
-  { label: "Clothing",           q: "clothing" },
-  { label: "Toys",               q: "toys" },
-  { label: "Sports",             q: "sports" },
-  { label: "Automotive",         q: "automotive" },
-];
+// Browse chips — derived from the shared category list.
+const CATEGORIES = ALL_CATEGORIES.map((c) => ({ label: c.label, q: c.value }));
 
 function ProductCard({ r }: { r: SearchResult }) {
   return (
