@@ -20,14 +20,19 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 stripe.api_key = settings.stripe_secret_key
 
 PLANS = {
-    "free": {"name": "Free", "price_cents": 0, "product_limit": 10},
-    "pro": {"name": "Pro", "price_cents": 2900, "product_limit": 100},
-    "enterprise": {"name": "Enterprise", "price_cents": 9900, "product_limit": -1},
+    # Silent default for unpaid/inactive companies — not purchasable.
+    "free":           {"name": "Free",           "price_cents": 0,     "product_limit": 10,  "per_product": False},
+    "basic":          {"name": "Basic",          "price_cents": 300,   "product_limit": -1,  "per_product": True},
+    "small_business": {"name": "Small Business", "price_cents": 2900,  "product_limit": 50,  "per_product": False},
+    "medium":         {"name": "Medium",         "price_cents": 9900,  "product_limit": 500, "per_product": False},
+    "enterprise":     {"name": "Enterprise",     "price_cents": 29900, "product_limit": -1,  "per_product": False},
 }
+
+PURCHASABLE_PLANS = ("basic", "small_business", "medium", "enterprise")
 
 
 class CheckoutRequest(BaseModel):
-    plan: str  # "pro" or "enterprise"
+    plan: str  # one of PURCHASABLE_PLANS
 
 
 @router.get("/plan")
@@ -53,7 +58,7 @@ async def get_current_plan(
     count = len(product_result.scalars().all())
 
     if subscription and subscription.status == SubscriptionStatus.active:
-        plan_key = "enterprise" if subscription.stripe_subscription_id.startswith("ent_") else "pro"
+        plan_key = subscription.plan if subscription.plan in PLANS else "free"
         plan = PLANS[plan_key]
     else:
         plan_key = "free"
@@ -82,8 +87,8 @@ async def create_checkout(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if body.plan not in ("pro", "enterprise"):
-        raise ValidationError("Plan must be 'pro' or 'enterprise'")
+    if body.plan not in PURCHASABLE_PLANS:
+        raise ValidationError(f"Plan must be one of {', '.join(PURCHASABLE_PLANS)}")
 
     result = await db.execute(
         select(Company).where(Company.owner_user_id == user.id)
@@ -93,6 +98,15 @@ async def create_checkout(
         raise NotFound("Create a company first")
 
     plan = PLANS[body.plan]
+
+    # Per-product tiers (Basic) bill quantity = current product count (min 1).
+    if plan["per_product"]:
+        product_result = await db.execute(
+            select(Product).where(Product.company_id == company.id)
+        )
+        quantity = max(1, len(product_result.scalars().all()))
+    else:
+        quantity = 1
 
     if not settings.stripe_secret_key:
         return {
@@ -115,7 +129,7 @@ async def create_checkout(
                     "unit_amount": plan["price_cents"],
                     "recurring": {"interval": "month"},
                 },
-                "quantity": 1,
+                "quantity": quantity,
             }
         ],
         metadata={"company_id": str(company.id), "plan": body.plan},
@@ -150,7 +164,7 @@ async def stripe_webhook(
     if event_type == "checkout.session.completed":
         session_data = event["data"]["object"]
         company_id = session_data.get("metadata", {}).get("company_id")
-        plan = session_data.get("metadata", {}).get("plan", "pro")
+        plan = session_data.get("metadata", {}).get("plan", "free")
 
         if company_id:
             stripe_customer_id = session_data.get("customer", "")
@@ -166,6 +180,7 @@ async def stripe_webhook(
                 sub.stripe_customer_id = stripe_customer_id
                 sub.stripe_subscription_id = stripe_subscription_id
                 sub.paid_until = date(2099, 12, 31)
+                sub.plan = plan
             else:
                 sub = Subscription(
                     company_id=company_id,
@@ -173,6 +188,7 @@ async def stripe_webhook(
                     stripe_customer_id=stripe_customer_id,
                     stripe_subscription_id=stripe_subscription_id,
                     paid_until=date(2099, 12, 31),
+                    plan=plan,
                 )
                 db.add(sub)
 

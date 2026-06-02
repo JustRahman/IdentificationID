@@ -33,5 +33,6 @@ class Subscription(Base, UUIDMixin, TimestampMixin):
     paid_until: Mapped[date] = mapped_column(Date, nullable=False)
     stripe_customer_id: Mapped[str] = mapped_column(String(255), nullable=False)
     stripe_subscription_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    plan: Mapped[str] = mapped_column(String(32), nullable=False, server_default="free")
 
     company: Mapped[Company] = relationship(back_populates="subscription")
