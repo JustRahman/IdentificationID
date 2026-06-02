@@ -11,8 +11,19 @@ from app.models.product_document import ProductDocument
 from app.models.product_document_version import ProductDocumentVersion
 from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
+from app.services import storage
 
 router = APIRouter(prefix="/public", tags=["public"])
+
+
+def _safe_signed_url(file_key: str) -> str | None:
+    """Best-effort signed download URL; None if storage is unconfigured or fails."""
+    if not storage.is_configured():
+        return None
+    try:
+        return storage.get_signed_url(file_key, expires_in=3600)
+    except Exception:
+        return None
 
 
 @router.get("/products/{identification_id}")
@@ -70,6 +81,15 @@ async def lookup_product(
                 "full_description": translation.full_description,
                 "usage_instructions": translation.usage_instructions,
             } if translation else None,
+            "translations": [
+                {
+                    "lang": t.lang,
+                    "short_description": t.short_description,
+                    "full_description": t.full_description,
+                    "usage_instructions": t.usage_instructions,
+                }
+                for t in product.translations
+            ],
             "images": [
                 {
                     "url": img.url,
@@ -89,6 +109,7 @@ async def lookup_product(
                             "file_name": v.file_name,
                             "size_bytes": v.size_bytes,
                             "created_at": v.created_at.isoformat(),
+                            "file_url": _safe_signed_url(v.file_key),
                         }
                         for v in sorted(doc.versions, key=lambda v: v.version, reverse=True)
                     ],
