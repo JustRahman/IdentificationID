@@ -79,6 +79,15 @@ export default function PublicProductPage({
   // Image gallery
   const [activeImage, setActiveImage] = useState(0);
 
+  // Copy-ID
+  const [copied, setCopied] = useState(false);
+  function copyId() {
+    if (!product) return;
+    navigator.clipboard.writeText(product.identification_id).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   // Language / translation
   const [activeLang, setActiveLang] = useState("en");
   const [translating, setTranslating] = useState(false);
@@ -284,7 +293,15 @@ export default function PublicProductPage({
           <div>
             <p className="text-sm font-medium mb-1">Scan to share</p>
             <p className="text-xs text-muted mb-2">Point your phone camera at this code to open this product page instantly.</p>
-            <p className="text-xs font-mono text-muted">{product.identification_id}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-mono text-muted">{product.identification_id}</p>
+              <button
+                onClick={copyId}
+                className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+              >
+                {copied ? "✓ Copied" : "Copy ID"}
+              </button>
+            </div>
           </div>
         </div>
       </div>

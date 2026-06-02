@@ -310,7 +310,7 @@ export default function EditProductPage({
               rel="noopener noreferrer"
               className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
             >
-              Preview ↗
+              Open Public Page ↗
             </a>
           </div>
         </div>

@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.api.billing.router import PLANS
 from app.api.products.schemas import (
     ProductCreate,
     ProductResponse,
@@ -18,6 +19,7 @@ from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
 from app.models.product_document import ProductDocument, DocType
 from app.models.product_translation import ProductTranslation
+from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.id_generator import generate_identification_id
 
@@ -56,6 +58,27 @@ async def create_product(
     db: AsyncSession = Depends(get_db),
 ):
     company = await _get_user_company(user, db)
+
+    # Enforce the product limit for the company's active plan.
+    sub_result = await db.execute(
+        select(Subscription).where(Subscription.company_id == company.id)
+    )
+    subscription = sub_result.scalar_one_or_none()
+    if subscription and subscription.status == SubscriptionStatus.active:
+        plan_key = subscription.plan if subscription.plan in PLANS else "free"
+    else:
+        plan_key = "free"
+    product_limit = PLANS[plan_key]["product_limit"]
+    if product_limit != -1:
+        count_result = await db.execute(
+            select(func.count()).select_from(Product).where(Product.company_id == company.id)
+        )
+        current = count_result.scalar() or 0
+        if current >= product_limit:
+            raise ValidationError(
+                f"Product limit reached for your plan ({product_limit} products). "
+                "Upgrade your plan to add more."
+            )
 
     # Generate unique ID
     for _ in range(10):
