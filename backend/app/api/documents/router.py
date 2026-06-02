@@ -122,7 +122,9 @@ async def list_documents(
             version = ver_result.scalar_one_or_none()
             if version:
                 file_name = version.file_name
-                if storage.is_configured():
+                if version.file_key.startswith("http"):
+                    file_url = version.file_key
+                elif storage.is_configured():
                     try:
                         file_url = storage.get_signed_url(version.file_key, expires_in=3600)
                     except Exception:

@@ -1,5 +1,6 @@
 """Seed database with mock data for testing."""
 
+import hashlib
 from datetime import datetime, timezone
 
 from sqlalchemy import delete, select
@@ -9,10 +10,15 @@ from app.core.security import hash_password
 from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
 from app.models.product_document import ProductDocument, DocType
+from app.models.product_document_version import ProductDocumentVersion
 from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
 from app.models.user import User, UserRole
 from app.services.id_generator import generate_identification_id
+
+# Public sample PDF used as a placeholder manual for seeded products so the
+# "Open" download link works without Supabase storage configured.
+SAMPLE_PDF_URL = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
 
 # ---------------------------------------------------------------------------
 # Real product images from Unsplash (free, no attribution required).
@@ -133,7 +139,11 @@ async def seed_data(session: AsyncSession) -> None:
     first_img_row = img_check.scalar_one_or_none()
     images_done = first_img_row is not None and "picsum" not in (first_img_row.url or "")
 
-    if products_done and images_done:
+    # Check if document versions (downloadable manuals) are seeded
+    ver_check = await session.execute(select(ProductDocumentVersion).limit(1))
+    versions_done = ver_check.scalar_one_or_none() is not None
+
+    if products_done and images_done and versions_done:
         return  # Fully seeded — nothing to do
 
     now = datetime.now(timezone.utc)
@@ -284,12 +294,37 @@ async def seed_data(session: AsyncSession) -> None:
                 usage_instructions=pd["usage"],
             ))
 
-            if pd["status"] == ProductStatus.published:
-                session.add(ProductDocument(
+        # ── Seed a downloadable manual (document + version), idempotent ──
+        if pd["status"] == ProductStatus.published:
+            doc_result = await session.execute(
+                select(ProductDocument).where(
+                    ProductDocument.product_id == product.id,
+                    ProductDocument.doc_type == DocType.manual,
+                )
+            )
+            doc = doc_result.scalar_one_or_none()
+            if not doc:
+                doc = ProductDocument(
                     product_id=product.id,
                     doc_type=DocType.manual,
                     title=f"{pd['name']} — User Manual",
-                ))
+                )
+                session.add(doc)
+                await session.flush()
+            # Attach a version pointing to a public sample PDF if missing.
+            if not doc.current_version_id:
+                version = ProductDocumentVersion(
+                    document_id=doc.id,
+                    version=1,
+                    file_key=SAMPLE_PDF_URL,
+                    file_name=f"{pd['name']} Manual.pdf",
+                    size_bytes=13264,
+                    sha256=hashlib.sha256(pd["name"].encode()).hexdigest(),
+                    uploaded_by=pd["company"].owner_user_id,
+                )
+                session.add(version)
+                await session.flush()
+                doc.current_version_id = version.id
 
         # ── Seed mock images (auto-replaces Picsum placeholders with real ones) ──
         existing_img = await session.execute(

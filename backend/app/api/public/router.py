@@ -17,7 +17,10 @@ router = APIRouter(prefix="/public", tags=["public"])
 
 
 def _safe_signed_url(file_key: str) -> str | None:
-    """Best-effort signed download URL; None if storage is unconfigured or fails."""
+    """Best-effort download URL; None if storage is unconfigured or fails."""
+    # Seeded/external docs may store a full URL directly — serve it as-is.
+    if file_key.startswith("http"):
+        return file_key
     if not storage.is_configured():
         return None
     try:
