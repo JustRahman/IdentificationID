@@ -109,7 +109,7 @@ export default function BillingPage() {
         )}
         {(!plan || plan.plan === "free") && (
           <div className="grid grid-cols-2 gap-3">
-            {PLANS.map((p) => (
+            {PLANS.filter((p) => p.key !== "free").map((p) => (
               <button
                 key={p.key}
                 onClick={() => handleUpgrade(p.key)}
@@ -120,8 +120,7 @@ export default function BillingPage() {
                     : "border border-border text-foreground hover:bg-surface"
                 }`}
               >
-                {p.en.name} (${p.priceCents / 100}
-                {p.perProduct ? "/product" : "/mo"})
+                {p.en.name} (${p.priceCents / 100}/mo)
               </button>
             ))}
           </div>

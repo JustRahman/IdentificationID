@@ -35,7 +35,7 @@ export const LANGUAGES = [
 // ── Pricing plans (single source of truth) ──
 // `priceCents` is canonical; surfaces render `$${priceCents / 100}` so prices
 // can never drift between the homepage, pricing page, and billing page.
-export type PlanKey = "basic" | "small_business" | "medium" | "enterprise";
+export type PlanKey = "free" | "starter" | "pro";
 
 export interface PlanLabels {
   name: string;
@@ -47,7 +47,6 @@ export interface PlanLabels {
 export interface PlanTier {
   key: PlanKey;
   priceCents: number;
-  perProduct: boolean;
   productLimit: number; // -1 = unlimited
   popular: boolean;
   en: PlanLabels;
@@ -56,84 +55,62 @@ export interface PlanTier {
 
 export const PLANS: PlanTier[] = [
   {
-    key: "basic",
-    priceCents: 300,
-    perProduct: true,
-    productLimit: -1,
+    key: "free",
+    priceCents: 0,
+    productLimit: 10,
     popular: false,
     en: {
-      name: "Basic",
-      period: "per product / mo",
-      desc: "For individual products",
-      features: ["Pay per product", "Unique ID", "QR code", "Product page"],
+      name: "Free",
+      period: "",
+      desc: "For trying it out",
+      features: ["10 products", "Product page", "QR code", "Email support"],
     },
     ru: {
-      name: "Basic",
-      period: "за товар / мес",
-      desc: "Для единичных товаров",
-      features: ["Оплата за товар", "Уникальный ID", "QR-код", "Карточка товара"],
+      name: "Free",
+      period: "",
+      desc: "Для пробы",
+      features: ["10 товаров", "Карточка товара", "QR-код", "Email-поддержка"],
     },
   },
   {
-    key: "small_business",
+    key: "starter",
     priceCents: 2900,
-    perProduct: false,
-    productLimit: 50,
-    popular: false,
-    en: {
-      name: "Small Business",
-      period: "/ mo",
-      desc: "Up to 50 products",
-      features: ["Up to 50 products", "All Basic features", "Document uploads", "Multi-language"],
-    },
-    ru: {
-      name: "Small Business",
-      period: "/ месяц",
-      desc: "До 50 товаров",
-      features: ["До 50 товаров", "Все функции Basic", "Загрузка документов", "Мультиязычность"],
-    },
-  },
-  {
-    key: "medium",
-    priceCents: 9900,
-    perProduct: false,
-    productLimit: 500,
+    productLimit: 100,
     popular: true,
     en: {
-      name: "Medium",
+      name: "Starter",
       period: "/ mo",
-      desc: "Up to 500 products",
-      features: ["Up to 500 products", "All Small features", "PIM system", "Marketplace integration"],
+      desc: "For growing businesses",
+      features: ["100 products", "Document uploads", "Multi-language", "Priority support"],
     },
     ru: {
-      name: "Medium",
+      name: "Starter",
       period: "/ месяц",
-      desc: "До 500 товаров",
-      features: ["До 500 товаров", "Все функции Small", "PIM-система", "Интеграция маркетплейсов"],
+      desc: "Для растущего бизнеса",
+      features: ["100 товаров", "Загрузка документов", "Мультиязычность", "Приоритетная поддержка"],
     },
   },
   {
-    key: "enterprise",
-    priceCents: 29900,
-    perProduct: false,
+    key: "pro",
+    priceCents: 9900,
     productLimit: -1,
     popular: false,
     en: {
-      name: "Enterprise",
+      name: "Pro",
       period: "/ mo",
-      desc: "Unlimited",
-      features: ["Unlimited products", "All Medium features", "API access", "Priority support"],
+      desc: "For large manufacturers",
+      features: ["Unlimited products", "All Starter features", "API access", "Dedicated support"],
     },
     ru: {
-      name: "Enterprise",
+      name: "Pro",
       period: "/ месяц",
-      desc: "Без ограничений",
-      features: ["Неограниченно товаров", "Все функции Medium", "API-доступ", "Приоритетная поддержка"],
+      desc: "Для крупных производителей",
+      features: ["Неограниченно товаров", "Все функции Starter", "API-доступ", "Выделенная поддержка"],
     },
   },
 ];
 
-/** Format a plan's price for display, e.g. "$3", with per-product note handled by caller. */
+/** Format a plan's price for display, e.g. "$29". */
 export function formatPlanPrice(plan: PlanTier): string {
   return `$${plan.priceCents / 100}`;
 }

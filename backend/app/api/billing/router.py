@@ -20,15 +20,12 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 stripe.api_key = settings.stripe_secret_key
 
 PLANS = {
-    # Silent default for unpaid/inactive companies — not purchasable.
-    "free":           {"name": "Free",           "price_cents": 0,     "product_limit": 10,  "per_product": False},
-    "basic":          {"name": "Basic",          "price_cents": 300,   "product_limit": -1,  "per_product": True},
-    "small_business": {"name": "Small Business", "price_cents": 2900,  "product_limit": 50,  "per_product": False},
-    "medium":         {"name": "Medium",         "price_cents": 9900,  "product_limit": 500, "per_product": False},
-    "enterprise":     {"name": "Enterprise",     "price_cents": 29900, "product_limit": -1,  "per_product": False},
+    "free":    {"name": "Free",    "price_cents": 0,    "product_limit": 10},
+    "starter": {"name": "Starter", "price_cents": 2900, "product_limit": 100},
+    "pro":     {"name": "Pro",     "price_cents": 9900, "product_limit": -1},
 }
 
-PURCHASABLE_PLANS = ("basic", "small_business", "medium", "enterprise")
+PURCHASABLE_PLANS = ("starter", "pro")
 
 
 class CheckoutRequest(BaseModel):
@@ -99,15 +96,6 @@ async def create_checkout(
 
     plan = PLANS[body.plan]
 
-    # Per-product tiers (Basic) bill quantity = current product count (min 1).
-    if plan["per_product"]:
-        product_result = await db.execute(
-            select(Product).where(Product.company_id == company.id)
-        )
-        quantity = max(1, len(product_result.scalars().all()))
-    else:
-        quantity = 1
-
     if not settings.stripe_secret_key:
         return {
             "success": True,
@@ -129,7 +117,7 @@ async def create_checkout(
                     "unit_amount": plan["price_cents"],
                     "recurring": {"interval": "month"},
                 },
-                "quantity": quantity,
+                "quantity": 1,
             }
         ],
         metadata={"company_id": str(company.id), "plan": body.plan},

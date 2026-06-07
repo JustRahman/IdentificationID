@@ -12,12 +12,12 @@ const plans = PLANS.map((p) => ({
 
 export default function PricingPage() {
   return (
-    <div className="max-w-5xl mx-auto py-16 px-6">
+    <div className="max-w-4xl mx-auto py-16 px-6">
       <h1 className="text-2xl font-semibold text-center mb-2">Pricing</h1>
       <p className="text-muted text-center mb-12">
         Start free. No credit card required.
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <div
             key={plan.name}
