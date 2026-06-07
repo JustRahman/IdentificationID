@@ -100,9 +100,9 @@ export default function LandingPage() {
 
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {[
-              { icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253", label: "Wikipedia" },
-              { icon: "M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z", label: "GS1 / Barcodes" },
-              { icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", label: "Digital Passport" },
+              { icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4", label: "Product Registry" },
+              { icon: "M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z", label: "QR Passport" },
+              { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", label: "Verified Manufacturer Data" },
             ].map(({ icon, label }) => (
               <span
                 key={label}
@@ -154,13 +154,16 @@ export default function LandingPage() {
           </form>
         </div>
 
-        {/* Trust stats */}
+        {/* Goals (clearly framed as targets, not live numbers) */}
         <div className="max-w-3xl mx-auto px-6 pb-16">
+          <p className="text-center text-xs font-semibold uppercase tracking-wider text-accent mb-4">
+            Beta · Our 2026 goals
+          </p>
           <div className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm">
             {[
-              { n: "1,200+", label: "Registered products" },
-              { n: "50+", label: "Manufacturers" },
-              { n: "30+", label: "Countries" },
+              { n: "1,200+", label: "Products — target" },
+              { n: "50+", label: "Manufacturers — target" },
+              { n: "30+", label: "Countries — target" },
               { n: "100%", label: "Free for consumers" },
             ].map((s) => (
               <div key={s.label} className="text-center">
@@ -589,7 +592,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center justify-between flex-wrap gap-2 pt-6 border-t border-border text-xs text-muted">
             <p>© {new Date().getFullYear()} Identification ID. All rights reserved.</p>
-            <p>Global Product Registry · Wikipedia + GS1 + Digital Passport</p>
+            <p>Product Registry · QR Passport · Verified Manufacturer Data</p>
           </div>
         </div>
       </footer>

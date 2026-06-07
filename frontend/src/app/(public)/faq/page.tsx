@@ -90,7 +90,7 @@ const faqs = [
 ];
 
 function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   return (
     <div className="border border-border rounded-xl overflow-hidden">
       <button

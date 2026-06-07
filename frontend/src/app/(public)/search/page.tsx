@@ -152,19 +152,34 @@ function SearchPageContent() {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-8">
 
+        {/* Header (only on the browse / empty view) */}
+        {showRecommendations && (
+          <div className="text-center max-w-2xl mx-auto mb-8 pt-4">
+            <h1 className="text-3xl font-semibold tracking-tight mb-3">Search the Product Registry</h1>
+            <p className="text-muted text-sm">
+              Find any product by name, brand, or manufacturer — or paste an
+              Identification ID like <span className="font-mono text-foreground">IID-4F9A-2K7Q</span> to
+              open its page directly.
+            </p>
+          </div>
+        )}
+
         {/* Search bar */}
-        <form onSubmit={handleSubmit} className="flex gap-2 mb-8 max-w-xl">
+        <form
+          onSubmit={handleSubmit}
+          className={`flex gap-2 mb-10 ${showRecommendations ? "max-w-2xl mx-auto" : "max-w-xl"}`}
+        >
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by product name, brand, or manufacturer..."
-            className="flex-1 border border-border rounded-lg px-4 py-3 text-sm bg-background"
+            className="flex-1 border border-border rounded-xl px-4 py-3.5 text-sm bg-background shadow-sm focus:border-accent focus:shadow-md transition-all"
             autoFocus
           />
           <button
             type="submit"
-            className="bg-accent text-white px-5 py-3 rounded-lg text-sm font-medium hover:bg-accent-hover"
+            className="bg-accent text-white px-6 py-3.5 rounded-xl text-sm font-medium hover:bg-accent-hover shadow-sm"
           >
             Search
           </button>
@@ -241,10 +256,15 @@ function SearchPageContent() {
                     <div key={i} className="border border-border rounded-xl p-5 animate-pulse bg-surface h-28" />
                   ))}
                 </div>
-              ) : (
+              ) : featured.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {featured.map((r) => <ProductCard key={r.identification_id} r={r} />)}
                 </div>
+              ) : (
+                <p className="text-sm text-muted border border-dashed border-border rounded-xl p-6 text-center">
+                  No products published yet — be the first.{" "}
+                  <Link href="/register" className="text-accent hover:underline">Register a product</Link>
+                </p>
               )}
             </div>
 
@@ -257,7 +277,7 @@ function SearchPageContent() {
                     <div key={i} className="border border-border rounded-xl p-4 animate-pulse bg-surface h-16" />
                   ))}
                 </div>
-              ) : (
+              ) : companies.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {companies.map((c) => (
                     <Link
@@ -274,6 +294,10 @@ function SearchPageContent() {
                     </Link>
                   ))}
                 </div>
+              ) : (
+                <p className="text-sm text-muted border border-dashed border-border rounded-xl p-6 text-center">
+                  No verified manufacturers yet.
+                </p>
               )}
             </div>
           </>
