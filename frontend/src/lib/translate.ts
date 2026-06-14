@@ -4,10 +4,14 @@
 
 const MAX = 480; // MyMemory free limit is ~500 chars per request
 
+// Adding a contact email raises the free MyMemory quota from ~1,000 to
+// ~50,000 words/day at no cost (no key, no payment required).
+const CONTACT_EMAIL = "support@identificationid.com";
+
 async function translateChunk(chunk: string, fromLang: string, toLang: string): Promise<string> {
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
     chunk
-  )}&langpair=${fromLang}|${toLang}`;
+  )}&langpair=${fromLang}|${toLang}&de=${encodeURIComponent(CONTACT_EMAIL)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
