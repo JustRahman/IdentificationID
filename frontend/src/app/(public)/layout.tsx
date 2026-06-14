@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function PublicLayout({
   children,
@@ -27,6 +28,7 @@ export default function PublicLayout({
             <Link href="/faq" className="text-muted hover:text-foreground">
               FAQ
             </Link>
+            <LanguageSwitcher />
             {user ? (
               <Link
                 href="/dashboard"

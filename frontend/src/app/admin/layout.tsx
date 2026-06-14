@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const adminNavItems = [
   { href: "/admin/companies", label: "Companies" },
@@ -53,8 +54,9 @@ export default function AdminLayout({
             </Link>
           ))}
         </nav>
-        <div className="mt-auto pt-4 border-t border-border">
-          <Link href="/dashboard" className="text-sm text-muted hover:text-foreground">
+        <div className="mt-auto pt-4 border-t border-border space-y-3">
+          <LanguageSwitcher />
+          <Link href="/dashboard" className="block text-sm text-muted hover:text-foreground">
             Back to dashboard
           </Link>
         </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { PLANS } from "@/lib/constants";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const ID_PATTERN = /^IID-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
 
@@ -61,6 +62,7 @@ export default function LandingPage() {
             <Link href="/pricing" className="text-muted hover:text-foreground transition-colors">Pricing</Link>
             <Link href="/faq" className="text-muted hover:text-foreground transition-colors">FAQ</Link>
             <Link href="/login" className="text-muted hover:text-foreground transition-colors">Log in</Link>
+            <LanguageSwitcher />
             <Link
               href="/register"
               className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors shadow-sm"

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -61,7 +62,8 @@ export default function AppLayout({
             </Link>
           )}
         </nav>
-        <div className="mt-auto pt-4 border-t border-border space-y-2">
+        <div className="mt-auto pt-4 border-t border-border space-y-3">
+          <LanguageSwitcher />
           <p className="text-xs text-muted truncate">{user.email}</p>
           <button
             onClick={logout}
