@@ -44,9 +44,14 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         settings.frontend_url,
+        "https://identificationid.com",
+        "https://www.identificationid.com",
+        "https://identificationid.up.railway.app",
         "http://localhost:8888",
         "http://localhost:3000",
     ],
+    # Also allow apex/any subdomain of the domain + Railway preview URLs.
+    allow_origin_regex=r"https://([a-z0-9-]+\.)?identificationid\.com|https://[a-z0-9-]+\.up\.railway\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
