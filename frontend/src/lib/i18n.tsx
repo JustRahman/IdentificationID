@@ -25,7 +25,9 @@ import {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 const STORAGE_LANG = "ui_lang";
-const cacheKey = (lang: string) => `ui_tr_${lang}`;
+// Bump the version suffix to invalidate any stale browser cache (e.g. English
+// fallbacks saved by an earlier build that couldn't reach the translator).
+const cacheKey = (lang: string) => `ui_tr_v2_${lang}`;
 
 interface LanguageCtx {
   lang: string;
