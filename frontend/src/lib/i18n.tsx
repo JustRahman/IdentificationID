@@ -7,9 +7,10 @@
 // localStorage, and re-applies on navigation / re-render. No per-string wiring
 // needed — pick a language in the nav and the whole app follows.
 //
-// Note: uses the free MyMemory API (rate-limited). For production-grade,
-// full-volume translation, swap translateText() for a keyed provider
-// (Google/DeepL) — the rest of this layer stays the same.
+// Translations are fetched in one batched request from our own backend
+// (/translate), which caches every phrase in the database — so the external
+// translation API is hit at most once per phrase across all visitors. No
+// per-visitor rate limits, no request storm.
 // ---------------------------------------------------------------------------
 
 import {
@@ -21,8 +22,8 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { translateText } from "@/lib/translate";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 const STORAGE_LANG = "ui_lang";
 const cacheKey = (lang: string) => `ui_tr_${lang}`;
 
@@ -57,16 +58,16 @@ function shouldSkip(node: I18nText): boolean {
   return false;
 }
 
-// Run async tasks with limited concurrency to be gentle on the translation API.
-async function mapLimit<T>(items: T[], limit: number, fn: (x: T) => Promise<void>) {
-  let i = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (i < items.length) {
-      const idx = i++;
-      await fn(items[idx]);
-    }
+// Fetch translations for a batch of phrases from our cached backend endpoint.
+async function fetchTranslations(texts: string[], target: string): Promise<Record<string, string>> {
+  const res = await fetch(`${API_BASE}/translate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ texts, target }),
   });
-  await Promise.all(workers);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return (json && json.data) || {};
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -124,10 +125,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
 
     if (need.size) {
-      await mapLimit(Array.from(need), 6, async (key) => {
-        try { cache.current[key] = await translateText(key, "en", target); }
-        catch { cache.current[key] = key; }
-      });
+      const list = Array.from(need);
+      try {
+        const data = await fetchTranslations(list, target);
+        for (const key of list) cache.current[key] = data[key] ?? key;
+      } catch {
+        for (const key of list) cache.current[key] = key;
+      }
       try { localStorage.setItem(cacheKey(target), JSON.stringify(cache.current)); } catch {}
     }
 

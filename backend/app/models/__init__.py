@@ -9,6 +9,7 @@ from app.models.product_image import ProductImage
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.payment import Payment, PaymentStatus
 from app.models.audit_log import AuditLog
+from app.models.ui_translation import UiTranslation
 
 __all__ = [
     "Base",
@@ -28,4 +29,5 @@ __all__ = [
     "Payment",
     "PaymentStatus",
     "AuditLog",
+    "UiTranslation",
 ]
