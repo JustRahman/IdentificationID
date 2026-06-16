@@ -32,6 +32,7 @@ const cacheKey = (lang: string) => `ui_tr_v2_${lang}`;
 interface LanguageCtx {
   lang: string;
   setLang: (lang: string) => void;
+  translating: boolean;
 }
 
 const Ctx = createContext<LanguageCtx | null>(null);
@@ -74,6 +75,7 @@ async function fetchTranslations(texts: string[], target: string): Promise<Recor
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState("en");
+  const [translating, setTranslating] = useState(false);
   const cache = useRef<Record<string, string>>({});
   const observer = useRef<MutationObserver | null>(null);
   const running = useRef(false);
@@ -128,11 +130,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
     if (need.size) {
       const list = Array.from(need);
+      setTranslating(true);
       try {
         const data = await fetchTranslations(list, target);
         for (const key of list) cache.current[key] = data[key] ?? key;
       } catch {
         for (const key of list) cache.current[key] = key;
+      } finally {
+        setTranslating(false);
       }
       try { localStorage.setItem(cacheKey(target), JSON.stringify(cache.current)); } catch {}
     }
@@ -192,7 +197,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(STORAGE_LANG, l); } catch {}
   }, []);
 
-  return <Ctx.Provider value={{ lang, setLang }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ lang, setLang, translating }}>
+      {translating && (
+        <div data-no-i18n className="fixed inset-x-0 top-0 z-[9999] h-0.5 overflow-hidden bg-accent/20">
+          <div className="h-full w-1/3 bg-accent animate-[i18nbar_1s_ease-in-out_infinite]" />
+          <style>{`@keyframes i18nbar{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}`}</style>
+        </div>
+      )}
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useLanguage(): LanguageCtx {
