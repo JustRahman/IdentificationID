@@ -46,6 +46,7 @@ const SKIP_TAGS = new Set([
 interface I18nText extends Text {
   __i18nSrc?: string;      // original English text
   __i18nApplied?: string;  // the translated text we last wrote
+  __i18nLang?: string;     // language that __i18nApplied is in
 }
 
 function shouldSkip(node: I18nText): boolean {
@@ -53,7 +54,14 @@ function shouldSkip(node: I18nText): boolean {
   if (!p) return true;
   if (SKIP_TAGS.has(p.tagName)) return true;
   if (p.closest("[data-no-i18n]")) return true;
-  const t = (node.textContent || "").trim();
+  // Evaluate against the ORIGINAL English source when we have it — a node
+  // already translated to e.g. Chinese has no Latin letters but must still be
+  // re-translatable into another language.
+  const cur = node.textContent || "";
+  const ref = (node.__i18nApplied === cur && node.__i18nSrc !== undefined)
+    ? node.__i18nSrc
+    : cur;
+  const t = ref.trim();
   if (t.length < 2) return true;            // tiny / punctuation
   if (!/[A-Za-z]/.test(t)) return true;     // numbers, symbols, codes
   if (/^IID-/i.test(t)) return true;        // product IDs
@@ -103,6 +111,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     for (const node of collect()) {
       if (node.__i18nSrc !== undefined && node.textContent === node.__i18nApplied) {
         node.textContent = node.__i18nSrc;
+        node.__i18nApplied = node.__i18nSrc;
+        node.__i18nLang = "en";
       }
     }
   }, []);
@@ -118,11 +128,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
     for (const node of nodes) {
       const cur = node.textContent || "";
-      // Already translated and untouched since → skip.
-      if (node.__i18nApplied !== undefined && node.__i18nApplied === cur) continue;
-      // New node, or React rewrote it back to source — treat current as English source.
-      const src = cur;
-      node.__i18nSrc = src;
+      // Already showing the correct translation for THIS language → skip.
+      if (node.__i18nLang === target && node.__i18nApplied === cur) continue;
+      // Recover the original English source:
+      //  - if the node currently shows a translation we applied, its English
+      //    original is stored in __i18nSrc (switching language case);
+      //  - otherwise the current text IS fresh English (new / React-rendered).
+      let src: string;
+      if (node.__i18nSrc !== undefined && node.__i18nApplied === cur) {
+        src = node.__i18nSrc;
+      } else {
+        src = cur;
+        node.__i18nSrc = src;
+      }
       nodeSrc.set(node, src);
       const key = src.trim();
       if (cache.current[key] === undefined) need.add(key);
@@ -152,6 +170,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         const trail = src.match(/\s*$/)?.[0] ?? "";
         node.textContent = lead + tr + trail;
         node.__i18nApplied = node.textContent;
+        node.__i18nLang = target;
       }
     }
     connectObserver();
