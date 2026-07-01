@@ -269,4 +269,5 @@ def _product_response(product: Product) -> ProductResponse:
         status=product.status.value,
         published_at=product.published_at.isoformat() if product.published_at else None,
         company_id=str(product.company_id),
+        view_count=product.view_count or 0,
     )

@@ -34,6 +34,8 @@ interface ProductData {
     country_code: string;
     website: string | null;
     support_email: string | null;
+    logo_url: string | null;
+    description: string | null;
   };
   translation: TranslationFields | null;
   translations: TranslationFields[];
@@ -262,6 +264,21 @@ export default function PublicProductPage({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-muted mb-4">Manufacturer</h3>
+            {(product.company.logo_url || product.company.description) && (
+              <div className="flex items-start gap-3 mb-4">
+                {product.company.logo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={product.company.logo_url}
+                    alt={`${product.company.display_name} logo`}
+                    className="w-12 h-12 rounded-lg object-contain border border-border bg-white shrink-0"
+                  />
+                )}
+                {product.company.description && (
+                  <p className="text-xs text-muted leading-relaxed">{product.company.description}</p>
+                )}
+              </div>
+            )}
             {[
               { label: "Company", value: product.company.display_name },
               { label: "Country", value: product.company.country_code },

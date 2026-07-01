@@ -452,11 +452,16 @@ export default function LandingPage() {
               desc: p.en.desc,
               features: p.en.features,
               accent: p.popular,
-            })).map((plan) => (
+              premium: p.key === "pro",
+            })).map((plan) => {
+              const filled = plan.accent || plan.premium;
+              return (
               <div
                 key={plan.name}
                 className={`relative rounded-2xl p-6 border transition-all hover:-translate-y-1 hover:shadow-md ${
-                  plan.accent
+                  plan.premium
+                    ? "bg-slate-900 border-slate-900 text-white shadow-xl md:scale-[1.03]"
+                    : plan.accent
                     ? "bg-accent border-accent text-white shadow-lg"
                     : "bg-white border-border"
                 }`}
@@ -466,18 +471,23 @@ export default function LandingPage() {
                     POPULAR
                   </div>
                 )}
-                <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${plan.accent ? "text-blue-100" : "text-muted"}`}>
+                {plan.premium && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold bg-amber-400 text-slate-900 px-3 py-1 rounded-full shadow">
+                    BEST VALUE
+                  </div>
+                )}
+                <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${filled ? "text-white/70" : "text-muted"}`}>
                   {plan.name}
                 </p>
                 <div className="flex items-end gap-1 mb-1">
                   <span className="text-3xl font-bold">{plan.price}</span>
                 </div>
-                <p className={`text-xs mb-1 ${plan.accent ? "text-blue-100" : "text-muted"}`}>{plan.period}</p>
-                <p className={`text-sm mb-5 font-medium ${plan.accent ? "text-blue-50" : "text-muted"}`}>{plan.desc}</p>
+                <p className={`text-xs mb-1 ${filled ? "text-white/70" : "text-muted"}`}>{plan.period}</p>
+                <p className={`text-sm mb-5 font-medium ${filled ? "text-white/80" : "text-muted"}`}>{plan.desc}</p>
                 <ul className="space-y-2 mb-6">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-sm">
-                      <svg className={`w-3.5 h-3.5 shrink-0 ${plan.accent ? "text-green-300" : "text-green-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <svg className={`w-3.5 h-3.5 shrink-0 ${filled ? "text-green-300" : "text-green-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                       {f}
@@ -487,7 +497,9 @@ export default function LandingPage() {
                 <Link
                   href="/register"
                   className={`block text-center text-sm font-medium py-2.5 rounded-xl transition-colors ${
-                    plan.accent
+                    plan.premium
+                      ? "bg-amber-400 text-slate-900 hover:bg-amber-300"
+                      : plan.accent
                       ? "bg-white text-accent hover:bg-blue-50"
                       : "bg-accent text-white hover:bg-accent-hover"
                   }`}
@@ -495,7 +507,8 @@ export default function LandingPage() {
                   Choose plan
                 </Link>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <p className="text-center text-sm text-muted mt-8">

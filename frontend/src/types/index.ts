@@ -21,6 +21,8 @@ export interface Company {
   country_code: string;
   website: string | null;
   support_email: string | null;
+  logo_url: string | null;
+  description: string | null;
   status: CompanyStatus;
   admin_note: string | null;
   verified_at: string | null;
@@ -42,6 +44,7 @@ export interface Product {
   country_of_origin: string | null;
   status: ProductStatus;
   published_at: string | null;
+  view_count?: number;
   images?: ProductImage[];
 }
 

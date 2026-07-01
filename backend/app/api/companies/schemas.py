@@ -7,6 +7,8 @@ class CompanyCreate(BaseModel):
     country_code: str
     website: str | None = None
     support_email: str | None = None
+    logo_url: str | None = None
+    description: str | None = None
 
 
 class CompanyUpdate(BaseModel):
@@ -15,6 +17,8 @@ class CompanyUpdate(BaseModel):
     country_code: str | None = None
     website: str | None = None
     support_email: str | None = None
+    logo_url: str | None = None
+    description: str | None = None
 
 
 class CompanyResponse(BaseModel):
@@ -24,6 +28,8 @@ class CompanyResponse(BaseModel):
     country_code: str
     website: str | None
     support_email: str | None
+    logo_url: str | None = None
+    description: str | None = None
     status: str
     admin_note: str | None
     verified_at: str | None

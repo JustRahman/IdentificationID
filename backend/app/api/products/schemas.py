@@ -29,6 +29,7 @@ class ProductResponse(BaseModel):
     status: str
     published_at: str | None
     company_id: str
+    view_count: int = 0
 
     class Config:
         from_attributes = True

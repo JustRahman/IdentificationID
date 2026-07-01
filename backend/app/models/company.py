@@ -35,6 +35,8 @@ class Company(Base, UUIDMixin, TimestampMixin):
     country_code: Mapped[str] = mapped_column(String(2), nullable=False)
     website: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     support_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    logo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[CompanyStatus] = mapped_column(
         Enum(CompanyStatus), default=CompanyStatus.pending, nullable=False
     )

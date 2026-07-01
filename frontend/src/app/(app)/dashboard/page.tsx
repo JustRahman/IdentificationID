@@ -29,6 +29,7 @@ export default function DashboardPage() {
   }, []);
 
   const published = products.filter((p) => p.status === "published").length;
+  const totalViews = products.reduce((sum, p) => sum + (p.view_count || 0), 0);
 
   if (loading) {
     return <p className="text-sm text-muted">Loading...</p>;
@@ -81,7 +82,7 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {[
           {
             label: "Company Status",
@@ -90,6 +91,7 @@ export default function DashboardPage() {
           },
           { label: "Total Products", value: String(products.length) },
           { label: "Published", value: String(published) },
+          { label: "Total Views", value: totalViews.toLocaleString(), color: "text-accent" },
           { label: "Current Plan", value: "Free" },
         ].map((stat) => (
           <div

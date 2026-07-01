@@ -52,6 +52,10 @@ async def lookup_product(
     if not product:
         raise NotFound("Product not found")
 
+    # Count this view (a scan / public page open).
+    product.view_count = (product.view_count or 0) + 1
+    await db.commit()
+
     # Pick requested language, fall back to English
     translation = None
     en_translation = None
@@ -77,6 +81,8 @@ async def lookup_product(
                 "country_code": product.company.country_code,
                 "website": product.company.website,
                 "support_email": product.company.support_email,
+                "logo_url": product.company.logo_url,
+                "description": product.company.description,
             },
             "translation": {
                 "lang": translation.lang,

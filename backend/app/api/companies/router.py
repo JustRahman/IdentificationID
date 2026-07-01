@@ -30,6 +30,8 @@ async def create_company(
         country_code=body.country_code,
         website=body.website,
         support_email=body.support_email,
+        logo_url=body.logo_url,
+        description=body.description,
     )
     db.add(company)
     await db.flush()
@@ -107,6 +109,8 @@ def _company_response(company: Company) -> CompanyResponse:
         country_code=company.country_code,
         website=company.website,
         support_email=company.support_email,
+        logo_url=company.logo_url,
+        description=company.description,
         status=company.status.value,
         admin_note=company.admin_note,
         verified_at=company.verified_at.isoformat() if company.verified_at else None,

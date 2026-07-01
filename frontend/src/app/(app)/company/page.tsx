@@ -16,6 +16,8 @@ export default function CompanyPage() {
   const [countryCode, setCountryCode] = useState("");
   const [website, setWebsite] = useState("");
   const [supportEmail, setSupportEmail] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -27,6 +29,8 @@ export default function CompanyPage() {
         setCountryCode(data.country_code);
         setWebsite(data.website || "");
         setSupportEmail(data.support_email || "");
+        setLogoUrl(data.logo_url || "");
+        setDescription(data.description || "");
       } catch {
         // No company yet
       } finally {
@@ -48,6 +52,8 @@ export default function CompanyPage() {
       country_code: countryCode,
       website: website || null,
       support_email: supportEmail || null,
+      logo_url: logoUrl || null,
+      description: description || null,
     };
 
     try {
@@ -175,6 +181,33 @@ export default function CompanyPage() {
               type="email"
               value={supportEmail}
               onChange={(e) => setSupportEmail(e.target.value)}
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Logo URL</label>
+            <div className="flex items-center gap-3">
+              {logoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt="Logo preview" className="w-10 h-10 rounded-lg object-contain border border-border bg-white shrink-0" />
+              )}
+              <input
+                type="url"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                placeholder="https://…/logo.png"
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+              />
+            </div>
+            <p className="text-xs text-muted mt-1">Shown on your public product pages.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Manufacturer Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="A short description of your company, shown to consumers."
               className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
             />
           </div>

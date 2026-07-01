@@ -20,10 +20,20 @@ from app.api.translate.router import router as translate_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Auto-create all tables on startup
+    from sqlalchemy import text
     from app.core.database import engine
     from app.models import Base
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Lightweight idempotent migrations for columns added to existing tables
+        # (create_all only creates missing tables, not missing columns).
+        for stmt in (
+            "ALTER TABLE products ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500)",
+            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT",
+            "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS plan VARCHAR(32) NOT NULL DEFAULT 'free'",
+        ):
+            await conn.execute(text(stmt))
 
     # Seed mock data
     from app.core.database import AsyncSessionLocal
