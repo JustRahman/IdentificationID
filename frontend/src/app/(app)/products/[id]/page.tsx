@@ -14,6 +14,8 @@ interface DocumentInfo {
   current_version_id: string | null;
   file_url: string | null;
   file_name: string | null;
+  size_bytes: number | null;
+  created_at: string | null;
 }
 
 interface ImageInfo {
@@ -291,6 +293,17 @@ export default function EditProductPage({
     : `https://identificationid.com/p/${product.identification_id}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(publicUrl)}`;
 
+  // Product completion — motivates finishing the listing before publishing.
+  const completionSteps = [
+    { label: "Details", done: !!(name && category) },
+    { label: "Image", done: images.length > 0 },
+    { label: "Description", done: !!(descFields["en"]?.short || descFields["en"]?.full) },
+    { label: "Document", done: documents.length > 0 },
+    { label: "Published", done: product.status === "published" },
+  ];
+  const doneCount = completionSteps.filter((s) => s.done).length;
+  const completionPct = Math.round((doneCount / completionSteps.length) * 100);
+
   return (
     <div>
       <div className="flex items-start justify-between mb-6">
@@ -321,6 +334,36 @@ export default function EditProductPage({
         }`}>
           {product.status}
         </span>
+      </div>
+
+      {/* Completion progress */}
+      <div className="bg-background border border-border rounded-xl p-4 mb-6 max-w-lg">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-medium">Product completion</p>
+          <span className={`text-sm font-semibold ${completionPct === 100 ? "text-green-600" : "text-accent"}`}>
+            {doneCount} of {completionSteps.length} · {completionPct}%
+          </span>
+        </div>
+        <div className="w-full bg-surface rounded-full h-2 mb-3">
+          <div
+            className={`h-2 rounded-full transition-all ${completionPct === 100 ? "bg-green-500" : "bg-accent"}`}
+            style={{ width: `${completionPct}%` }}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {completionSteps.map((s) => (
+            <span
+              key={s.label}
+              className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${
+                s.done
+                  ? "border-green-200 bg-green-50 text-green-700"
+                  : "border-border text-muted"
+              }`}
+            >
+              {s.done ? "✓" : "○"} {s.label}
+            </span>
+          ))}
+        </div>
       </div>
 
       {message && (
@@ -517,6 +560,12 @@ export default function EditProductPage({
                     <div>
                       <p className="text-sm font-medium">{doc.title || doc.doc_type}</p>
                       <p className="text-xs text-muted">{doc.file_name || doc.doc_type}</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-muted">
+                        <span className="uppercase tracking-wide">{doc.doc_type}</span>
+                        {doc.size_bytes != null && <span>{(doc.size_bytes / 1024).toFixed(0)} KB</span>}
+                        {doc.created_at && <span>{new Date(doc.created_at).toLocaleDateString()}</span>}
+                        <span className="text-green-600">PDF</span>
+                      </div>
                     </div>
                     {doc.file_url && (
                       <a

@@ -96,6 +96,7 @@ async def upload_document(
         current_version_id=str(version.id),
         file_url=file_url,
         file_name=version.file_name,
+        size_bytes=len(content),
     )
 
 
@@ -115,6 +116,8 @@ async def list_documents(
     for d in docs:
         file_url = None
         file_name = None
+        size_bytes = None
+        created_at = None
         if d.current_version_id:
             ver_result = await db.execute(
                 select(ProductDocumentVersion).where(ProductDocumentVersion.id == d.current_version_id)
@@ -122,6 +125,8 @@ async def list_documents(
             version = ver_result.scalar_one_or_none()
             if version:
                 file_name = version.file_name
+                size_bytes = version.size_bytes
+                created_at = version.created_at.isoformat() if version.created_at else None
                 if version.file_key.startswith("http"):
                     file_url = version.file_key
                 elif storage.is_configured():
@@ -137,6 +142,8 @@ async def list_documents(
             current_version_id=str(d.current_version_id) if d.current_version_id else None,
             file_url=file_url,
             file_name=file_name,
+            size_bytes=size_bytes,
+            created_at=created_at,
         ))
     return items
 

@@ -9,6 +9,8 @@ class DocumentResponse(BaseModel):
     current_version_id: str | None
     file_url: str | None = None
     file_name: str | None = None
+    size_bytes: int | None = None
+    created_at: str | None = None
 
     class Config:
         from_attributes = True

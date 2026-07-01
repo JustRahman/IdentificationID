@@ -96,8 +96,11 @@ export default function LandingPage() {
             Identification ID
           </h1>
 
-          <p className="text-xl text-muted mb-4 leading-relaxed max-w-2xl mx-auto font-medium">
-            A global online product registry where every product gets a unique ID
+          <p className="text-2xl sm:text-3xl text-foreground mb-3 leading-snug max-w-2xl mx-auto font-semibold tracking-tight">
+            Every product. One digital passport.
+          </p>
+          <p className="text-base text-muted mb-4 leading-relaxed max-w-xl mx-auto">
+            The digital identity platform for physical products — every item gets a unique, verifiable ID.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-10">

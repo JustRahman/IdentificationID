@@ -165,25 +165,34 @@ function SearchPageContent() {
         )}
 
         {/* Search bar */}
-        <form
-          onSubmit={handleSubmit}
-          className={`flex gap-2 mb-10 ${showRecommendations ? "max-w-2xl mx-auto" : "max-w-xl"}`}
-        >
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by product name, brand, or manufacturer..."
-            className="flex-1 border border-border rounded-xl px-4 py-3.5 text-sm bg-background shadow-sm focus:border-accent focus:shadow-md transition-all"
-            autoFocus
-          />
-          <button
-            type="submit"
-            className="bg-accent text-white px-6 py-3.5 rounded-xl text-sm font-medium hover:bg-accent-hover shadow-sm"
-          >
-            Search
-          </button>
-        </form>
+        <div className={`mb-10 ${showRecommendations ? "max-w-2xl mx-auto" : "max-w-xl"}`}>
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by product name, brand, or manufacturer..."
+              className="flex-1 border border-border rounded-xl px-4 py-3.5 text-sm bg-background shadow-sm focus:border-accent focus:shadow-md transition-all"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="bg-accent text-white px-6 py-3.5 rounded-xl text-sm font-medium hover:bg-accent-hover shadow-sm"
+            >
+              Search
+            </button>
+          </form>
+          <p className="text-xs text-muted mt-3">
+            Try:{" "}
+            <button type="button" onClick={() => setQuery("Air Fryer")} className="text-accent hover:underline">Air Fryer</button>
+            {" · "}
+            <button type="button" onClick={() => setQuery("Drill")} className="text-accent hover:underline">Drill</button>
+            {" · "}
+            <button type="button" onClick={() => setQuery("Yoga Mat")} className="text-accent hover:underline">Yoga Mat</button>
+            {" · or paste an ID like "}
+            <button type="button" onClick={() => setQuery("IID-4F9A-2K7Q")} className="font-mono text-foreground hover:text-accent hover:underline">IID-4F9A-2K7Q</button>
+          </p>
+        </div>
 
         {/* ── SEARCH RESULTS ── */}
         {!showRecommendations && (

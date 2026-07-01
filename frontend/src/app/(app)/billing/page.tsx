@@ -103,9 +103,21 @@ export default function BillingPage() {
           />
         </div>
         {plan?.subscription && (
-          <p className="text-xs text-muted mb-4">
-            Status: {plan.subscription.status} · Paid until: {plan.subscription.paid_until}
-          </p>
+          <div className="grid grid-cols-2 gap-3 mb-4 border-t border-border pt-4">
+            <div>
+              <p className="text-xs text-muted">Status</p>
+              <p className="text-sm font-medium capitalize">{plan.subscription.status}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted">Next billing / renews</p>
+              <p className="text-sm font-medium">
+                {(() => {
+                  const d = new Date(plan.subscription.paid_until);
+                  return isNaN(d.getTime()) ? plan.subscription.paid_until : d.toLocaleDateString();
+                })()}
+              </p>
+            </div>
+          </div>
         )}
         {(!plan || plan.plan === "free") && (
           <div className="grid grid-cols-2 gap-3">
