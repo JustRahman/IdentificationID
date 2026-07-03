@@ -11,6 +11,7 @@ const navItems = [
   { href: "/company", label: "Company Profile" },
   { href: "/products", label: "Products" },
   { href: "/billing", label: "Billing" },
+  { href: "/api-keys", label: "API Access" },
 ];
 
 export default function AppLayout({

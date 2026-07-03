@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 import stripe
 from fastapi import APIRouter, Depends, Request
@@ -20,12 +20,15 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 stripe.api_key = settings.stripe_secret_key
 
 PLANS = {
-    "free":    {"name": "Free",    "price_cents": 0,    "product_limit": 10},
-    "starter": {"name": "Starter", "price_cents": 2900, "product_limit": 100},
-    "pro":     {"name": "Pro",     "price_cents": 9900, "product_limit": -1},
+    # Internal fallback for companies without a subscription — NOT purchasable.
+    "free":       {"name": "Free",       "price_cents": 0,     "product_limit": 10,  "per_product": False},
+    "standard":   {"name": "Standard",   "price_cents": 300,   "product_limit": -1,  "per_product": True},
+    "popular":    {"name": "Popular",    "price_cents": 2900,  "product_limit": 50,  "per_product": False},
+    "best_value": {"name": "Best Value", "price_cents": 9900,  "product_limit": 500, "per_product": False},
+    "enterprise": {"name": "Enterprise", "price_cents": 29900, "product_limit": -1,  "per_product": False},
 }
 
-PURCHASABLE_PLANS = ("starter", "pro")
+PURCHASABLE_PLANS = ("standard", "popular", "best_value", "enterprise")
 
 
 class CheckoutRequest(BaseModel):
@@ -96,11 +99,34 @@ async def create_checkout(
 
     plan = PLANS[body.plan]
 
+    # Per-product plans bill per registered product; others bill a flat rate.
+    if plan["per_product"]:
+        count_result = await db.execute(
+            select(Product).where(Product.company_id == company.id)
+        )
+        quantity = max(1, len(count_result.scalars().all()))
+    else:
+        quantity = 1
+
     if not settings.stripe_secret_key:
+        # Demo mode: activate the plan directly instead of going through Stripe.
+        sub_result = await db.execute(
+            select(Subscription).where(Subscription.company_id == company.id)
+        )
+        subscription = sub_result.scalar_one_or_none()
+        if subscription is None:
+            subscription = Subscription(company_id=company.id)
+            db.add(subscription)
+        subscription.status = SubscriptionStatus.active
+        subscription.plan = body.plan
+        subscription.paid_until = date.today() + timedelta(days=365)
+        subscription.stripe_customer_id = "demo"
+        subscription.stripe_subscription_id = f"demo_{body.plan}"
+        await db.flush()
         return {
             "success": True,
             "data": {
-                "message": "Stripe not configured. In production, this would redirect to Stripe Checkout.",
+                "message": "Plan activated (demo mode — Stripe not configured).",
                 "plan": body.plan,
                 "price_cents": plan["price_cents"],
             },
@@ -113,11 +139,11 @@ async def create_checkout(
             {
                 "price_data": {
                     "currency": "usd",
-                    "product_data": {"name": f"Identification ID - {plan['name']}"},
-                    "unit_amount": plan["price_cents"],
-                    "recurring": {"interval": "month"},
+                    "product_data": {"name": f"Identification ID - {plan['name']} (annual)"},
+                    "unit_amount": plan["price_cents"] * 12,
+                    "recurring": {"interval": "year"},
                 },
-                "quantity": 1,
+                "quantity": quantity,
             }
         ],
         metadata={"company_id": str(company.id), "plan": body.plan},

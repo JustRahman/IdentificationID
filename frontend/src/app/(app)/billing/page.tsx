@@ -121,18 +121,21 @@ export default function BillingPage() {
         )}
         {(!plan || plan.plan === "free") && (
           <div className="grid grid-cols-2 gap-3">
-            {PLANS.filter((p) => p.key !== "free").map((p) => (
+            {PLANS.map((p) => (
               <button
                 key={p.key}
                 onClick={() => handleUpgrade(p.key)}
                 disabled={upgrading}
                 className={`px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 ${
-                  p.popular
+                  p.premium
+                    ? "bg-slate-900 text-white hover:bg-slate-800"
+                    : p.popular
                     ? "bg-accent text-white hover:bg-accent-hover"
                     : "border border-border text-foreground hover:bg-surface"
                 }`}
               >
-                {p.en.name} (${p.priceCents / 100}/mo)
+                {p.en.name} (${p.priceCents / 100}
+                {p.perProduct ? "/product" : "/mo"})
               </button>
             ))}
           </div>

@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,6 +34,8 @@ async def create_company(
         support_email=body.support_email,
         logo_url=body.logo_url,
         description=body.description,
+        status=CompanyStatus.verified,
+        verified_at=datetime.now(timezone.utc),
     )
     db.add(company)
     await db.flush()

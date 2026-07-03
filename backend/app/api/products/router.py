@@ -144,8 +144,14 @@ async def publish_product(
     company = await _get_user_company(user, db)
 
     errors = []
-    if company.status != CompanyStatus.verified:
-        errors.append("Company must be verified")
+    sub_result = await db.execute(
+        select(Subscription).where(Subscription.company_id == company.id)
+    )
+    subscription = sub_result.scalar_one_or_none()
+    if not subscription or subscription.status != SubscriptionStatus.active:
+        errors.append(
+            "An active plan is required to publish — choose a plan on the Billing page"
+        )
     if not product.name:
         errors.append("Product name is required")
 

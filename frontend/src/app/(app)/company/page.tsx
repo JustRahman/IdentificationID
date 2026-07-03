@@ -74,20 +74,6 @@ export default function CompanyPage() {
     }
   }
 
-  async function handleSubmitForVerification() {
-    setError("");
-    setMessage("");
-    try {
-      await api.post("/manufacturer/company/submit");
-      setMessage("Company submitted for verification.");
-      const data = await api.get<Company>("/manufacturer/company");
-      setCompany(data);
-    } catch (err: unknown) {
-      const msg = (err as { error?: { message?: string } })?.error?.message;
-      setError(msg || "Failed to submit");
-    }
-  }
-
   if (loading) {
     return <p className="text-sm text-muted">Loading...</p>;
   }
@@ -219,15 +205,6 @@ export default function CompanyPage() {
             >
               {saving ? "Saving..." : company ? "Save Changes" : "Create Company"}
             </button>
-            {company && company.status !== "verified" && (
-              <button
-                type="button"
-                onClick={handleSubmitForVerification}
-                className="border border-border text-foreground px-5 py-2.5 rounded-lg text-sm hover:bg-surface"
-              >
-                Submit for Verification
-              </button>
-            )}
           </div>
         </form>
       </div>

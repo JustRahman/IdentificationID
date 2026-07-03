@@ -38,11 +38,7 @@ const faqs = [
     items: [
       {
         q: "How do I register my products?",
-        a: "Create an account, set up your company profile, and submit it for verification. Once verified, you can register products, upload PDF manuals, and publish them with a unique Identification ID.",
-      },
-      {
-        q: "How long does company verification take?",
-        a: "Typically 1–2 business days. You'll receive an email once your company is approved or if we need more information.",
+        a: "Create an account, set up your company profile, then register your products — upload PDF manuals and photos, and each product gets its unique Identification ID. Choose a plan, complete the payment, and publish your product pages.",
       },
       {
         q: "What file formats are supported for documents?",
@@ -61,12 +57,12 @@ const faqs = [
         a: "Yes. Go to the Description tab in the product editor, select a language, enter your content, and use auto-translate to generate an English version automatically.",
       },
       {
-        q: "Is there a free plan?",
-        a: "Yes. The free plan includes your first 10 products. For more products you can upgrade to a Starter or Pro plan — see the Pricing page.",
+        q: "How much does it cost?",
+        a: "Plans start at $3 per product per month (Standard). Team plans: Popular $29/mo (up to 50 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual). All plans are annual subscriptions — see the Pricing page.",
       },
       {
         q: "What happens if I don't renew my subscription?",
-        a: "Your products remain publicly accessible. You just won't be able to register new products or update existing ones until you renew.",
+        a: "You need to renew your subscription. You won't be able to register new products or update existing ones until you renew.",
       },
     ],
   },
@@ -74,12 +70,12 @@ const faqs = [
     section: "Security & Trust",
     items: [
       {
-        q: "How do you verify manufacturers?",
-        a: "We manually review each company registration before approving it. Only verified manufacturers can publish products, which prevents fake or unverified product pages.",
+        q: "How is product information kept trustworthy?",
+        a: "Every product page is tied to a registered, paying manufacturer account and its unique Identification ID. IDs cannot be forged or reused, and each page shows exactly which company published it.",
       },
       {
         q: "Can anyone create a fake product page?",
-        a: "No. Only verified, approved manufacturers can publish product pages. Each Identification ID is uniquely tied to a verified company.",
+        a: "Product pages can only be created from a registered manufacturer account with an active plan, and every Identification ID is uniquely tied to the company that registered it.",
       },
       {
         q: "Is my data safe?",

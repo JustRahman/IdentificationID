@@ -35,7 +35,7 @@ export const LANGUAGES = [
 // ── Pricing plans (single source of truth) ──
 // `priceCents` is canonical; surfaces render `$${priceCents / 100}` so prices
 // can never drift between the homepage, pricing page, and billing page.
-export type PlanKey = "free" | "starter" | "pro";
+export type PlanKey = "standard" | "popular" | "best_value" | "enterprise";
 
 export interface PlanLabels {
   name: string;
@@ -48,64 +48,92 @@ export interface PlanTier {
   key: PlanKey;
   priceCents: number;
   productLimit: number; // -1 = unlimited
-  popular: boolean;
+  perProduct: boolean; // price is per product per month
+  popular: boolean; // carries the "POPULAR" badge
+  premium: boolean; // carries the premium/dark "BEST VALUE" treatment
   en: PlanLabels;
   ru: PlanLabels;
 }
 
 export const PLANS: PlanTier[] = [
   {
-    key: "free",
-    priceCents: 0,
-    productLimit: 10,
-    popular: false,
-    en: {
-      name: "Free",
-      period: "",
-      desc: "For trying it out",
-      features: ["10 products", "Product page", "QR code", "Email support"],
-    },
-    ru: {
-      name: "Free",
-      period: "",
-      desc: "Для пробы",
-      features: ["10 товаров", "Карточка товара", "QR-код", "Email-поддержка"],
-    },
-  },
-  {
-    key: "starter",
-    priceCents: 2900,
-    productLimit: 100,
-    popular: true,
-    en: {
-      name: "Starter",
-      period: "/ mo",
-      desc: "For growing businesses",
-      features: ["100 products", "Document uploads", "Multi-language", "Priority support"],
-    },
-    ru: {
-      name: "Starter",
-      period: "/ месяц",
-      desc: "Для растущего бизнеса",
-      features: ["100 товаров", "Загрузка документов", "Мультиязычность", "Приоритетная поддержка"],
-    },
-  },
-  {
-    key: "pro",
-    priceCents: 9900,
+    key: "standard",
+    priceCents: 300,
     productLimit: -1,
+    perProduct: true,
     popular: false,
+    premium: false,
     en: {
-      name: "Pro",
-      period: "/ mo",
-      desc: "For large manufacturers",
-      features: ["Unlimited products", "All Starter features", "API access", "Dedicated support"],
+      name: "Standard",
+      period: "per product / mo · billed annually",
+      desc: "For getting started",
+      features: ["Pay per product", "Unique ID", "QR code", "Product page"],
     },
     ru: {
-      name: "Pro",
-      period: "/ месяц",
+      name: "Standard",
+      period: "за товар / мес · годовая подписка",
+      desc: "Для начала работы",
+      features: ["Оплата за товар", "Уникальный ID", "QR-код", "Карточка товара"],
+    },
+  },
+  {
+    key: "popular",
+    priceCents: 2900,
+    productLimit: 50,
+    perProduct: false,
+    popular: true,
+    premium: false,
+    en: {
+      name: "Popular",
+      period: "/ mo · billed annually",
+      desc: "For growing businesses",
+      features: ["Up to 50 products", "Document uploads", "Multi-language", "Priority support"],
+    },
+    ru: {
+      name: "Popular",
+      period: "/ мес · годовая подписка",
+      desc: "Для растущего бизнеса",
+      features: ["До 50 товаров", "Загрузка документов", "Мультиязычность", "Приоритетная поддержка"],
+    },
+  },
+  {
+    key: "best_value",
+    priceCents: 9900,
+    productLimit: 500,
+    perProduct: false,
+    popular: false,
+    premium: true,
+    en: {
+      name: "Best Value",
+      period: "/ mo · billed annually",
+      desc: "For large manufacturers",
+      features: ["Up to 500 products", "All Popular features", "API access"],
+    },
+    ru: {
+      name: "Best Value",
+      period: "/ мес · годовая подписка",
       desc: "Для крупных производителей",
-      features: ["Неограниченно товаров", "Все функции Starter", "API-доступ", "Выделенная поддержка"],
+      features: ["До 500 товаров", "Все функции Popular", "API-доступ"],
+    },
+  },
+  {
+    key: "enterprise",
+    priceCents: 29900,
+    productLimit: -1,
+    perProduct: false,
+    popular: false,
+    premium: false,
+    en: {
+      name: "Enterprise",
+      period: "/ mo · billed annually",
+      desc: "Individual / Custom",
+      features: ["Unlimited products", "API access", "Dedicated support"],
+    },
+    ru: {
+      name: "Enterprise",
+      period: "/ мес · годовая подписка",
+      desc: "Индивидуально / под заказ",
+      features: ["Неограниченно товаров", "API-доступ", "Выделенная поддержка"],
     },
   },
 ];

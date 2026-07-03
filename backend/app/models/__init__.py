@@ -10,6 +10,7 @@ from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.payment import Payment, PaymentStatus
 from app.models.audit_log import AuditLog
 from app.models.ui_translation import UiTranslation
+from app.models.api_key import ApiKey
 
 __all__ = [
     "Base",
@@ -30,4 +31,5 @@ __all__ = [
     "PaymentStatus",
     "AuditLog",
     "UiTranslation",
+    "ApiKey",
 ]
