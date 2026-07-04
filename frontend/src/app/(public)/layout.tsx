@@ -59,6 +59,7 @@ export default function PublicLayout({
           <div className="flex gap-6">
             <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
             <Link href="/search" className="hover:text-foreground">Search Products</Link>
+            <Link href="/api" className="hover:text-foreground">API</Link>
             <Link href="/faq" className="hover:text-foreground">FAQ</Link>
           </div>
         </div>

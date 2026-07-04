@@ -582,6 +582,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm">
                 <li><Link href="/search" className="text-foreground hover:text-accent transition-colors">Search products</Link></li>
                 <li><Link href="/pricing" className="text-foreground hover:text-accent transition-colors">Pricing</Link></li>
+                <li><Link href="/api" className="text-foreground hover:text-accent transition-colors">API</Link></li>
                 <li><Link href="/register" className="text-foreground hover:text-accent transition-colors">For manufacturers</Link></li>
               </ul>
             </div>
