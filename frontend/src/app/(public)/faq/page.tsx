@@ -58,7 +58,7 @@ const faqs = [
       },
       {
         q: "How much does it cost?",
-        a: "Plans start at $3 per product per month (Standard). Team plans: Popular $29/mo (up to 50 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual). All plans are annual subscriptions — see the Pricing page.",
+        a: "Start free with up to 3 products. Paid plans: Standard $3 per product / mo, Popular $29/mo (up to 100 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual). Paid plans are annual subscriptions — see the Pricing page.",
       },
       {
         q: "What happens if I don't renew my subscription?",

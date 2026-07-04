@@ -594,7 +594,6 @@ export default function EditProductPage({
           <div className="space-y-4">
             <p className="text-sm">Publishing makes your product publicly visible. Requirements:</p>
             <ul className="text-sm text-muted list-disc list-inside space-y-1">
-              <li>An active plan (see Billing)</li>
               <li>Product name is filled</li>
               <li>English description is added</li>
               <li>At least one manual document is uploaded</li>

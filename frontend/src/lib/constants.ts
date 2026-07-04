@@ -35,7 +35,7 @@ export const LANGUAGES = [
 // ── Pricing plans (single source of truth) ──
 // `priceCents` is canonical; surfaces render `$${priceCents / 100}` so prices
 // can never drift between the homepage, pricing page, and billing page.
-export type PlanKey = "standard" | "popular" | "best_value" | "enterprise";
+export type PlanKey = "free" | "standard" | "popular" | "best_value" | "enterprise";
 
 export interface PlanLabels {
   name: string;
@@ -57,6 +57,26 @@ export interface PlanTier {
 
 export const PLANS: PlanTier[] = [
   {
+    key: "free",
+    priceCents: 0,
+    productLimit: 3,
+    perProduct: false,
+    popular: false,
+    premium: false,
+    en: {
+      name: "Free",
+      period: "",
+      desc: "Try it out",
+      features: ["3 products", "Unique ID", "QR code", "Product page"],
+    },
+    ru: {
+      name: "Free",
+      period: "",
+      desc: "Для пробы",
+      features: ["3 товара", "Уникальный ID", "QR-код", "Карточка товара"],
+    },
+  },
+  {
     key: "standard",
     priceCents: 300,
     productLimit: -1,
@@ -66,20 +86,20 @@ export const PLANS: PlanTier[] = [
     en: {
       name: "Standard",
       period: "per product / mo · billed annually",
-      desc: "For getting started",
+      desc: "Pay only per product",
       features: ["Pay per product", "Unique ID", "QR code", "Product page"],
     },
     ru: {
       name: "Standard",
       period: "за товар / мес · годовая подписка",
-      desc: "Для начала работы",
+      desc: "Оплата за товар",
       features: ["Оплата за товар", "Уникальный ID", "QR-код", "Карточка товара"],
     },
   },
   {
     key: "popular",
     priceCents: 2900,
-    productLimit: 50,
+    productLimit: 100,
     perProduct: false,
     popular: true,
     premium: false,
@@ -87,13 +107,13 @@ export const PLANS: PlanTier[] = [
       name: "Popular",
       period: "/ mo · billed annually",
       desc: "For growing businesses",
-      features: ["Up to 50 products", "Document uploads", "Multi-language", "Priority support"],
+      features: ["Up to 100 products", "Document uploads", "Multi-language", "Priority support"],
     },
     ru: {
       name: "Popular",
       period: "/ мес · годовая подписка",
       desc: "Для растущего бизнеса",
-      features: ["До 50 товаров", "Загрузка документов", "Мультиязычность", "Приоритетная поддержка"],
+      features: ["До 100 товаров", "Загрузка документов", "Мультиязычность", "Приоритетная поддержка"],
     },
   },
   {

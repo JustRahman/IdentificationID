@@ -20,10 +20,10 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 stripe.api_key = settings.stripe_secret_key
 
 PLANS = {
-    # Internal fallback for companies without a subscription — NOT purchasable.
-    "free":       {"name": "Free",       "price_cents": 0,     "product_limit": 10,  "per_product": False},
+    # Free is the default state for companies without a paid subscription.
+    "free":       {"name": "Free",       "price_cents": 0,     "product_limit": 3,   "per_product": False},
     "standard":   {"name": "Standard",   "price_cents": 300,   "product_limit": -1,  "per_product": True},
-    "popular":    {"name": "Popular",    "price_cents": 2900,  "product_limit": 50,  "per_product": False},
+    "popular":    {"name": "Popular",    "price_cents": 2900,  "product_limit": 100, "per_product": False},
     "best_value": {"name": "Best Value", "price_cents": 9900,  "product_limit": 500, "per_product": False},
     "enterprise": {"name": "Enterprise", "price_cents": 29900, "product_limit": -1,  "per_product": False},
 }

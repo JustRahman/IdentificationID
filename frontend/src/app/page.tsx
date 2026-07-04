@@ -434,17 +434,17 @@ export default function LandingPage() {
 
       {/* ── Pricing ── */}
       <section className="py-20 px-6 bg-surface border-y border-border">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Pricing</p>
             <h2 className="text-3xl font-semibold tracking-tight mb-4">Simple, transparent pricing</h2>
             <p className="text-muted max-w-xl mx-auto">
-              Manufacturers choose an annual plan when they register on the platform.
+              Start free, then choose an annual plan as you grow.
               Consumers always use the platform for free.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {PLANS.map((p) => ({
               name: p.en.name,
               price: `$${p.priceCents / 100}`,

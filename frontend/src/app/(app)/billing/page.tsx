@@ -121,7 +121,7 @@ export default function BillingPage() {
         )}
         {(!plan || plan.plan === "free") && (
           <div className="grid grid-cols-2 gap-3">
-            {PLANS.map((p) => (
+            {PLANS.filter((p) => p.key !== "free").map((p) => (
               <button
                 key={p.key}
                 onClick={() => handleUpgrade(p.key)}
