@@ -445,49 +445,45 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {PLANS.map((p) => ({
-              name: p.en.name,
-              price: `$${p.priceCents / 100}`,
-              period: p.en.period,
-              desc: p.en.desc,
-              features: p.en.features,
-              accent: p.popular,
-              premium: p.premium,
-            })).map((plan) => {
-              const filled = plan.accent || plan.premium;
+            {PLANS.map((p) => {
+              // Per-tier colour theme.
+              const THEME: Record<string, { card: string; onLight: boolean; button: string }> = {
+                free:       { card: "bg-green-600 border-green-600 text-white shadow-lg", onLight: false, button: "bg-white text-green-700 hover:bg-green-50" },
+                standard:   { card: "bg-orange-500 border-orange-500 text-white shadow-lg", onLight: false, button: "bg-white text-orange-600 hover:bg-orange-50" },
+                popular:    { card: "bg-accent border-accent text-white shadow-lg", onLight: false, button: "bg-white text-accent hover:bg-blue-50" },
+                best_value: { card: "bg-slate-900 border-slate-900 text-white shadow-xl md:scale-[1.03]", onLight: false, button: "bg-amber-400 text-slate-900 hover:bg-amber-300" },
+                enterprise: { card: "bg-amber-400 border-amber-400 text-slate-900 shadow-lg", onLight: true, button: "bg-slate-900 text-white hover:bg-slate-800" },
+              };
+              const t = THEME[p.key] ?? { card: "bg-white border-border", onLight: true, button: "bg-accent text-white hover:bg-accent-hover" };
+              const muted = t.onLight ? "text-slate-700" : "text-white/75";
+              const check = t.onLight ? "text-slate-900" : "text-white";
               return (
               <div
-                key={plan.name}
-                className={`relative rounded-2xl p-6 border transition-all hover:-translate-y-1 hover:shadow-md ${
-                  plan.premium
-                    ? "bg-slate-900 border-slate-900 text-white shadow-xl md:scale-[1.03]"
-                    : plan.accent
-                    ? "bg-accent border-accent text-white shadow-lg"
-                    : "bg-white border-border"
-                }`}
+                key={p.key}
+                className={`relative rounded-2xl p-6 border transition-all hover:-translate-y-1 hover:shadow-md ${t.card}`}
               >
-                {plan.accent && (
+                {p.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold bg-white text-accent px-3 py-1 rounded-full shadow border border-blue-100">
                     POPULAR
                   </div>
                 )}
-                {plan.premium && (
+                {p.premium && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold bg-amber-400 text-slate-900 px-3 py-1 rounded-full shadow">
                     BEST VALUE
                   </div>
                 )}
-                <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${filled ? "text-white/70" : "text-muted"}`}>
-                  {plan.name}
+                <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${muted}`}>
+                  {p.en.name}
                 </p>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-3xl font-bold">{plan.price}</span>
+                  <span className="text-3xl font-bold">${p.priceCents / 100}</span>
                 </div>
-                <p className={`text-xs mb-1 ${filled ? "text-white/70" : "text-muted"}`}>{plan.period}</p>
-                <p className={`text-sm mb-5 font-medium ${filled ? "text-white/80" : "text-muted"}`}>{plan.desc}</p>
+                <p className={`text-xs mb-1 ${muted}`}>{p.en.period}</p>
+                <p className={`text-sm mb-5 font-medium ${muted}`}>{p.en.desc}</p>
                 <ul className="space-y-2 mb-6">
-                  {plan.features.map((f) => (
+                  {p.en.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-sm">
-                      <svg className={`w-3.5 h-3.5 shrink-0 ${filled ? "text-green-300" : "text-green-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <svg className={`w-3.5 h-3.5 shrink-0 ${check}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                       {f}
@@ -496,13 +492,7 @@ export default function LandingPage() {
                 </ul>
                 <Link
                   href="/register"
-                  className={`block text-center text-sm font-medium py-2.5 rounded-xl transition-colors ${
-                    plan.premium
-                      ? "bg-amber-400 text-slate-900 hover:bg-amber-300"
-                      : plan.accent
-                      ? "bg-white text-accent hover:bg-blue-50"
-                      : "bg-accent text-white hover:bg-accent-hover"
-                  }`}
+                  className={`block text-center text-sm font-medium py-2.5 rounded-xl transition-colors ${t.button}`}
                 >
                   Choose plan
                 </Link>
