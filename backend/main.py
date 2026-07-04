@@ -63,7 +63,7 @@ app.add_middleware(
         "http://localhost:3000",
     ],
     # Also allow apex/any subdomain of the domain + Railway preview URLs.
-    allow_origin_regex=r"https://([a-z0-9-]+\.)?identificationid\.com|https://[a-z0-9-]+\.up\.railway\.app",
+    allow_origin_regex=r"https://([a-z0-9-]+\.)?identificationid\.com|https://[a-z0-9-]+\.up\.railway\.app|http://localhost:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
