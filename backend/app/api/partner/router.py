@@ -13,7 +13,7 @@ from app.models.api_key import ApiKey
 from app.models.company import Company
 from app.models.product import Product, ProductStatus
 
-router = APIRouter(prefix="/partner/v1", tags=["partner"])
+router = APIRouter(prefix="/v1", tags=["partner"])
 
 
 async def get_api_company(

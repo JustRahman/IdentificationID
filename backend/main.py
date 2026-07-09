@@ -82,7 +82,8 @@ app.include_router(admin_router, prefix=API_V1)
 app.include_router(images_router, prefix=API_V1)
 app.include_router(translate_router, prefix=API_V1)
 app.include_router(apikeys_router, prefix=API_V1)
-app.include_router(partner_router, prefix=API_V1)
+# Partner (public developer) API — clean short base: /v1/...
+app.include_router(partner_router)
 
 
 @app.get("/health")

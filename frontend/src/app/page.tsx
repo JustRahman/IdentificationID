@@ -3,16 +3,20 @@
 import Link from "next/link";
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { PLANS } from "@/lib/constants";
+import { PLANS, COMPANY, copyrightLine } from "@/lib/constants";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const ID_PATTERN = /^IID-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+interface Manufacturer { display_name: string; product_count: number }
 
 export default function LandingPage() {
   const [query, setQuery] = useState("");
   const [earlyEmail, setEarlyEmail] = useState("");
   const [earlySubmitted, setEarlySubmitted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -20,6 +24,13 @@ export default function LandingPage() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/public/companies`)
+      .then((r) => r.json())
+      .then((j) => setManufacturers(j.data ?? []))
+      .catch(() => {});
   }, []);
 
   function handleEarlyAccess(e: FormEvent) {
@@ -97,7 +108,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-2xl sm:text-3xl text-foreground mb-3 leading-snug max-w-2xl mx-auto font-semibold tracking-tight">
-            Every product. One digital passport.
+            Every Product. One Digital Identity.
           </p>
           <p className="text-base text-muted mb-4 leading-relaxed max-w-xl mx-auto">
             The digital identity platform for physical products — every item gets a unique, verifiable ID.
@@ -179,6 +190,24 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Trusted by manufacturers (real companies on the platform) ── */}
+      {manufacturers.length > 0 && (
+        <section className="py-10 px-6 border-t border-border">
+          <div className="max-w-5xl mx-auto text-center">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-6">
+              Manufacturers already on Identification ID
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+              {manufacturers.slice(0, 8).map((m) => (
+                <span key={m.display_name} className="text-sm font-semibold text-foreground/70">
+                  {m.display_name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── What is Identification ID ── */}
       <section className="bg-gradient-to-b from-surface to-background py-20 px-6 border-y border-border">
@@ -589,8 +618,11 @@ export default function LandingPage() {
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">Company</h4>
               <ul className="space-y-2 text-sm">
+                <li><Link href="/about" className="text-foreground hover:text-accent transition-colors">About</Link></li>
                 <li><Link href="/faq" className="text-foreground hover:text-accent transition-colors">FAQ</Link></li>
-                <li><Link href="/login" className="text-foreground hover:text-accent transition-colors">Log in</Link></li>
+                <li><Link href="/terms" className="text-foreground hover:text-accent transition-colors">Terms</Link></li>
+                <li><Link href="/privacy" className="text-foreground hover:text-accent transition-colors">Privacy</Link></li>
+                <li><Link href="/cookies" className="text-foreground hover:text-accent transition-colors">Cookies</Link></li>
                 <li>
                   <a href="mailto:support@identificationid.com" className="text-foreground hover:text-accent transition-colors">
                     Contact
@@ -599,9 +631,12 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="flex items-center justify-between flex-wrap gap-2 pt-6 border-t border-border text-xs text-muted">
-            <p>© {new Date().getFullYear()} Identification ID. All rights reserved.</p>
-            <p>Product Registry · QR Passport · Verified Manufacturer Data</p>
+          <div className="pt-6 border-t border-border text-xs text-muted space-y-1">
+            <p>Identification ID™ is a product of {COMPANY.legalName}</p>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <p>{copyrightLine()}</p>
+              <p>{COMPANY.entityType} · {COMPANY.jurisdiction} 🇨🇦</p>
+            </div>
           </div>
         </div>
       </footer>

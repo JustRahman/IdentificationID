@@ -162,3 +162,17 @@ export const PLANS: PlanTier[] = [
 export function formatPlanPrice(plan: PlanTier): string {
   return `$${plan.priceCents / 100}`;
 }
+
+// ── Company / legal entity (product brand stays "Identification ID") ──
+export const COMPANY = {
+  legalName: "Global Product Identification Inc.",
+  product: "Identification ID",
+  jurisdiction: "Canada",
+  entityType: "Canadian Federal Corporation",
+  supportEmail: "support@identificationid.com",
+};
+
+/** Current year, used in copyright lines. */
+export function copyrightLine(): string {
+  return `© ${new Date().getFullYear()} ${COMPANY.legalName} All rights reserved.`;
+}

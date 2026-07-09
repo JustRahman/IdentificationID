@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { COMPANY } from "@/lib/constants";
 
-const BASE = "https://api.identificationid.com/api/v1/partner/v1";
+const BASE = "https://api.identificationid.com/v1";
 
 function Code({ children, title }: { children: string; title?: string }) {
   return (
@@ -28,6 +29,8 @@ const NAV = [
   { href: "#getting-started", label: "Getting started" },
   { href: "#base-url", label: "Base URL" },
   { href: "#authentication", label: "Authentication" },
+  { href: "#api-key-security", label: "API key security" },
+  { href: "#rate-limits", label: "Rate limits" },
   { href: "#list-products", label: "List products" },
   { href: "#get-product", label: "Get a product" },
   { href: "#lookup", label: "Verify / lookup" },
@@ -102,6 +105,47 @@ export default function ApiDocsPage() {
             <Code title="Example request">{`curl ${BASE}/stats \\
   -H "X-API-Key: iid_live_your_key_here"`}</Code>
             <p className="text-sm text-muted">A missing or invalid key returns <code className="text-xs bg-surface px-1.5 py-0.5 rounded border border-border">403</code> (see Errors).</p>
+          </section>
+
+          {/* API key security */}
+          <section id="api-key-security" className="scroll-mt-6">
+            <h2 className="text-2xl font-semibold mb-3">API key security</h2>
+            <p className="text-sm text-muted mb-3">Treat your API key like a password. A few rules:</p>
+            <ul className="space-y-2 text-sm text-muted">
+              {[
+                ["Shown once", "The full key is displayed only when you create it. Copy and store it immediately — we keep only a hashed prefix and can't show it again."],
+                ["Keep it server-side", "Never embed a key in frontend/browser code, mobile apps, or public repositories. Call the API from your backend only."],
+                ["Store as a secret", "Keep keys in environment variables or a secrets manager, not in source control."],
+                ["Revoke anytime", "If a key is exposed, revoke it in your dashboard under API Access and issue a new one — revoked keys stop working immediately."],
+                ["One key per integration", "Use separate keys per app or environment so you can rotate or revoke them independently."],
+              ].map(([t, d]) => (
+                <li key={t} className="flex gap-2.5">
+                  <span className="text-accent mt-0.5">•</span>
+                  <span><span className="font-medium text-foreground">{t}.</span> {d}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Rate limits */}
+          <section id="rate-limits" className="scroll-mt-6">
+            <h2 className="text-2xl font-semibold mb-3">Rate limits</h2>
+            <p className="text-sm text-muted mb-3">
+              Requests are rate-limited per API key. If you exceed your limit you&apos;ll receive a{" "}
+              <code className="text-xs bg-surface px-1.5 py-0.5 rounded border border-border">429</code> response — back off and retry.
+            </p>
+            <div className="border border-border rounded-lg text-sm overflow-hidden">
+              {[
+                ["Best Value", "60 requests / minute"],
+                ["Enterprise", "600 requests / minute"],
+              ].map(([plan, limit]) => (
+                <div key={plan} className="flex gap-4 px-3 py-2 border-b border-border last:border-0">
+                  <span className="font-medium w-28 shrink-0">{plan}</span>
+                  <span className="text-muted">{limit}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted mt-2">Need higher limits? <Link href="/pricing" className="text-accent hover:underline">Talk to us about Enterprise</Link>.</p>
           </section>
 
           {/* List products */}
@@ -250,6 +294,10 @@ export default function ApiDocsPage() {
               <Link href="/pricing" className="border border-border px-6 py-3 rounded-xl text-sm font-medium hover:bg-background">Compare plans</Link>
             </div>
           </section>
+
+          <p className="text-xs text-muted pt-2 border-t border-border">
+            API provided by {COMPANY.legalName} · {COMPANY.jurisdiction} 🇨🇦
+          </p>
         </main>
       </div>
     </div>

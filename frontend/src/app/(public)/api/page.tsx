@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY } from "@/lib/constants";
 
 const FEATURES = [
   {
@@ -24,10 +25,10 @@ const FEATURES = [
 ];
 
 const ENDPOINTS = [
-  { method: "GET", path: "/partner/v1/products", desc: "List your products (filter by status)" },
-  { method: "GET", path: "/partner/v1/products/{id}", desc: "Full product detail + images + translations" },
-  { method: "GET", path: "/partner/v1/lookup/{id}", desc: "Verify any published product" },
-  { method: "GET", path: "/partner/v1/stats", desc: "Product & view counts" },
+  { method: "GET", path: "/v1/products", desc: "List your products (filter by status)" },
+  { method: "GET", path: "/v1/products/{id}", desc: "Full product detail + images + translations" },
+  { method: "GET", path: "/v1/lookup/{id}", desc: "Verify any published product" },
+  { method: "GET", path: "/v1/stats", desc: "Product & view counts" },
 ];
 
 export default function ApiMarketingPage() {
@@ -85,7 +86,7 @@ export default function ApiMarketingPage() {
           </p>
           <div className="bg-slate-900 text-slate-100 rounded-xl p-4 text-xs font-mono overflow-x-auto">
             <div className="text-slate-400"># List your products</div>
-            <div>curl https://api.identificationid.com/api/v1/partner/v1/products \</div>
+            <div>curl https://api.identificationid.com/v1/products \</div>
             <div className="pl-4 text-emerald-300">-H &quot;X-API-Key: iid_live_…&quot;</div>
           </div>
         </div>
@@ -132,6 +133,10 @@ export default function ApiMarketingPage() {
           </Link>
         </div>
       </div>
+
+      <p className="text-center text-xs text-muted mt-10">
+        API provided by {COMPANY.legalName} · {COMPANY.jurisdiction} 🇨🇦
+      </p>
     </div>
   );
 }

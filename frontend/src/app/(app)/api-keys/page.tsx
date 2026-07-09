@@ -21,7 +21,7 @@ interface CreatedKey {
   created_at: string | null;
 }
 
-const BASE_URL = "https://api.identificationid.com/api/v1/partner/v1";
+const BASE_URL = "https://api.identificationid.com/v1";
 
 const ENDPOINTS = [
   { method: "GET", path: "/products", desc: "List all your products (optional ?status=published)" },
