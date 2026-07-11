@@ -11,6 +11,7 @@ from app.models.payment import Payment, PaymentStatus
 from app.models.audit_log import AuditLog
 from app.models.ui_translation import UiTranslation
 from app.models.api_key import ApiKey
+from app.models.webhook_endpoint import WebhookEndpoint
 
 __all__ = [
     "Base",
@@ -32,4 +33,5 @@ __all__ = [
     "AuditLog",
     "UiTranslation",
     "ApiKey",
+    "WebhookEndpoint",
 ]

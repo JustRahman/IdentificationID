@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.billing.router import PLANS
+from app.api.webhooks.service import dispatch_event
 from app.api.products.schemas import (
     ProductCreate,
     ProductResponse,
@@ -131,6 +132,11 @@ async def update_product(
             setattr(product, field, value)
 
     await db.flush()
+    await dispatch_event(db, product.company_id, "product.updated", {
+        "identification_id": product.identification_id,
+        "name": product.name,
+        "status": product.status.value,
+    })
     return _product_response(product)
 
 
@@ -172,6 +178,11 @@ async def publish_product(
     product.status = ProductStatus.published
     product.published_at = datetime.now(timezone.utc)
     await db.flush()
+    await dispatch_event(db, product.company_id, "product.published", {
+        "identification_id": product.identification_id,
+        "name": product.name,
+        "status": product.status.value,
+    })
     return _product_response(product)
 
 

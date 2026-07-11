@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.documents.schemas import DocumentResponse, DocumentVersionResponse
+from app.api.webhooks.service import dispatch_event
 from app.core.deps import get_db, get_verified_manufacturer
 from app.core.exceptions import NotFound, ValidationError
 from app.models.company import Company
@@ -87,6 +88,13 @@ async def upload_document(
 
     document.current_version_id = version.id
     await db.flush()
+
+    await dispatch_event(db, product.company_id, "document.uploaded", {
+        "identification_id": product.identification_id,
+        "document_id": str(document.id),
+        "doc_type": document.doc_type.value,
+        "file_name": version.file_name,
+    })
 
     return DocumentResponse(
         id=str(document.id),

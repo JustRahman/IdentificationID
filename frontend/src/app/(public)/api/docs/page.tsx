@@ -35,6 +35,7 @@ const NAV = [
   { href: "#get-product", label: "Get a product" },
   { href: "#lookup", label: "Verify / lookup" },
   { href: "#stats", label: "Stats" },
+  { href: "#webhooks", label: "Webhooks" },
   { href: "#errors", label: "Errors" },
 ];
 
@@ -253,6 +254,48 @@ export default function ApiDocsPage() {
     "total_views": 384
   }
 }`}</Code>
+          </section>
+
+          {/* Webhooks */}
+          <section id="webhooks" className="scroll-mt-6">
+            <h2 className="text-2xl font-semibold mb-3">Webhooks</h2>
+            <p className="text-sm text-muted mb-3">
+              Register a URL in your dashboard (<span className="font-medium text-foreground">API Access → Webhooks</span>)
+              and we&apos;ll send a signed <code className="text-xs bg-surface px-1.5 py-0.5 rounded border border-border">POST</code> when
+              a subscribed event happens.
+            </p>
+            <p className="text-sm font-medium mb-1">Events</p>
+            <div className="border border-border rounded-lg text-sm overflow-hidden mb-3">
+              {[
+                ["product.published", "A product was published"],
+                ["product.updated", "A product's details changed"],
+                ["document.uploaded", "A document was uploaded to a product"],
+              ].map(([ev, desc]) => (
+                <div key={ev} className="flex gap-4 px-3 py-2 border-b border-border last:border-0">
+                  <span className="font-mono text-xs w-44 shrink-0">{ev}</span>
+                  <span className="text-muted">{desc}</span>
+                </div>
+              ))}
+            </div>
+            <Code title="Payload (POST body)">{`{
+  "event": "product.published",
+  "created_at": "2026-07-05T18:00:00+00:00",
+  "data": {
+    "identification_id": "IID-4F9A-2K7Q",
+    "name": "ProChef Air Fryer 5.5L",
+    "status": "published"
+  }
+}`}</Code>
+            <p className="text-sm text-muted mt-3 mb-1">
+              Verify each delivery with the <code className="text-xs bg-surface px-1.5 py-0.5 rounded border border-border">X-IID-Signature</code> header
+              — an HMAC-SHA256 of the raw body using your webhook signing secret:
+            </p>
+            <Code title="Verify (Node.js)">{`const crypto = require("crypto");
+const expected = "sha256=" + crypto
+  .createHmac("sha256", WEBHOOK_SECRET)
+  .update(rawBody)
+  .digest("hex");
+// compare with req.headers["x-iid-signature"]`}</Code>
           </section>
 
           {/* Errors */}

@@ -21,6 +21,17 @@ interface CreatedKey {
   created_at: string | null;
 }
 
+interface WebhookItem {
+  id: string;
+  url: string;
+  events: string[];
+  secret?: string;
+  is_active: boolean;
+  created_at: string | null;
+}
+
+const WH_EVENTS = ["product.published", "product.updated", "document.uploaded"];
+
 const BASE_URL = "https://api.identificationid.com/v1";
 
 const ENDPOINTS = [
@@ -44,6 +55,69 @@ export default function ApiKeysPage() {
   const [copied, setCopied] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
 
+  // Webhooks
+  const [webhooks, setWebhooks] = useState<WebhookItem[]>([]);
+  const [whUrl, setWhUrl] = useState("");
+  const [whEvents, setWhEvents] = useState<string[]>(["product.published"]);
+  const [whCreating, setWhCreating] = useState(false);
+  const [newWebhook, setNewWebhook] = useState<WebhookItem | null>(null);
+  const [testedId, setTestedId] = useState<string | null>(null);
+
+  async function loadWebhooks() {
+    try {
+      const res = await api.get<{ success: boolean; data: WebhookItem[] }>("/manufacturer/webhooks");
+      setWebhooks(res.data);
+    } catch {
+      // ignore
+    }
+  }
+
+  async function handleCreateWebhook(e: React.FormEvent) {
+    e.preventDefault();
+    if (!whUrl.trim() || whEvents.length === 0) return;
+    setWhCreating(true);
+    setError("");
+    setPlanRequired(false);
+    try {
+      const res = await api.post<{ success: boolean; data: WebhookItem }>(
+        "/manufacturer/webhooks",
+        { url: whUrl.trim(), events: whEvents }
+      );
+      setNewWebhook(res.data);
+      setWhUrl("");
+      await loadWebhooks();
+    } catch (err: unknown) {
+      const e2 = err as { error?: { code?: string; message?: string } };
+      setError(e2?.error?.message || "Failed to create webhook");
+      if (e2?.error?.code === "FORBIDDEN") setPlanRequired(true);
+    } finally {
+      setWhCreating(false);
+    }
+  }
+
+  async function handleDeleteWebhook(id: string) {
+    try {
+      await api.delete(`/manufacturer/webhooks/${id}`);
+      await loadWebhooks();
+    } catch {
+      // ignore
+    }
+  }
+
+  async function handleTestWebhook(id: string) {
+    try {
+      await api.post(`/manufacturer/webhooks/${id}/test`);
+      setTestedId(id);
+      setTimeout(() => setTestedId(null), 2500);
+    } catch {
+      // ignore
+    }
+  }
+
+  function toggleEvent(ev: string) {
+    setWhEvents((prev) => (prev.includes(ev) ? prev.filter((x) => x !== ev) : [...prev, ev]));
+  }
+
   async function loadKeys() {
     try {
       const res = await api.get<{ success: boolean; data: ApiKeyItem[] }>(
@@ -59,6 +133,7 @@ export default function ApiKeysPage() {
 
   useEffect(() => {
     loadKeys();
+    loadWebhooks();
   }, []);
 
   async function handleCreate(e: React.FormEvent) {
@@ -219,6 +294,87 @@ export default function ApiKeysPage() {
                       Revoke
                     </button>
                   ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Webhooks */}
+      <div className="bg-background border border-border rounded-xl p-6 max-w-2xl mb-6">
+        <h2 className="text-base font-semibold mb-1">Webhooks</h2>
+        <p className="text-xs text-muted mb-4">
+          Receive a signed <code className="bg-surface px-1 rounded">POST</code> to your URL when product events happen.
+          Verify the <code className="bg-surface px-1 rounded">X-IID-Signature</code> header (HMAC-SHA256 of the body) with your signing secret.
+        </p>
+
+        <form onSubmit={handleCreateWebhook} className="space-y-3 mb-4">
+          <input
+            type="url"
+            value={whUrl}
+            onChange={(e) => setWhUrl(e.target.value)}
+            placeholder="https://your-app.com/webhooks/iid"
+            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+          <div className="flex flex-wrap gap-3">
+            {WH_EVENTS.map((ev) => (
+              <label key={ev} className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={whEvents.includes(ev)}
+                  onChange={() => toggleEvent(ev)}
+                  className="accent-accent"
+                />
+                <span className="font-mono">{ev}</span>
+              </label>
+            ))}
+          </div>
+          <button
+            type="submit"
+            disabled={whCreating || !whUrl.trim() || whEvents.length === 0}
+            className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover disabled:opacity-50"
+          >
+            {whCreating ? "Adding..." : "Add webhook"}
+          </button>
+        </form>
+
+        {newWebhook?.secret && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm font-medium text-amber-800 mb-2">
+              Signing secret — save it to verify webhook signatures.
+            </p>
+            <pre className="bg-background border border-border rounded-lg p-3 text-xs overflow-x-auto">
+              {newWebhook.secret}
+            </pre>
+          </div>
+        )}
+
+        {webhooks.length === 0 ? (
+          <p className="text-sm text-muted">No webhooks yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {webhooks.map((w) => (
+              <div key={w.id} className="p-3 border border-border rounded-lg">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-mono truncate">{w.url}</p>
+                    <p className="text-xs text-muted mt-0.5">{(w.events || []).join(" · ")}</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => handleTestWebhook(w.id)}
+                      className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-surface"
+                    >
+                      {testedId === w.id ? "Sent ✓" : "Test"}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteWebhook(w.id)}
+                      className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

@@ -17,6 +17,7 @@ from app.api.images.router import router as images_router
 from app.api.translate.router import router as translate_router
 from app.api.apikeys.router import router as apikeys_router
 from app.api.partner.router import router as partner_router
+from app.api.webhooks.router import router as webhooks_router
 
 
 @asynccontextmanager
@@ -82,6 +83,7 @@ app.include_router(admin_router, prefix=API_V1)
 app.include_router(images_router, prefix=API_V1)
 app.include_router(translate_router, prefix=API_V1)
 app.include_router(apikeys_router, prefix=API_V1)
+app.include_router(webhooks_router, prefix=API_V1)
 # Partner (public developer) API — clean short base: /v1/...
 app.include_router(partner_router)
 
