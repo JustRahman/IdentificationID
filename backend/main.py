@@ -91,3 +91,33 @@ app.include_router(partner_router)
 @app.get("/health")
 async def root_health():
     return {"status": "ok", "service": "identification-id-api"}
+
+
+# ── Partner API: clean, scoped OpenAPI spec + interactive Swagger UI ──
+from fastapi.openapi.docs import get_swagger_ui_html  # noqa: E402
+from fastapi.openapi.utils import get_openapi  # noqa: E402
+from fastapi.responses import HTMLResponse, JSONResponse  # noqa: E402
+
+
+@app.get("/v1/openapi.json", include_in_schema=False)
+async def partner_openapi():
+    schema = get_openapi(
+        title="Identification ID Partner API",
+        version="1.0",
+        description=(
+            "Public developer API for Identification ID. "
+            "Authenticate every request with your `X-API-Key` header. "
+            "Provided by Global Product Identification Inc."
+        ),
+        routes=partner_router.routes,
+    )
+    schema["servers"] = [{"url": "https://api.identificationid.com"}]
+    return JSONResponse(schema)
+
+
+@app.get("/v1/docs", include_in_schema=False)
+async def partner_docs() -> HTMLResponse:
+    return get_swagger_ui_html(
+        openapi_url="/v1/openapi.json",
+        title="Identification ID Partner API — Reference",
+    )

@@ -52,6 +52,7 @@ export default function ApiDocsPage() {
         </p>
         <div className="flex flex-wrap gap-3">
           <Link href="/register" className="bg-accent text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-accent-hover">Get API access →</Link>
+          <a href="https://api.identificationid.com/v1/docs" target="_blank" rel="noopener noreferrer" className="border border-border px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-surface">Interactive API (Swagger) ↗</a>
           <Link href="/pricing" className="border border-border px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-surface">View plans</Link>
         </div>
       </div>

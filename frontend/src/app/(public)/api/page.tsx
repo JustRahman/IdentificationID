@@ -61,6 +61,14 @@ export default function ApiMarketingPage() {
           >
             Read the docs
           </Link>
+          <a
+            href="https://api.identificationid.com/v1/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-border px-6 py-3 rounded-xl text-sm font-medium hover:bg-surface"
+          >
+            Interactive API ↗
+          </a>
         </div>
       </div>
 
