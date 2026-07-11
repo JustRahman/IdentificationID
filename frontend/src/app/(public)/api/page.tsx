@@ -40,10 +40,13 @@ export default function ApiMarketingPage() {
         <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-5">
           Build on the Identification ID API
         </h1>
-        <p className="text-lg text-muted leading-relaxed mb-8">
+        <p className="text-lg text-muted leading-relaxed mb-5">
           Access your product registry programmatically. Sync catalogs, verify
           products, and pull live stats — straight into your storefront,
           marketplace, or internal tools.
+        </p>
+        <p className="text-sm font-medium text-foreground bg-surface border border-border rounded-xl px-4 py-3 mb-8 max-w-xl mx-auto">
+          Identification ID — a Digital Product Identity Platform with Public Registry, QR Passports and Developer API.
         </p>
         <div className="flex flex-wrap gap-3 justify-center">
           <Link
