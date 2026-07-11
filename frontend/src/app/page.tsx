@@ -108,10 +108,10 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-2xl sm:text-3xl text-foreground mb-3 leading-snug max-w-2xl mx-auto font-semibold tracking-tight">
-            Every Product. One Digital Identity.
+            The Digital Identity Platform for Physical Products
           </p>
           <p className="text-base text-muted mb-4 leading-relaxed max-w-xl mx-auto">
-            The digital identity platform for physical products — every item gets a unique, verifiable ID.
+            Public registry, QR passports, and a developer API — a unique, verifiable ID for every product.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-10">
