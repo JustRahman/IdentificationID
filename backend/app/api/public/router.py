@@ -262,20 +262,26 @@ async def lookup_manufacturer(
     )
     products = prod_result.scalars().all()
 
+    # The Manufacturer ID is permanent, but the full public profile is part of
+    # the Registry Membership. Without it the page shows a minimal "Inactive"
+    # record so existing links and QR codes never break.
+    active = bool(company.registry_active)
+
     return {
         "success": True,
         "data": {
             "manufacturer_id": company.manufacturer_id,
+            "registry_status": "active" if active else "inactive",
             "display_name": company.display_name,
-            "legal_name": company.legal_name,
+            "legal_name": company.legal_name if active else None,
             "country_code": company.country_code,
-            "website": company.website,
-            "support_email": company.support_email,
-            "logo_url": company.logo_url,
-            "description": company.description,
+            "website": company.website if active else None,
+            "support_email": company.support_email if active else None,
+            "logo_url": company.logo_url if active else None,
+            "description": company.description if active else None,
             "registered_at": company.created_at.isoformat() if company.created_at else None,
             "product_count": len(products),
-            "products": [
+            "products": [] if not active else [
                 {
                     "identification_id": p.identification_id,
                     "name": p.name,

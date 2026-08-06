@@ -15,8 +15,9 @@ interface ManufacturerProduct {
 
 interface ManufacturerData {
   manufacturer_id: string;
+  registry_status: "active" | "inactive";
   display_name: string;
-  legal_name: string;
+  legal_name: string | null;
   country_code: string;
   website: string | null;
   support_email: string | null;
@@ -119,8 +120,16 @@ export default function ManufacturerPage({
                 <h1 className="text-2xl font-semibold mb-1">{data.display_name}</h1>
                 <p className="text-sm text-muted">{data.legal_name}</p>
               </div>
-              <span className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200 shrink-0">
-                Registered Manufacturer
+              <span
+                className={`text-xs font-medium px-3 py-1.5 rounded-lg border shrink-0 ${
+                  data.registry_status === "active"
+                    ? "text-green-700 bg-green-50 border-green-200"
+                    : "text-gray-600 bg-gray-50 border-gray-200"
+                }`}
+              >
+                {data.registry_status === "active"
+                  ? "Registered Manufacturer"
+                  : "Registry status: Inactive"}
               </span>
             </div>
 

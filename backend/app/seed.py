@@ -1,7 +1,7 @@
 """Seed database with mock data for testing."""
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +19,11 @@ from app.services.id_generator import generate_identification_id, generate_manuf
 # Public sample PDF used as a placeholder manual for seeded products so the
 # "Open" download link works without Supabase storage configured.
 SAMPLE_PDF_URL = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+
+# Seeded demo manufacturers (kept as active registry members for demos).
+DEMO_COMPANY_NAMES = (
+    "ACME Corp", "TechVision", "GreenLeaf", "Nova Tools", "Casa Home", "ZenFit",
+)
 
 # ---------------------------------------------------------------------------
 # Real product images from Unsplash (free, no attribution required).
@@ -124,13 +129,19 @@ async def _get_or_create_company(session: AsyncSession, display_name: str, owner
             owner_user_id=owner_id,
             display_name=display_name,
             manufacturer_id=generate_manufacturer_id(),
+            registry_active=True,
+            registry_paid_until=date(2099, 12, 31),
             **kwargs,
         )
         session.add(company)
         await session.flush()
-    elif not company.manufacturer_id:
-        # Backfill registry ID for companies seeded before the registry existed.
-        company.manufacturer_id = generate_manufacturer_id()
+    else:
+        # Keep demo companies fully populated for testing/demos.
+        if not company.manufacturer_id:
+            company.manufacturer_id = generate_manufacturer_id()
+        if not company.registry_active:
+            company.registry_active = True
+            company.registry_paid_until = date(2099, 12, 31)
         await session.flush()
     return company
 
@@ -146,6 +157,20 @@ async def seed_data(session: AsyncSession) -> None:
     for company in missing.scalars().all():
         company.manufacturer_id = generate_manufacturer_id()
         backfilled = True
+
+    # Demo companies keep an active registry membership so the public
+    # manufacturer profiles stay populated for testing and demos.
+    demo = await session.execute(
+        select(Company).where(
+            Company.display_name.in_(DEMO_COMPANY_NAMES),
+            Company.registry_active.is_(False),
+        )
+    )
+    for company in demo.scalars().all():
+        company.registry_active = True
+        company.registry_paid_until = date(2099, 12, 31)
+        backfilled = True
+
     if backfilled:
         await session.commit()
 

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,6 +34,12 @@ class Company(Base, UUIDMixin, TimestampMixin):
     manufacturer_id: Mapped[Optional[str]] = mapped_column(
         String(13), unique=True, index=True, nullable=True
     )
+    # Registry Membership: activates the PUBLIC manufacturer profile. The ID
+    # itself stays valid forever; lapsing only makes the profile "Inactive".
+    registry_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    registry_paid_until: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     legal_name: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     country_code: Mapped[str] = mapped_column(String(2), nullable=False)

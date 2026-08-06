@@ -158,6 +158,43 @@ export const PLANS: PlanTier[] = [
   },
 ];
 
+// ── Manufacturer Registry Membership (optional add-on) ──
+// The Manufacturer ID itself is free and permanent. Membership activates the
+// public manufacturer profile, QR code and registry/API visibility.
+export const REGISTRY_MEMBERSHIP = {
+  key: "manufacturer_registry",
+  priceCents: 500,
+  annualPriceCents: 4900,
+  en: {
+    name: "Manufacturer Registry Membership",
+    period: "/ mo",
+    annualNote: "or $49 / year — save $11",
+    desc: "Your company's public identity in the global registry",
+    features: [
+      "Permanent Manufacturer ID (MID-XXXX-XXXX)",
+      "Public manufacturer profile page",
+      "Manufacturer QR code",
+      "All products linked to one source profile",
+      "Registry & API visibility",
+      "Basic profile analytics",
+    ],
+  },
+  ru: {
+    name: "Членство в реестре производителей",
+    period: "/ мес",
+    annualNote: "или $49 / год — экономия $11",
+    desc: "Публичная идентичность вашей компании в глобальном реестре",
+    features: [
+      "Постоянный Manufacturer ID (MID-XXXX-XXXX)",
+      "Публичный профиль производителя",
+      "QR-код производителя",
+      "Все товары связаны с одним профилем",
+      "Видимость в реестре и через API",
+      "Базовая аналитика профиля",
+    ],
+  },
+};
+
 /** Format a plan's price for display, e.g. "$29". */
 export function formatPlanPrice(plan: PlanTier): string {
   return `$${plan.priceCents / 100}`;

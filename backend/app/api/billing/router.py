@@ -30,9 +30,21 @@ PLANS = {
 
 PURCHASABLE_PLANS = ("standard", "popular", "best_value", "enterprise")
 
+# Optional add-on: activates the public manufacturer profile. The Manufacturer
+# ID itself is always free and permanent.
+REGISTRY_MEMBERSHIP = {
+    "name": "Manufacturer Registry Membership",
+    "price_cents": 500,          # $5 / month
+    "annual_price_cents": 4900,  # $49 / year
+}
+
 
 class CheckoutRequest(BaseModel):
     plan: str  # one of PURCHASABLE_PLANS
+
+
+class RegistryCheckoutRequest(BaseModel):
+    billing: str = "annual"  # "annual" or "monthly"
 
 
 @router.get("/plan")
@@ -154,6 +166,91 @@ async def create_checkout(
     return {"success": True, "data": {"checkout_url": session.url}}
 
 
+@router.get("/registry")
+async def get_registry_membership(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Current Manufacturer Registry Membership status for the company."""
+    result = await db.execute(
+        select(Company).where(Company.owner_user_id == user.id)
+    )
+    company = result.scalar_one_or_none()
+    if not company:
+        raise NotFound("Create a company first")
+
+    return {
+        "success": True,
+        "data": {
+            "manufacturer_id": company.manufacturer_id,
+            "active": bool(company.registry_active),
+            "paid_until": company.registry_paid_until.isoformat()
+            if company.registry_paid_until
+            else None,
+            "price_cents": REGISTRY_MEMBERSHIP["price_cents"],
+            "annual_price_cents": REGISTRY_MEMBERSHIP["annual_price_cents"],
+        },
+    }
+
+
+@router.post("/registry/checkout")
+async def create_registry_checkout(
+    body: RegistryCheckoutRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Purchase the Manufacturer Registry Membership add-on."""
+    result = await db.execute(
+        select(Company).where(Company.owner_user_id == user.id)
+    )
+    company = result.scalar_one_or_none()
+    if not company:
+        raise NotFound("Create a company first")
+
+    annual = body.billing != "monthly"
+    amount = (
+        REGISTRY_MEMBERSHIP["annual_price_cents"]
+        if annual
+        else REGISTRY_MEMBERSHIP["price_cents"]
+    )
+
+    if not settings.stripe_secret_key:
+        # Demo mode: activate directly instead of going through Stripe.
+        company.registry_active = True
+        company.registry_paid_until = date.today() + timedelta(
+            days=365 if annual else 30
+        )
+        await db.flush()
+        return {
+            "success": True,
+            "data": {
+                "message": "Registry membership activated (demo mode — Stripe not configured).",
+                "active": True,
+                "paid_until": company.registry_paid_until.isoformat(),
+            },
+        }
+
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        customer_email=user.email,
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {"name": f"Identification ID - {REGISTRY_MEMBERSHIP['name']}"},
+                    "unit_amount": amount,
+                    "recurring": {"interval": "year" if annual else "month"},
+                },
+                "quantity": 1,
+            }
+        ],
+        metadata={"company_id": str(company.id), "registry": "1"},
+        success_url=f"{settings.frontend_url}/company?registry=active",
+        cancel_url=f"{settings.frontend_url}/company?canceled=true",
+    )
+    return {"success": True, "data": {"checkout_url": session.url}}
+
+
 @router.post("/webhook")
 async def stripe_webhook(
     request: Request,
@@ -177,8 +274,21 @@ async def stripe_webhook(
 
     if event_type == "checkout.session.completed":
         session_data = event["data"]["object"]
-        company_id = session_data.get("metadata", {}).get("company_id")
-        plan = session_data.get("metadata", {}).get("plan", "free")
+        metadata = session_data.get("metadata", {})
+        company_id = metadata.get("company_id")
+        plan = metadata.get("plan", "free")
+
+        # Registry Membership add-on (not a product plan).
+        if company_id and metadata.get("registry") == "1":
+            comp_result = await db.execute(
+                select(Company).where(Company.id == company_id)
+            )
+            comp = comp_result.scalar_one_or_none()
+            if comp:
+                comp.registry_active = True
+                comp.registry_paid_until = date.today() + timedelta(days=365)
+                await db.flush()
+            return {"received": True}
 
         if company_id:
             stripe_customer_id = session_data.get("customer", "")

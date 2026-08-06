@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PLANS } from "@/lib/constants";
+import { PLANS, REGISTRY_MEMBERSHIP } from "@/lib/constants";
 
 const THEME: Record<string, { card: string; onLight: boolean; button: string; badge?: string; badgeColor?: string }> = {
   free:       { card: "bg-green-600 border-green-600 text-white", onLight: false, button: "bg-white text-green-700 hover:bg-green-50" },
@@ -53,6 +53,51 @@ export default function PricingPage() {
           </div>
           );
         })}
+      </div>
+
+      {/* Manufacturer Registry Membership — optional add-on */}
+      <div className="mt-12">
+        <div className="border border-border rounded-xl p-6 bg-surface">
+          <div className="flex items-start justify-between gap-6 flex-wrap">
+            <div className="flex-1 min-w-[260px]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-2">
+                Optional add-on
+              </p>
+              <h2 className="text-lg font-semibold mb-1">{REGISTRY_MEMBERSHIP.en.name}</h2>
+              <p className="text-sm text-muted mb-4">{REGISTRY_MEMBERSHIP.en.desc}</p>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                {REGISTRY_MEMBERSHIP.en.features.map((f) => (
+                  <li key={f} className="text-sm text-muted flex items-center gap-2">
+                    <svg className="w-4 h-4 text-accent flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="text-center shrink-0">
+              <div>
+                <span className="text-3xl font-semibold">
+                  ${REGISTRY_MEMBERSHIP.priceCents / 100}
+                </span>
+                <span className="text-sm text-muted">{REGISTRY_MEMBERSHIP.en.period}</span>
+              </div>
+              <p className="text-xs text-muted mt-1 mb-4">{REGISTRY_MEMBERSHIP.en.annualNote}</p>
+              <Link
+                href="/register"
+                className="block text-center px-6 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover"
+              >
+                Join the registry
+              </Link>
+            </div>
+          </div>
+          <p className="text-xs text-muted mt-5 pt-4 border-t border-border">
+            Your Manufacturer ID is free and permanent. Membership activates your public
+            manufacturer profile, QR code and registry visibility — if it lapses, the ID
+            keeps working and the profile is simply marked inactive.
+          </p>
+        </div>
       </div>
     </div>
   );
