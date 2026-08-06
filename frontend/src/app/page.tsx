@@ -556,7 +556,7 @@ export default function LandingPage() {
           </h2>
           <p className="text-blue-100 text-base mb-8 leading-relaxed">
             Join the manufacturers already using Identification ID.
-            Your first 10 products are free, no card required.
+            Your first 3 products are free, no card required.
           </p>
           {earlySubmitted ? (
             <p className="text-white font-medium">Redirecting to registration...</p>
@@ -579,7 +579,7 @@ export default function LandingPage() {
             </form>
           )}
           <div className="flex items-center justify-center gap-4 mt-6 text-blue-100 text-xs flex-wrap">
-            {["10 products free", "No credit card", "Cancel anytime"].map((t) => (
+            {["3 products free", "No credit card", "Cancel anytime"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
