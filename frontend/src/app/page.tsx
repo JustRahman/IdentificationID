@@ -530,30 +530,30 @@ export default function LandingPage() {
             })}
           </div>
 
-          {/* Manufacturer Registry Membership — optional add-on */}
-          <div className="mt-8 bg-white border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between gap-6 flex-wrap">
+          {/* Manufacturer Registry Membership — optional add-on (highlighted) */}
+          <div className="relative mt-10 rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md">
+            <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">
+              OPTIONAL ADD-ON
+            </div>
+            <div className="flex items-center justify-between gap-6 flex-wrap mt-2">
               <div className="flex-1 min-w-[240px]">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-accent mb-1">
-                  Optional add-on
-                </p>
-                <h3 className="font-semibold mb-1">{REGISTRY_MEMBERSHIP.en.name}</h3>
-                <p className="text-sm text-muted">
+                <h3 className="font-semibold mb-1 text-indigo-950">{REGISTRY_MEMBERSHIP.en.name}</h3>
+                <p className="text-sm text-indigo-900/70">
                   Permanent Manufacturer ID (MID-XXXX-XXXX), public manufacturer profile,
                   QR code and registry visibility.
                 </p>
               </div>
               <div className="text-center shrink-0">
                 <div>
-                  <span className="text-2xl font-bold">
+                  <span className="text-2xl font-bold text-indigo-950">
                     ${REGISTRY_MEMBERSHIP.priceCents / 100}
                   </span>
-                  <span className="text-xs text-muted">{REGISTRY_MEMBERSHIP.en.period}</span>
+                  <span className="text-xs text-indigo-900/60">{REGISTRY_MEMBERSHIP.en.period}</span>
                 </div>
-                <p className="text-[11px] text-muted mb-3">{REGISTRY_MEMBERSHIP.en.annualNote}</p>
+                <p className="text-[11px] text-indigo-700 font-medium mb-3">{REGISTRY_MEMBERSHIP.en.annualNote}</p>
                 <Link
                   href="/pricing"
-                  className="inline-block text-sm font-medium px-5 py-2 rounded-xl border border-border hover:bg-surface transition-colors"
+                  className="inline-block text-sm font-medium px-5 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
                 >
                   Learn more
                 </Link>
