@@ -35,6 +35,8 @@ async def lifespan(app: FastAPI):
             "ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500)",
             "ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT",
             "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS plan VARCHAR(32) NOT NULL DEFAULT 'free'",
+            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS manufacturer_id VARCHAR(13)",
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_companies_manufacturer_id ON companies (manufacturer_id)",
         ):
             await conn.execute(text(stmt))
 

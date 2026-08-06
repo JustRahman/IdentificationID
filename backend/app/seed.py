@@ -14,7 +14,7 @@ from app.models.product_document_version import ProductDocumentVersion
 from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
 from app.models.user import User, UserRole
-from app.services.id_generator import generate_identification_id
+from app.services.id_generator import generate_identification_id, generate_manufacturer_id
 
 # Public sample PDF used as a placeholder manual for seeded products so the
 # "Open" download link works without Supabase storage configured.
@@ -120,13 +120,35 @@ async def _get_or_create_company(session: AsyncSession, display_name: str, owner
     result = await session.execute(select(Company).where(Company.display_name == display_name))
     company = result.scalar_one_or_none()
     if not company:
-        company = Company(owner_user_id=owner_id, display_name=display_name, **kwargs)
+        company = Company(
+            owner_user_id=owner_id,
+            display_name=display_name,
+            manufacturer_id=generate_manufacturer_id(),
+            **kwargs,
+        )
         session.add(company)
+        await session.flush()
+    elif not company.manufacturer_id:
+        # Backfill registry ID for companies seeded before the registry existed.
+        company.manufacturer_id = generate_manufacturer_id()
         await session.flush()
     return company
 
 
 async def seed_data(session: AsyncSession) -> None:
+    # Backfill Manufacturer IDs for any company missing one. Runs on every
+    # startup (before the seeded-already guard) so existing databases get
+    # registry IDs too.
+    missing = await session.execute(
+        select(Company).where(Company.manufacturer_id.is_(None))
+    )
+    backfilled = False
+    for company in missing.scalars().all():
+        company.manufacturer_id = generate_manufacturer_id()
+        backfilled = True
+    if backfilled:
+        await session.commit()
+
     # Check if products are already seeded
     result = await session.execute(
         select(Product).where(Product.name == "DriveCam 4K Duo")

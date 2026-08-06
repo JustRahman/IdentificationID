@@ -18,6 +18,7 @@ export default function CompanyPage() {
   const [supportEmail, setSupportEmail] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [description, setDescription] = useState("");
+  const [copiedMid, setCopiedMid] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -98,6 +99,38 @@ export default function CompanyPage() {
           {company.admin_note && (
             <span className="text-xs text-muted">Note: {company.admin_note}</span>
           )}
+        </div>
+      )}
+
+      {/* Manufacturer registry ID */}
+      {company?.manufacturer_id && (
+        <div className="bg-background border border-border rounded-xl p-5 mb-6 max-w-lg">
+          <p className="text-sm font-medium mb-1">Your Manufacturer ID</p>
+          <p className="text-xs text-muted mb-3">
+            A permanent identifier for your company in the Identification ID registry.
+            It never changes and links to all of your products.
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-lg font-mono font-semibold">{company.manufacturer_id}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(company.manufacturer_id || "").catch(() => {});
+                setCopiedMid(true);
+                setTimeout(() => setCopiedMid(false), 2000);
+              }}
+              className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+            >
+              {copiedMid ? "✓ Copied" : "Copy"}
+            </button>
+            <a
+              href={`/manufacturer/${company.manufacturer_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+            >
+              View public profile ↗
+            </a>
+          </div>
         </div>
       )}
 

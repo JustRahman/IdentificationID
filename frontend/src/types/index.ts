@@ -16,6 +16,7 @@ export interface User {
 
 export interface Company {
   id: string;
+  manufacturer_id: string | null;
   legal_name: string;
   display_name: string;
   country_code: string;

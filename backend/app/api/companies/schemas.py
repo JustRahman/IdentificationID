@@ -23,6 +23,7 @@ class CompanyUpdate(BaseModel):
 
 class CompanyResponse(BaseModel):
     id: str
+    manufacturer_id: str | None = None
     legal_name: str
     display_name: str
     country_code: str

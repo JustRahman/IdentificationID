@@ -30,6 +30,7 @@ interface ProductData {
   country_of_origin: string | null;
   published_at: string | null;
   company: {
+    manufacturer_id: string | null;
     display_name: string;
     country_code: string;
     website: string | null;
@@ -290,6 +291,17 @@ export default function PublicProductPage({
                 <p className="text-sm">{field.value}</p>
               </div>
             ))}
+            {product.company.manufacturer_id && (
+              <div className="mb-3">
+                <p className="text-xs text-muted">Manufacturer ID</p>
+                <Link
+                  href={`/manufacturer/${product.company.manufacturer_id}`}
+                  className="text-sm font-mono text-accent hover:underline"
+                >
+                  {product.company.manufacturer_id} →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 

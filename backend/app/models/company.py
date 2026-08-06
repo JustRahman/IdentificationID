@@ -30,6 +30,10 @@ class Company(Base, UUIDMixin, TimestampMixin):
     owner_user_id: Mapped[uuid.UUID] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True
     )
+    # Permanent registry identifier (MID-XXXX-XXXX). Never reissued or removed.
+    manufacturer_id: Mapped[Optional[str]] = mapped_column(
+        String(13), unique=True, index=True, nullable=True
+    )
     legal_name: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     country_code: Mapped[str] = mapped_column(String(2), nullable=False)

@@ -77,6 +77,7 @@ async def lookup_product(
             "country_of_origin": product.country_of_origin,
             "published_at": product.published_at.isoformat() if product.published_at else None,
             "company": {
+                "manufacturer_id": product.company.manufacturer_id,
                 "display_name": product.company.display_name,
                 "country_code": product.company.country_code,
                 "website": product.company.website,
@@ -234,4 +235,55 @@ async def list_companies(
             }
             for company, count in rows
         ],
+    }
+
+
+@router.get("/manufacturers/{manufacturer_id}")
+async def lookup_manufacturer(
+    manufacturer_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Public manufacturer registry profile (MID-XXXX-XXXX) + published products."""
+    result = await db.execute(
+        select(Company).where(Company.manufacturer_id == manufacturer_id.upper())
+    )
+    company = result.scalar_one_or_none()
+    if not company:
+        raise NotFound("Manufacturer not found")
+
+    prod_result = await db.execute(
+        select(Product)
+        .where(
+            Product.company_id == company.id,
+            Product.status == ProductStatus.published,
+        )
+        .options(selectinload(Product.images))
+        .order_by(Product.published_at.desc())
+    )
+    products = prod_result.scalars().all()
+
+    return {
+        "success": True,
+        "data": {
+            "manufacturer_id": company.manufacturer_id,
+            "display_name": company.display_name,
+            "legal_name": company.legal_name,
+            "country_code": company.country_code,
+            "website": company.website,
+            "support_email": company.support_email,
+            "logo_url": company.logo_url,
+            "description": company.description,
+            "registered_at": company.created_at.isoformat() if company.created_at else None,
+            "product_count": len(products),
+            "products": [
+                {
+                    "identification_id": p.identification_id,
+                    "name": p.name,
+                    "category": p.category,
+                    "brand": p.brand,
+                    "cover_image": p.images[0].url if p.images else None,
+                }
+                for p in products
+            ],
+        },
     }

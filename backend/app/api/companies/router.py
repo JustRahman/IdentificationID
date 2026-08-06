@@ -9,8 +9,21 @@ from app.core.deps import get_db, get_verified_manufacturer
 from app.core.exceptions import Conflict, NotFound, ValidationError
 from app.models.company import Company, CompanyStatus
 from app.models.user import User
+from app.services.id_generator import generate_manufacturer_id
 
 router = APIRouter(prefix="/manufacturer/company", tags=["companies"])
+
+
+async def _unique_manufacturer_id(db: AsyncSession) -> str:
+    """Generate a MID that isn't already taken."""
+    for _ in range(10):
+        mid = generate_manufacturer_id()
+        existing = await db.execute(
+            select(Company).where(Company.manufacturer_id == mid)
+        )
+        if not existing.scalar_one_or_none():
+            return mid
+    raise ValidationError("Failed to generate a unique Manufacturer ID, try again")
 
 
 @router.post("", response_model=CompanyResponse)
@@ -27,6 +40,7 @@ async def create_company(
 
     company = Company(
         owner_user_id=user.id,
+        manufacturer_id=await _unique_manufacturer_id(db),
         legal_name=body.legal_name,
         display_name=body.display_name,
         country_code=body.country_code,
@@ -54,6 +68,10 @@ async def get_company(
     company = result.scalar_one_or_none()
     if not company:
         raise NotFound("No company found. Create one first.")
+    # Backfill a Manufacturer ID for companies created before the registry.
+    if not company.manufacturer_id:
+        company.manufacturer_id = await _unique_manufacturer_id(db)
+        await db.flush()
     return _company_response(company)
 
 
@@ -108,6 +126,7 @@ async def submit_for_verification(
 def _company_response(company: Company) -> CompanyResponse:
     return CompanyResponse(
         id=str(company.id),
+        manufacturer_id=company.manufacturer_id,
         legal_name=company.legal_name,
         display_name=company.display_name,
         country_code=company.country_code,
