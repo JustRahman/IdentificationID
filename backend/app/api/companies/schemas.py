@@ -34,6 +34,9 @@ class CompanyResponse(BaseModel):
     status: str
     admin_note: str | None
     verified_at: str | None
+    trust_score: int | None = None
+    trust_checks: dict | None = None
+    trust_checked_at: str | None = None
 
     class Config:
         from_attributes = True

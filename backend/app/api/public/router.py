@@ -280,6 +280,8 @@ async def lookup_manufacturer(
             "logo_url": company.logo_url if active else None,
             "description": company.description if active else None,
             "registered_at": company.created_at.isoformat() if company.created_at else None,
+            # Automated signal checks only — not a legal vetting of the company.
+            "domain_verified": (company.trust_score or 0) >= 70,
             "product_count": len(products),
             "products": [] if not active else [
                 {

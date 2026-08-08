@@ -27,6 +27,31 @@ export default function CompanyPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [description, setDescription] = useState("");
   const [copiedMid, setCopiedMid] = useState(false);
+  const [rechecking, setRechecking] = useState(false);
+
+  async function recheckVerification() {
+    setRechecking(true);
+    setError("");
+    setMessage("");
+    try {
+      const updated = await api.post<Company>("/manufacturer/company/verify");
+      setCompany(updated);
+      setMessage("Verification checks re-run.");
+    } catch {
+      setError("Could not re-run verification");
+    } finally {
+      setRechecking(false);
+    }
+  }
+
+  const CHECK_LABELS: Record<string, string> = {
+    email_domain_matches_website: "Email domain matches website",
+    corporate_email: "Corporate email (not a free provider)",
+    website_live: "Website is live",
+    company_name_on_website: "Company name appears on website",
+    mx_records: "Domain has mail servers",
+    valid_ssl: "Valid HTTPS certificate",
+  };
   const [registry, setRegistry] = useState<RegistryStatus | null>(null);
   const [activating, setActivating] = useState(false);
 
@@ -221,6 +246,84 @@ export default function CompanyPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Automated verification */}
+      {company && (
+        <div className="bg-background border border-border rounded-xl p-5 mb-6 max-w-lg">
+          <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
+            <p className="text-sm font-medium">Verification</p>
+            {company.trust_score !== null && company.trust_score !== undefined && (
+              <span
+                className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
+                  company.trust_score >= 70
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : company.trust_score >= 40
+                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                    : "bg-gray-50 text-gray-600 border border-gray-200"
+                }`}
+              >
+                {company.trust_score >= 70
+                  ? "✓ Domain Verified"
+                  : company.trust_score >= 40
+                  ? "Partially verified"
+                  : "Not verified"}{" "}
+                · {company.trust_score}/100
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted mb-4">
+            These checks run automatically from your website and email — nothing for you to do.
+            Add a company website and use a work email address to score higher.
+          </p>
+
+          {company.trust_checks ? (
+            <ul className="space-y-1.5 mb-4">
+              {Object.entries(CHECK_LABELS).map(([key, label]) => {
+                const ok = company.trust_checks?.[key] === true;
+                return (
+                  <li key={key} className="flex items-center gap-2 text-sm">
+                    <span className={ok ? "text-green-600" : "text-muted/50"}>
+                      {ok ? "✓" : "○"}
+                    </span>
+                    <span className={ok ? "" : "text-muted"}>{label}</span>
+                  </li>
+                );
+              })}
+              {typeof company.trust_checks.domain_age_days === "number" && (
+                <li className="flex items-center gap-2 text-sm">
+                  <span className="text-green-600">✓</span>
+                  <span>
+                    Domain age:{" "}
+                    {Math.floor((company.trust_checks.domain_age_days as number) / 365)} year(s)
+                  </span>
+                </li>
+              )}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted mb-4">No checks run yet.</p>
+          )}
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={recheckVerification}
+              disabled={rechecking}
+              className="text-sm border border-border px-4 py-2 rounded-lg hover:bg-surface disabled:opacity-50"
+            >
+              {rechecking ? "Checking…" : "Re-run checks"}
+            </button>
+            {company.trust_checked_at && (
+              <span className="text-xs text-muted">
+                Last checked {new Date(company.trust_checked_at).toLocaleString()}
+              </span>
+            )}
+          </div>
+
+          <p className="text-[11px] text-muted mt-4 pt-3 border-t border-border leading-relaxed">
+            Domain Verified confirms automated signals about your website and email. It is not a
+            legal or financial vetting of your company.
+          </p>
         </div>
       )}
 

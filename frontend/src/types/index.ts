@@ -27,6 +27,9 @@ export interface Company {
   status: CompanyStatus;
   admin_note: string | null;
   verified_at: string | null;
+  trust_score: number | null;
+  trust_checks: Record<string, boolean | number | null> | null;
+  trust_checked_at: string | null;
 }
 
 export interface ProductImage {

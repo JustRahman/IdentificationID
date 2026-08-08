@@ -24,6 +24,7 @@ interface ManufacturerData {
   logo_url: string | null;
   description: string | null;
   registered_at: string | null;
+  domain_verified: boolean;
   product_count: number;
   products: ManufacturerProduct[];
 }
@@ -120,17 +121,30 @@ export default function ManufacturerPage({
                 <h1 className="text-2xl font-semibold mb-1">{data.display_name}</h1>
                 <p className="text-sm text-muted">{data.legal_name}</p>
               </div>
-              <span
-                className={`text-xs font-medium px-3 py-1.5 rounded-lg border shrink-0 ${
-                  data.registry_status === "active"
-                    ? "text-green-700 bg-green-50 border-green-200"
-                    : "text-gray-600 bg-gray-50 border-gray-200"
-                }`}
-              >
-                {data.registry_status === "active"
-                  ? "Registered Manufacturer"
-                  : "Registry status: Inactive"}
-              </span>
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {data.domain_verified && (
+                  <span
+                    title="Automated checks confirmed this company's website and email domain."
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg border text-blue-700 bg-blue-50 border-blue-200 inline-flex items-center gap-1"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Domain Verified
+                  </span>
+                )}
+                <span
+                  className={`text-xs font-medium px-3 py-1.5 rounded-lg border ${
+                    data.registry_status === "active"
+                      ? "text-green-700 bg-green-50 border-green-200"
+                      : "text-gray-600 bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  {data.registry_status === "active"
+                    ? "Registered Manufacturer"
+                    : "Registry status: Inactive"}
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 mt-3 flex-wrap">
@@ -239,6 +253,12 @@ export default function ManufacturerPage({
         A Manufacturer ID is a unique identifier assigned to a manufacturer within the
         Identification ID global product registry. It is not a government, tax, or
         internationally recognized business identifier.
+        {data.domain_verified && (
+          <>
+            {" "}Domain Verified means automated checks confirmed this company&apos;s website and
+            email domain; it is not a legal or financial vetting of the company.
+          </>
+        )}
       </p>
     </div>
   );

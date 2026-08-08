@@ -5,8 +5,8 @@ import uuid
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -47,6 +47,12 @@ class Company(Base, UUIDMixin, TimestampMixin):
     support_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     logo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # Automated trust signals (see services/verification.py). Not a legal check.
+    trust_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    trust_checks: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    trust_checked_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     status: Mapped[CompanyStatus] = mapped_column(
         Enum(CompanyStatus), default=CompanyStatus.pending, nullable=False
     )
