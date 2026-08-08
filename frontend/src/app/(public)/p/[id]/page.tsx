@@ -31,6 +31,8 @@ interface ProductData {
   published_at: string | null;
   company: {
     manufacturer_id: string | null;
+    verification_level: "registered" | "verified" | "business";
+    verification_label: string;
     display_name: string;
     country_code: string;
     website: string | null;
@@ -238,9 +240,17 @@ export default function PublicProductPage({
               {product.category}
             </span>
           </div>
-          <span className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
-            Verified Manufacturer
-          </span>
+          <Link
+            href="/verification"
+            title="What this status means"
+            className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors shrink-0 ${
+              product.company.verification_level === "verified"
+                ? "text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                : "text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100"
+            }`}
+          >
+            {product.company.verification_label || "Registered Manufacturer"}
+          </Link>
         </div>
 
         {desc.short && (

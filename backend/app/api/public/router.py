@@ -12,6 +12,7 @@ from app.models.product_document_version import ProductDocumentVersion
 from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
 from app.services import storage
+from app.services.verification import LEVEL_LABELS, level_for, verified_attributes
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -78,6 +79,12 @@ async def lookup_product(
             "published_at": product.published_at.isoformat() if product.published_at else None,
             "company": {
                 "manufacturer_id": product.company.manufacturer_id,
+                "verification_level": level_for(
+                    product.company.trust_score, product.company.trust_checks
+                ),
+                "verification_label": LEVEL_LABELS[
+                    level_for(product.company.trust_score, product.company.trust_checks)
+                ],
                 "display_name": product.company.display_name,
                 "country_code": product.company.country_code,
                 "website": product.company.website,
@@ -281,7 +288,11 @@ async def lookup_manufacturer(
             "description": company.description if active else None,
             "registered_at": company.created_at.isoformat() if company.created_at else None,
             # Automated signal checks only — not a legal vetting of the company.
-            "domain_verified": (company.trust_score or 0) >= 70,
+            "verification_level": level_for(company.trust_score, company.trust_checks),
+            "verification_label": LEVEL_LABELS[
+                level_for(company.trust_score, company.trust_checks)
+            ],
+            "verified_attributes": verified_attributes(company.trust_checks),
             "product_count": len(products),
             "products": [] if not active else [
                 {

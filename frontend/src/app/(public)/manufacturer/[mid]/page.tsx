@@ -24,7 +24,9 @@ interface ManufacturerData {
   logo_url: string | null;
   description: string | null;
   registered_at: string | null;
-  domain_verified: boolean;
+  verification_level: "registered" | "verified" | "business";
+  verification_label: string;
+  verified_attributes: string[];
   product_count: number;
   products: ManufacturerProduct[];
 }
@@ -122,28 +124,29 @@ export default function ManufacturerPage({
                 <p className="text-sm text-muted">{data.legal_name}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                {data.domain_verified && (
-                  <span
-                    title="Automated checks confirmed this company's website and email domain."
-                    className="text-xs font-medium px-3 py-1.5 rounded-lg border text-blue-700 bg-blue-50 border-blue-200 inline-flex items-center gap-1"
-                  >
+                <Link
+                  href="/verification"
+                  title="See exactly what this status means"
+                  className={`text-xs font-medium px-3 py-1.5 rounded-lg border inline-flex items-center gap-1 transition-colors ${
+                    data.verification_level === "business"
+                      ? "text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
+                      : data.verification_level === "verified"
+                      ? "text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                      : "text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  {data.verification_level !== "registered" && (
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    Domain Verified
+                  )}
+                  {data.verification_label}
+                </Link>
+                {data.registry_status !== "active" && (
+                  <span className="text-xs font-medium px-3 py-1.5 rounded-lg border text-gray-600 bg-gray-50 border-gray-200">
+                    Registry: Inactive
                   </span>
                 )}
-                <span
-                  className={`text-xs font-medium px-3 py-1.5 rounded-lg border ${
-                    data.registry_status === "active"
-                      ? "text-green-700 bg-green-50 border-green-200"
-                      : "text-gray-600 bg-gray-50 border-gray-200"
-                  }`}
-                >
-                  {data.registry_status === "active"
-                    ? "Registered Manufacturer"
-                    : "Registry status: Inactive"}
-                </span>
               </div>
             </div>
 
@@ -159,6 +162,26 @@ export default function ManufacturerPage({
 
             {data.description && (
               <p className="text-sm text-muted mt-4 leading-relaxed">{data.description}</p>
+            )}
+
+            {/* What was actually verified — transparency over a bare checkmark */}
+            {data.verified_attributes.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs text-muted mb-1.5">Verified by Identification ID:</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  {data.verified_attributes.map((a) => (
+                    <span key={a} className="text-xs inline-flex items-center gap-1 text-foreground/80">
+                      <svg className="w-3 h-3 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      {a}
+                    </span>
+                  ))}
+                </div>
+                <Link href="/verification" className="text-xs text-accent hover:underline mt-1.5 inline-block">
+                  What does this mean?
+                </Link>
+              </div>
             )}
           </div>
         </div>
@@ -252,13 +275,13 @@ export default function ManufacturerPage({
       <p className="text-xs text-muted mt-6 leading-relaxed">
         A Manufacturer ID is a unique identifier assigned to a manufacturer within the
         Identification ID global product registry. It is not a government, tax, or
-        internationally recognized business identifier.
-        {data.domain_verified && (
-          <>
-            {" "}Domain Verified means automated checks confirmed this company&apos;s website and
-            email domain; it is not a legal or financial vetting of the company.
-          </>
-        )}
+        internationally recognized business identifier. Verification confirms specified
+        account, domain, or company-profile attributes checked by Identification ID. It does
+        not constitute government certification, product safety certification, or a guarantee
+        of product authenticity.{" "}
+        <Link href="/verification" className="text-accent hover:underline">
+          How verification works
+        </Link>
       </p>
     </div>
   );

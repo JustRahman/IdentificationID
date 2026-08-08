@@ -118,7 +118,7 @@ export default function LandingPage() {
             {[
               { icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4", label: "Product Registry" },
               { icon: "M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z", label: "QR Passport" },
-              { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", label: "Verified Manufacturer Data" },
+              { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", label: "Verified Manufacturer Profiles" },
             ].map(({ icon, label }) => (
               <span
                 key={label}
@@ -284,7 +284,7 @@ export default function LandingPage() {
                 {[
                   "Get instant access to product data by ID",
                   "Read descriptions and usage instructions in multiple languages",
-                  "Verify a product's authenticity",
+                  "Check a product against its manufacturer's record",
                   "Use it free — no sign-up, no apps",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
@@ -348,12 +348,12 @@ export default function LandingPage() {
                 Anti&#8209;Counterfeit platform
               </h2>
               <p className="text-muted mb-8 leading-relaxed">
-                Identification ID is a reliable anti-counterfeit system. A unique code for every
-                individual item lets anyone confirm authenticity in an instant.
+                Identification ID makes counterfeits easier to spot. Every item carries a unique
+                code that anyone can check against the manufacturer&apos;s registered record.
               </p>
               <ul className="space-y-4">
                 {[
-                  { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", text: "Confirm authenticity by the ID number on the product" },
+                  { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", text: "Check the ID on the product against the manufacturer's record" },
                   { icon: "M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z", text: "A unique code for every individual item" },
                   { icon: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0zM9 10h4M11 8v4", text: "Instant check before buying — right in the store" },
                   { icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z", text: "Protect your brand's reputation from counterfeits" },
@@ -380,8 +380,8 @@ export default function LandingPage() {
                   </svg>
                 </div>
                 <p className="text-xs text-muted font-mono mb-1">IID-4F9A-2K7Q</p>
-                <p className="text-lg font-semibold text-green-700 mb-1">Authentic product</p>
-                <p className="text-sm text-muted mb-4">Verified by Identification ID</p>
+                <p className="text-lg font-semibold text-green-700 mb-1">Found in the registry</p>
+                <p className="text-sm text-muted mb-4">Registered with Identification ID</p>
                 <div className="text-left space-y-2 text-sm border-t border-border pt-4">
                   {[
                     ["Manufacturer", "ACME Corp"],
@@ -663,6 +663,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm">
                 <li><Link href="/about" className="text-foreground hover:text-accent transition-colors">About</Link></li>
                 <li><Link href="/faq" className="text-foreground hover:text-accent transition-colors">FAQ</Link></li>
+                <li><Link href="/verification" className="text-foreground hover:text-accent transition-colors">Verification</Link></li>
                 <li><Link href="/terms" className="text-foreground hover:text-accent transition-colors">Terms</Link></li>
                 <li><Link href="/privacy" className="text-foreground hover:text-accent transition-colors">Privacy</Link></li>
                 <li><Link href="/cookies" className="text-foreground hover:text-accent transition-colors">Cookies</Link></li>

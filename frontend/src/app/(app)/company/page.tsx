@@ -265,7 +265,7 @@ export default function CompanyPage() {
                 }`}
               >
                 {company.trust_score >= 70
-                  ? "✓ Domain Verified"
+                  ? "✓ Verified Manufacturer"
                   : company.trust_score >= 40
                   ? "Partially verified"
                   : "Not verified"}{" "}
@@ -321,8 +321,12 @@ export default function CompanyPage() {
           </div>
 
           <p className="text-[11px] text-muted mt-4 pt-3 border-t border-border leading-relaxed">
-            Domain Verified confirms automated signals about your website and email. It is not a
-            legal or financial vetting of your company.
+            Verification confirms specified account, domain, or company-profile attributes
+            checked by Identification ID. It does not constitute government certification,
+            product safety certification, or a guarantee of product authenticity.{" "}
+            <a href="/verification" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+              How verification works
+            </a>
           </p>
         </div>
       )}

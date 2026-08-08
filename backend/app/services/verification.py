@@ -48,6 +48,52 @@ W_SSL = 5
 AUTO_VERIFY_THRESHOLD = 70   # >= this → verified automatically
 REVIEW_THRESHOLD = 40        # >= this → needs human review; below → rejected
 
+# Public trust levels. Deliberately named so each one states what was actually
+# checked — an automated check must never read as a legal vetting.
+LEVEL_REGISTERED = "registered"    # signed up, holds a Manufacturer ID
+LEVEL_VERIFIED = "verified"        # corporate email + company domain confirmed
+LEVEL_BUSINESS = "business"        # legal entity confirmed (manual/paid, later)
+
+LEVEL_LABELS = {
+    LEVEL_REGISTERED: "Registered Manufacturer",
+    LEVEL_VERIFIED: "Verified Manufacturer",
+    LEVEL_BUSINESS: "Business Verified",
+}
+
+
+def level_for(score: Optional[int], checks: Optional[dict]) -> str:
+    """Map automated results to a public trust level.
+
+    'Verified Manufacturer' requires the two checks we can genuinely stand
+    behind: a corporate email on a domain that matches the company website.
+    """
+    checks = checks or {}
+    if (
+        (score or 0) >= AUTO_VERIFY_THRESHOLD
+        and checks.get("corporate_email")
+        and checks.get("email_domain_matches_website")
+    ):
+        return LEVEL_VERIFIED
+    return LEVEL_REGISTERED
+
+
+def verified_attributes(checks: Optional[dict]) -> list[str]:
+    """Human-readable list of what was actually confirmed."""
+    checks = checks or {}
+    out: list[str] = []
+    if checks.get("corporate_email"):
+        out.append("Corporate email")
+    if checks.get("email_domain_matches_website"):
+        out.append("Company domain")
+    if checks.get("website_live"):
+        out.append("Active website")
+    if checks.get("company_name_on_website"):
+        out.append("Company name on website")
+    age = checks.get("domain_age_days")
+    if isinstance(age, int) and age >= 365:
+        out.append(f"Domain age ({age // 365}+ years)")
+    return out
+
 
 def _domain_from_email(email: str) -> str:
     return email.split("@")[-1].strip().lower() if "@" in email else ""

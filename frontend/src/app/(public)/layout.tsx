@@ -63,6 +63,7 @@ export default function PublicLayout({
               <Link href="/search" className="hover:text-foreground">Search</Link>
               <Link href="/api" className="hover:text-foreground">API</Link>
               <Link href="/faq" className="hover:text-foreground">FAQ</Link>
+              <Link href="/verification" className="hover:text-foreground">Verification</Link>
               <Link href="/about" className="hover:text-foreground">About</Link>
               <Link href="/terms" className="hover:text-foreground">Terms</Link>
               <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
