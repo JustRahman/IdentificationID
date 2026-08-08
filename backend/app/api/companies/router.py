@@ -93,6 +93,10 @@ async def get_company(
     if not company.manufacturer_id:
         company.manufacturer_id = await _unique_manufacturer_id(db)
         await db.flush()
+    # Score companies that predate automated verification, so existing
+    # manufacturers get checked without having to do anything.
+    if company.trust_score is None:
+        await _run_verification(company, user, db)
     return _company_response(company)
 
 
