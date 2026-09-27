@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     # Stripe
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
+    stripe_price_registry_monthly: str = ""  # price_... ($5 / month)
+    stripe_price_registry_yearly: str = ""   # price_... ($49 / year)
 
     # Email (SMTP)
     smtp_host: str = ""

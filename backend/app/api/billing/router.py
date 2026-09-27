@@ -10,11 +10,12 @@ from app.core.config import settings
 from app.core.deps import get_current_user, get_db
 from app.core.exceptions import NotFound, ValidationError
 from app.models.company import Company
-from app.models.payment import Payment, PaymentStatus
+from app.models.payment import Payment
 from app.models.product import Product
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.membership import PLANS_WITH_MEMBERSHIP, get_membership, membership_for
+from app.services.stripe_events import handle_event
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -224,11 +225,6 @@ async def create_registry_checkout(
         raise NotFound("Create a company first")
 
     annual = body.billing != "monthly"
-    amount = (
-        REGISTRY_MEMBERSHIP["annual_price_cents"]
-        if annual
-        else REGISTRY_MEMBERSHIP["price_cents"]
-    )
 
     if not settings.stripe_secret_key:
         # Demo mode: activate directly instead of going through Stripe.
@@ -246,20 +242,19 @@ async def create_registry_checkout(
             },
         }
 
+    # Prices live in the Stripe dashboard ($5/month and $49/year).
+    price_id = (
+        settings.stripe_price_registry_yearly
+        if annual
+        else settings.stripe_price_registry_monthly
+    )
+    if not price_id:
+        raise ValidationError("Registry membership prices are not configured")
+
     session = stripe.checkout.Session.create(
         mode="subscription",
         customer_email=user.email,
-        line_items=[
-            {
-                "price_data": {
-                    "currency": "usd",
-                    "product_data": {"name": f"Identification ID - {REGISTRY_MEMBERSHIP['name']}"},
-                    "unit_amount": amount,
-                    "recurring": {"interval": "year" if annual else "month"},
-                },
-                "quantity": 1,
-            }
-        ],
+        line_items=[{"price": price_id, "quantity": 1}],
         metadata={"company_id": str(company.id), "registry": "1"},
         success_url=f"{settings.frontend_url}/dashboard?registry=active",
         cancel_url=f"{settings.frontend_url}/onboarding?step=activate",
@@ -285,76 +280,7 @@ async def stripe_webhook(
     except (ValueError, stripe.error.SignatureVerificationError):
         raise ValidationError("Invalid webhook signature")
 
-    event_type = event.get("type", "")
-
-    if event_type == "checkout.session.completed":
-        session_data = event["data"]["object"]
-        metadata = session_data.get("metadata", {})
-        company_id = metadata.get("company_id")
-        plan = metadata.get("plan", "membership")
-
-        # Registry Membership add-on (not a product plan).
-        if company_id and metadata.get("registry") == "1":
-            comp_result = await db.execute(
-                select(Company).where(Company.id == company_id)
-            )
-            comp = comp_result.scalar_one_or_none()
-            if comp:
-                comp.registry_active = True
-                comp.registry_paid_until = date.today() + timedelta(days=365)
-                await db.flush()
-            return {"received": True}
-
-        if company_id:
-            stripe_customer_id = session_data.get("customer", "")
-            stripe_subscription_id = session_data.get("subscription", "")
-
-            result = await db.execute(
-                select(Subscription).where(Subscription.company_id == company_id)
-            )
-            sub = result.scalar_one_or_none()
-
-            if sub:
-                sub.status = SubscriptionStatus.active
-                sub.stripe_customer_id = stripe_customer_id
-                sub.stripe_subscription_id = stripe_subscription_id
-                sub.paid_until = date(2099, 12, 31)
-                sub.plan = plan
-            else:
-                sub = Subscription(
-                    company_id=company_id,
-                    status=SubscriptionStatus.active,
-                    stripe_customer_id=stripe_customer_id,
-                    stripe_subscription_id=stripe_subscription_id,
-                    paid_until=date(2099, 12, 31),
-                    plan=plan,
-                )
-                db.add(sub)
-
-            amount = session_data.get("amount_total", 0)
-            payment = Payment(
-                company_id=company_id,
-                amount_cents=amount,
-                currency="usd",
-                status=PaymentStatus.succeeded,
-                stripe_payment_intent_id=session_data.get("payment_intent", ""),
-            )
-            db.add(payment)
-            await db.flush()
-
-    elif event_type == "customer.subscription.deleted":
-        sub_data = event["data"]["object"]
-        stripe_sub_id = sub_data.get("id", "")
-        result = await db.execute(
-            select(Subscription).where(
-                Subscription.stripe_subscription_id == stripe_sub_id
-            )
-        )
-        sub = result.scalar_one_or_none()
-        if sub:
-            sub.status = SubscriptionStatus.canceled
-            await db.flush()
-
+    await handle_event(event, db)
     return {"received": True}
 
 

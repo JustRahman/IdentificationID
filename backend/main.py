@@ -44,6 +44,8 @@ async def lifespan(app: FastAPI):
             "CREATE UNIQUE INDEX IF NOT EXISTS ix_companies_manufacturer_id ON companies (manufacturer_id)",
             "ALTER TABLE companies ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(50)",
             "ALTER TABLE companies ADD COLUMN IF NOT EXISTS brands JSONB",
+            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS registry_stripe_subscription_id VARCHAR(255)",
+            "CREATE INDEX IF NOT EXISTS ix_companies_registry_stripe_subscription_id ON companies (registry_stripe_subscription_id)",
         ):
             await conn.execute(text(stmt))
 

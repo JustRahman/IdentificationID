@@ -40,6 +40,9 @@ class Company(Base, UUIDMixin, TimestampMixin):
         Boolean, nullable=False, default=False, server_default="false"
     )
     registry_paid_until: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    registry_stripe_subscription_id: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True, index=True
+    )
     legal_name: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     country_code: Mapped[str] = mapped_column(String(2), nullable=False)
