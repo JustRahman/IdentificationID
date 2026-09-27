@@ -14,14 +14,15 @@ from app.models.payment import Payment, PaymentStatus
 from app.models.product import Product
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
+from app.services.membership import PLANS_WITH_MEMBERSHIP, get_membership, membership_for
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
 stripe.api_key = settings.stripe_secret_key
 
 PLANS = {
-    # Free is the default state for companies without a paid subscription.
-    "free":       {"name": "Free",       "price_cents": 0,     "product_limit": 3,   "per_product": False},
+    # Registry Membership alone: the first 3 Product IDs at no additional cost.
+    "membership": {"name": "Registry Membership", "price_cents": 0, "product_limit": 3, "per_product": False},
     "standard":   {"name": "Standard",   "price_cents": 300,   "product_limit": -1,  "per_product": True},
     "popular":    {"name": "Popular",    "price_cents": 2900,  "product_limit": 100, "per_product": False},
     "best_value": {"name": "Best Value", "price_cents": 9900,  "product_limit": 500, "per_product": False},
@@ -30,8 +31,8 @@ PLANS = {
 
 PURCHASABLE_PLANS = ("standard", "popular", "best_value", "enterprise")
 
-# Optional add-on: activates the public manufacturer profile. The Manufacturer
-# ID itself is always free and permanent.
+# Required for every manufacturer (Popular, Best Value and Enterprise include
+# it; Standard does not). Activates the Manufacturer ID and public profile.
 REGISTRY_MEMBERSHIP = {
     "name": "Manufacturer Registry Membership",
     "price_cents": 500,          # $5 / month
@@ -70,11 +71,11 @@ async def get_current_plan(
     count = len(product_result.scalars().all())
 
     if subscription and subscription.status == SubscriptionStatus.active:
-        plan_key = subscription.plan if subscription.plan in PLANS else "free"
-        plan = PLANS[plan_key]
+        plan_key = subscription.plan if subscription.plan in PLANS else "membership"
     else:
-        plan_key = "free"
-        plan = PLANS["free"]
+        plan_key = "membership"
+    plan = PLANS[plan_key]
+    membership = membership_for(company, subscription)
 
     return {
         "success": True,
@@ -84,6 +85,7 @@ async def get_current_plan(
             "price_cents": plan["price_cents"],
             "product_limit": plan["product_limit"],
             "products_used": count,
+            "membership_active": membership.active,
             "subscription": {
                 "status": subscription.status.value,
                 "paid_until": subscription.paid_until.isoformat(),
@@ -110,6 +112,15 @@ async def create_checkout(
         raise NotFound("Create a company first")
 
     plan = PLANS[body.plan]
+
+    # Standard doesn't include the Registry Membership — it's billed on top.
+    if body.plan not in PLANS_WITH_MEMBERSHIP and not (
+        company.registry_active
+        and (company.registry_paid_until is None or company.registry_paid_until >= date.today())
+    ):
+        raise ValidationError(
+            f"The {plan['name']} plan requires an active Manufacturer Registry Membership."
+        )
 
     # Per-product plans bill per registered product; others bill a flat rate.
     if plan["per_product"]:
@@ -179,13 +190,18 @@ async def get_registry_membership(
     if not company:
         raise NotFound("Create a company first")
 
+    membership = await get_membership(company, db)
     return {
         "success": True,
         "data": {
             "manufacturer_id": company.manufacturer_id,
-            "active": bool(company.registry_active),
-            "paid_until": company.registry_paid_until.isoformat()
-            if company.registry_paid_until
+            "active": membership.active,
+            "included_in_plan": membership.included_in_plan,
+            "paid_until": membership.paid_until.isoformat()
+            if membership.paid_until
+            else None,
+            "last_active": membership.last_active.isoformat()
+            if membership.last_active
             else None,
             "price_cents": REGISTRY_MEMBERSHIP["price_cents"],
             "annual_price_cents": REGISTRY_MEMBERSHIP["annual_price_cents"],
@@ -245,8 +261,8 @@ async def create_registry_checkout(
             }
         ],
         metadata={"company_id": str(company.id), "registry": "1"},
-        success_url=f"{settings.frontend_url}/company?registry=active",
-        cancel_url=f"{settings.frontend_url}/company?canceled=true",
+        success_url=f"{settings.frontend_url}/dashboard?registry=active",
+        cancel_url=f"{settings.frontend_url}/onboarding?step=activate",
     )
     return {"success": True, "data": {"checkout_url": session.url}}
 
@@ -275,7 +291,7 @@ async def stripe_webhook(
         session_data = event["data"]["object"]
         metadata = session_data.get("metadata", {})
         company_id = metadata.get("company_id")
-        plan = metadata.get("plan", "free")
+        plan = metadata.get("plan", "membership")
 
         # Registry Membership add-on (not a product plan).
         if company_id and metadata.get("registry") == "1":

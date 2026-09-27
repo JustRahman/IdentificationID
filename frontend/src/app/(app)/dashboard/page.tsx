@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
+import { useMembership } from "@/lib/membership";
 import type { Product, Company } from "@/types";
 
 export default function DashboardPage() {
   const [company, setCompany] = useState<Company | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { registry } = useMembership();
 
   useEffect(() => {
     async function load() {
@@ -92,7 +94,11 @@ export default function DashboardPage() {
           { label: "Total Products", value: String(products.length) },
           { label: "Published", value: String(published) },
           { label: "Total Views", value: totalViews.toLocaleString(), color: "text-accent" },
-          { label: "Current Plan", value: "Free" },
+          {
+            label: "Registry",
+            value: registry?.active ? "Active" : "Inactive",
+            color: registry?.active ? "text-green-600" : "text-muted",
+          },
         ].map((stat) => (
           <div
             key={stat.label}

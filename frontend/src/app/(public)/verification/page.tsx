@@ -10,14 +10,14 @@ export const metadata = {
 const LEVELS = [
   {
     name: "Registered Manufacturer",
-    price: "Free",
+    price: "Included with membership",
     tone: "gray",
     means: "The company created an account and received a permanent Manufacturer ID.",
     checked: ["Account created", "Manufacturer ID issued"],
   },
   {
     name: "Verified Manufacturer",
-    price: "Free",
+    price: "Included with membership",
     tone: "blue",
     means:
       "Automated checks confirmed the company controls a corporate email on the same domain as its website.",
@@ -55,8 +55,8 @@ export default function VerificationPage() {
         How Manufacturer Verification Works
       </h1>
       <p className="text-lg text-muted leading-relaxed mb-10">
-        Every manufacturer on Identification ID can establish a verified digital identity for
-        free. This page explains exactly what we check at each level — and what we do not.
+        Verification is included with every Manufacturer Registry Membership at no extra cost.
+        This page explains exactly what we check at each level — and what we do not.
       </p>
 
       {/* Levels */}
@@ -142,7 +142,7 @@ export default function VerificationPage() {
 
       <div className="flex flex-wrap gap-3">
         <Link href="/register" className="bg-accent text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-accent-hover">
-          Get verified — free
+          Get verified
         </Link>
         <Link href="/pricing" className="border border-border px-6 py-3 rounded-xl text-sm font-medium hover:bg-surface">
           View plans

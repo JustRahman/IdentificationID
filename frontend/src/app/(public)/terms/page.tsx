@@ -38,9 +38,13 @@ export default function TermsPage() {
         <section>
           <h2 className="text-base font-semibold text-foreground mb-2">3. Plans &amp; payment</h2>
           <p>
-            Paid plans are billed as annual subscriptions at the prices shown on our Pricing page. A free plan is
-            available with a limited number of products. You may not register or publish more products than your plan
-            allows. Fees are non-refundable except where required by law.
+            Manufacturers must hold an active Manufacturer Registry Membership ($5/month or $49/year), which includes
+            the first 3 Product IDs. Product plans are billed as annual subscriptions at the prices shown on our Pricing
+            page; the Popular, Best Value and Enterprise plans include the membership, and the Standard plan is billed in
+            addition to it. You may not register or publish more products than your plan allows. If your membership
+            lapses, your Manufacturer ID is kept and your profile is marked inactive until you renew. Cancellations and
+            refunds are governed by our{" "}
+            <a href="/refund" className="text-accent hover:underline">Refund Policy</a>.
           </p>
         </section>
 
@@ -71,7 +75,8 @@ export default function TermsPage() {
         <section>
           <h2 className="text-base font-semibold text-foreground mb-2">7. Governing law</h2>
           <p>
-            These Terms are governed by the laws of {COMPANY.jurisdiction}, without regard to conflict-of-law rules.
+            These Terms are governed by the laws of the Province of British Columbia and the federal laws of Canada
+            applicable therein, without regard to conflict-of-law rules.
           </p>
         </section>
 

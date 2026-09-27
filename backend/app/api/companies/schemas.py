@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 def _clean_website(v: str | None) -> str | None:
@@ -13,6 +13,17 @@ def _clean_website(v: str | None) -> str | None:
     return f"https://{v}"
 
 
+def _clean_brands(v: list[str] | None) -> list[str] | None:
+    if v is None:
+        return None
+    out: list[str] = []
+    for b in v:
+        b = b.strip()[:100]
+        if b and b not in out:
+            out.append(b)
+    return out[:20]
+
+
 class CompanyCreate(BaseModel):
     legal_name: str
     display_name: str
@@ -21,11 +32,18 @@ class CompanyCreate(BaseModel):
     support_email: str | None = None
     logo_url: str | None = None
     description: str | None = None
+    contact_phone: str | None = Field(None, max_length=50)
+    brands: list[str] | None = None
 
     @field_validator("website")
     @classmethod
     def _website(cls, v: str | None) -> str | None:
         return _clean_website(v)
+
+    @field_validator("brands")
+    @classmethod
+    def _brands(cls, v: list[str] | None) -> list[str] | None:
+        return _clean_brands(v)
 
 
 class CompanyUpdate(BaseModel):
@@ -36,11 +54,18 @@ class CompanyUpdate(BaseModel):
     support_email: str | None = None
     logo_url: str | None = None
     description: str | None = None
+    contact_phone: str | None = Field(None, max_length=50)
+    brands: list[str] | None = None
 
     @field_validator("website")
     @classmethod
     def _website(cls, v: str | None) -> str | None:
         return _clean_website(v)
+
+    @field_validator("brands")
+    @classmethod
+    def _brands(cls, v: list[str] | None) -> list[str] | None:
+        return _clean_brands(v)
 
 
 class CompanyResponse(BaseModel):
@@ -53,6 +78,8 @@ class CompanyResponse(BaseModel):
     support_email: str | None
     logo_url: str | None = None
     description: str | None = None
+    contact_phone: str | None = None
+    brands: list[str] = []
     status: str
     admin_note: str | None
     verified_at: str | None

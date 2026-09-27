@@ -24,12 +24,53 @@ export interface Company {
   support_email: string | null;
   logo_url: string | null;
   description: string | null;
+  contact_phone: string | null;
+  brands: string[];
   status: CompanyStatus;
   admin_note: string | null;
   verified_at: string | null;
   trust_score: number | null;
   trust_checks: Record<string, boolean | number | null> | null;
   trust_checked_at: string | null;
+}
+
+/** GET /billing/registry — Manufacturer Registry Membership status. */
+export interface RegistryStatus {
+  manufacturer_id: string | null;
+  active: boolean;
+  included_in_plan: boolean;
+  paid_until: string | null;
+  last_active: string | null; // set only after a lapse
+  price_cents: number;
+  annual_price_cents: number;
+}
+
+/** Public manufacturer registry profile (also used for the preview). */
+export interface ManufacturerProfile {
+  manufacturer_id: string;
+  registry_status: "active" | "inactive";
+  last_active: string | null;
+  display_name: string;
+  legal_name: string | null;
+  country_code: string;
+  website: string | null;
+  support_email: string | null;
+  logo_url: string | null;
+  description: string | null;
+  contact_phone: string | null;
+  brands: string[];
+  registered_at: string | null;
+  verification_level: "registered" | "verified" | "business";
+  verification_label: string;
+  verified_attributes: string[];
+  product_count: number;
+  products: {
+    identification_id: string;
+    name: string;
+    category: string;
+    brand: string | null;
+    cover_image: string | null;
+  }[];
 }
 
 export interface ProductImage {

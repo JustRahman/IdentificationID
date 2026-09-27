@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { LANGUAGES } from "@/lib/constants";
 import { translateText } from "@/lib/translate";
+import { monthYear } from "@/components/ManufacturerProfileView";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -31,6 +32,8 @@ interface ProductData {
   published_at: string | null;
   company: {
     manufacturer_id: string | null;
+    registry_status: "active" | "inactive";
+    last_active: string | null;
     verification_level: "registered" | "verified" | "business";
     verification_label: string;
     display_name: string;
@@ -310,6 +313,15 @@ export default function PublicProductPage({
                 >
                   {product.company.manufacturer_id} →
                 </Link>
+              </div>
+            )}
+            {product.company.registry_status === "inactive" && (
+              <div className="mb-3">
+                <p className="text-xs text-muted">Registry status</p>
+                <p className="text-sm">
+                  Inactive
+                  {product.company.last_active && ` · Last active: ${monthYear(product.company.last_active)}`}
+                </p>
               </div>
             )}
           </div>

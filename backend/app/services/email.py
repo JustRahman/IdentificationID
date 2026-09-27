@@ -11,6 +11,14 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+FOOTER = """
+    <p style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 0 32px 32px;
+              color: #94a3b8; font-size: 12px;">
+      Identification ID&trade; is a product of Global Product Identification Inc.
+    </p>
+"""
+
+
 def is_configured() -> bool:
     return bool(settings.smtp_host and settings.smtp_user and settings.smtp_password)
 
@@ -25,7 +33,7 @@ async def send_email(to: str, subject: str, html: str) -> bool:
     msg["Subject"] = subject
     msg["From"] = settings.from_email
     msg["To"] = to
-    msg.attach(MIMEText(html, "html"))
+    msg.attach(MIMEText(html + FOOTER, "html"))
 
     try:
         await aiosmtplib.send(
@@ -71,10 +79,10 @@ async def send_welcome_email(to: str) -> bool:
         Your account is ready. Here's how to get started:
       </p>
       <ol style="color: #374151; font-size: 14px; line-height: 1.8;">
-        <li>Create your company profile</li>
-        <li>Submit it for verification</li>
-        <li>Once verified, add your products</li>
-        <li>Publish them to get unique IDs</li>
+        <li>Fill in your company profile</li>
+        <li>Preview your public manufacturer profile</li>
+        <li>Activate your Manufacturer Registry Membership ($5/month or $49/year)</li>
+        <li>Add your products — your first 3 Product IDs are included</li>
       </ol>
       <a href="{settings.frontend_url}/dashboard"
          style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px;

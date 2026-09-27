@@ -10,6 +10,7 @@ interface PlanData {
   price_cents: number;
   product_limit: number;
   products_used: number;
+  membership_active: boolean;
   subscription: {
     status: string;
     paid_until: string;
@@ -91,9 +92,9 @@ export default function BillingPage() {
       <div className="bg-background border border-border rounded-xl p-6 max-w-lg mb-6">
         <h2 className="text-base font-semibold mb-4">Current Plan</h2>
         <div className="mb-4">
-          <span className="text-2xl font-semibold">{plan?.plan_name || "Free"}</span>
+          <span className="text-2xl font-semibold">{plan?.plan_name || "Registry Membership"}</span>
           <span className="text-sm text-muted ml-2">
-            {plan?.products_used || 0} / {plan?.product_limit === -1 ? "Unlimited" : plan?.product_limit || 10} products used
+            {plan?.products_used || 0} / {plan?.product_limit === -1 ? "Unlimited" : plan?.product_limit || 3} products used
           </span>
         </div>
         <div className="w-full bg-surface rounded-full h-2 mb-4">
@@ -119,9 +120,9 @@ export default function BillingPage() {
             </div>
           </div>
         )}
-        {(!plan || plan.plan === "free") && (
+        {(!plan || plan.plan === "membership") && (
           <div className="grid grid-cols-2 gap-3">
-            {PLANS.filter((p) => p.key !== "free").map((p) => (
+            {PLANS.map((p) => (
               <button
                 key={p.key}
                 onClick={() => handleUpgrade(p.key)}

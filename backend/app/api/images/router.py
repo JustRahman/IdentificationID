@@ -11,6 +11,7 @@ from app.models.product import Product
 from app.models.product_image import ProductImage
 from app.models.user import User
 from app.services import storage
+from app.services.membership import require_membership
 
 router = APIRouter(prefix="/manufacturer", tags=["images"])
 
@@ -41,6 +42,7 @@ async def upload_image(
     db: AsyncSession = Depends(get_db),
 ):
     product = await _get_owned_product(product_id, user, db)
+    await require_membership(product.company_id, db)
 
     if file.content_type not in ALLOWED_TYPES:
         raise ValidationError("Only JPEG, PNG, and WebP images are allowed")
@@ -116,7 +118,8 @@ async def delete_image(
         raise NotFound("Image not found")
 
     # Verify ownership
-    await _get_owned_product(str(image.product_id), user, db)
+    product = await _get_owned_product(str(image.product_id), user, db)
+    await require_membership(product.company_id, db)
 
     await db.delete(image)
     await db.commit()

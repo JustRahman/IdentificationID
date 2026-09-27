@@ -15,6 +15,7 @@ from app.models.product_document import DocType, ProductDocument
 from app.models.product_document_version import ProductDocumentVersion
 from app.models.user import User
 from app.services import storage
+from app.services.membership import require_membership
 
 router = APIRouter(prefix="/manufacturer", tags=["documents"])
 
@@ -48,6 +49,7 @@ async def upload_document(
     db: AsyncSession = Depends(get_db),
 ):
     product = await _get_owned_product(product_id, user, db)
+    await require_membership(product.company_id, db)
 
     if file.content_type != "application/pdf":
         raise ValidationError("Only PDF files are allowed")
@@ -171,7 +173,8 @@ async def upload_new_version(
         raise NotFound("Document not found")
 
     # Verify ownership
-    await _get_owned_product(str(document.product_id), user, db)
+    product = await _get_owned_product(str(document.product_id), user, db)
+    await require_membership(product.company_id, db)
 
     if file.content_type != "application/pdf":
         raise ValidationError("Only PDF files are allowed")

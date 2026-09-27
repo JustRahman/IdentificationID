@@ -13,6 +13,7 @@ from app.models.product_document import ProductDocument, DocType
 from app.models.product_document_version import ProductDocumentVersion
 from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
+from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User, UserRole
 from app.services.id_generator import generate_identification_id, generate_manufacturer_id
 
@@ -20,10 +21,11 @@ from app.services.id_generator import generate_identification_id, generate_manuf
 # "Open" download link works without Supabase storage configured.
 SAMPLE_PDF_URL = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
 
-# Seeded demo manufacturers (kept as active registry members for demos).
+# Seeded demo manufacturers (kept as paid accounts for demos).
 DEMO_COMPANY_NAMES = (
     "ACME Corp", "TechVision", "GreenLeaf", "Nova Tools", "Casa Home", "ZenFit",
 )
+DEMO_PAID_UNTIL = date(2099, 12, 31)
 
 # ---------------------------------------------------------------------------
 # Real product images from Unsplash (free, no attribution required).
@@ -121,6 +123,35 @@ async def _get_or_create_user(session: AsyncSession, email: str, **kwargs) -> Us
     return user
 
 
+async def _make_demo_paid(session: AsyncSession, company: Company) -> bool:
+    """Demo companies are showcase accounts: paid membership + Popular plan."""
+    changed = False
+    if not company.registry_active or company.registry_paid_until != DEMO_PAID_UNTIL:
+        company.registry_active = True
+        company.registry_paid_until = DEMO_PAID_UNTIL
+        changed = True
+    result = await session.execute(
+        select(Subscription).where(Subscription.company_id == company.id)
+    )
+    sub = result.scalar_one_or_none()
+    if sub is None:
+        session.add(Subscription(
+            company_id=company.id,
+            status=SubscriptionStatus.active,
+            plan="popular",
+            paid_until=DEMO_PAID_UNTIL,
+            stripe_customer_id="demo",
+            stripe_subscription_id="demo_popular",
+        ))
+        changed = True
+    elif sub.status != SubscriptionStatus.active or sub.plan != "popular":
+        sub.status = SubscriptionStatus.active
+        sub.plan = "popular"
+        sub.paid_until = DEMO_PAID_UNTIL
+        changed = True
+    return changed
+
+
 async def _get_or_create_company(session: AsyncSession, display_name: str, owner_id, **kwargs) -> Company:
     result = await session.execute(select(Company).where(Company.display_name == display_name))
     company = result.scalar_one_or_none()
@@ -129,20 +160,15 @@ async def _get_or_create_company(session: AsyncSession, display_name: str, owner
             owner_user_id=owner_id,
             display_name=display_name,
             manufacturer_id=generate_manufacturer_id(),
-            registry_active=True,
-            registry_paid_until=date(2099, 12, 31),
             **kwargs,
         )
         session.add(company)
         await session.flush()
-    else:
-        # Keep demo companies fully populated for testing/demos.
-        if not company.manufacturer_id:
-            company.manufacturer_id = generate_manufacturer_id()
-        if not company.registry_active:
-            company.registry_active = True
-            company.registry_paid_until = date(2099, 12, 31)
-        await session.flush()
+    elif not company.manufacturer_id:
+        company.manufacturer_id = generate_manufacturer_id()
+    # Keep demo companies fully populated for testing/demos.
+    await _make_demo_paid(session, company)
+    await session.flush()
     return company
 
 
@@ -158,18 +184,14 @@ async def seed_data(session: AsyncSession) -> None:
         company.manufacturer_id = generate_manufacturer_id()
         backfilled = True
 
-    # Demo companies keep an active registry membership so the public
-    # manufacturer profiles stay populated for testing and demos.
+    # Demo companies are kept as paid accounts so the public manufacturer
+    # profiles stay populated for testing and demos.
     demo = await session.execute(
-        select(Company).where(
-            Company.display_name.in_(DEMO_COMPANY_NAMES),
-            Company.registry_active.is_(False),
-        )
+        select(Company).where(Company.display_name.in_(DEMO_COMPANY_NAMES))
     )
     for company in demo.scalars().all():
-        company.registry_active = True
-        company.registry_paid_until = date(2099, 12, 31)
-        backfilled = True
+        if await _make_demo_paid(session, company):
+            backfilled = True
 
     if backfilled:
         await session.commit()

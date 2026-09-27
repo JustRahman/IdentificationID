@@ -3,13 +3,17 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.api.companies.schemas import CompanyCreate, CompanyResponse, CompanyUpdate
 from app.core.deps import get_db, get_verified_manufacturer
 from app.core.exceptions import Conflict, NotFound, ValidationError
+from app.api.public.router import manufacturer_profile
 from app.models.company import Company, CompanyStatus
+from app.models.product import Product, ProductStatus
 from app.models.user import User
 from app.services.id_generator import generate_manufacturer_id
+from app.services.membership import Membership
 from app.services.verification import evaluate_company
 
 router = APIRouter(prefix="/manufacturer/company", tags=["companies"])
@@ -68,6 +72,8 @@ async def create_company(
         support_email=body.support_email,
         logo_url=body.logo_url,
         description=body.description,
+        contact_phone=body.contact_phone,
+        brands=body.brands,
         status=CompanyStatus.verified,
         verified_at=datetime.now(timezone.utc),
     )
@@ -127,6 +133,32 @@ async def update_company(
     return _company_response(company)
 
 
+@router.get("/preview")
+async def preview_public_profile(
+    user: User = Depends(get_verified_manufacturer),
+    db: AsyncSession = Depends(get_db),
+):
+    """The public manufacturer profile exactly as it will look once active."""
+    result = await db.execute(
+        select(Company).where(Company.owner_user_id == user.id)
+    )
+    company = result.scalar_one_or_none()
+    if not company:
+        raise NotFound("No company found")
+
+    prod_result = await db.execute(
+        select(Product)
+        .where(Product.company_id == company.id, Product.status == ProductStatus.published)
+        .options(selectinload(Product.images))
+        .order_by(Product.published_at.desc())
+    )
+    preview = Membership(active=True, included_in_plan=False, paid_until=None, last_active=None)
+    return {
+        "success": True,
+        "data": manufacturer_profile(company, preview, prod_result.scalars().all()),
+    }
+
+
 @router.post("/verify", response_model=CompanyResponse)
 async def recheck_verification(
     user: User = Depends(get_verified_manufacturer),
@@ -178,6 +210,8 @@ def _company_response(company: Company) -> CompanyResponse:
         support_email=company.support_email,
         logo_url=company.logo_url,
         description=company.description,
+        contact_phone=company.contact_phone,
+        brands=company.brands or [],
         status=company.status.value,
         trust_score=company.trust_score,
         trust_checks=company.trust_checks,

@@ -23,6 +23,7 @@ from app.models.product_translation import ProductTranslation
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.id_generator import generate_identification_id
+from app.services.membership import require_membership
 
 router = APIRouter(prefix="/manufacturer/products", tags=["products"])
 
@@ -59,16 +60,17 @@ async def create_product(
     db: AsyncSession = Depends(get_db),
 ):
     company = await _get_user_company(user, db)
+    await require_membership(company.id, db)
 
-    # Enforce the product limit for the company's active plan.
+    # Enforce the product limit for the company's plan (membership alone = 3).
     sub_result = await db.execute(
         select(Subscription).where(Subscription.company_id == company.id)
     )
     subscription = sub_result.scalar_one_or_none()
     if subscription and subscription.status == SubscriptionStatus.active:
-        plan_key = subscription.plan if subscription.plan in PLANS else "free"
+        plan_key = subscription.plan if subscription.plan in PLANS else "membership"
     else:
-        plan_key = "free"
+        plan_key = "membership"
     product_limit = PLANS[plan_key]["product_limit"]
     if product_limit != -1:
         count_result = await db.execute(
@@ -124,6 +126,7 @@ async def update_product(
     db: AsyncSession = Depends(get_db),
 ):
     product = await _get_owned_product(product_id, user, db)
+    await require_membership(product.company_id, db)
 
     for field, value in body.model_dump(exclude_unset=True).items():
         if field == "status" and value:
@@ -147,6 +150,7 @@ async def publish_product(
     db: AsyncSession = Depends(get_db),
 ):
     product = await _get_owned_product(product_id, user, db)
+    await require_membership(product.company_id, db)
 
     errors = []
     if not product.name:
@@ -194,6 +198,7 @@ async def upsert_translation(
     db: AsyncSession = Depends(get_db),
 ):
     product = await _get_owned_product(product_id, user, db)
+    await require_membership(product.company_id, db)
 
     result = await db.execute(
         select(ProductTranslation).where(

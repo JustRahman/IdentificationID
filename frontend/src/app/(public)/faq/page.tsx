@@ -58,11 +58,11 @@ const faqs = [
       },
       {
         q: "How much does it cost?",
-        a: "Start free with up to 3 products. Paid plans: Standard $3 per product / mo, Popular $29/mo (up to 100 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual). Paid plans are annual subscriptions — see the Pricing page.",
+        a: "Every manufacturer needs a Manufacturer Registry Membership: $5/month or $49/year. It includes your permanent Manufacturer ID, public profile, manufacturer QR code, API visibility, basic analytics, and your first 3 Product IDs at no additional cost. For more products: Standard $3 per product / mo (billed in addition to the membership), Popular $29/mo (up to 100 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual) — these three include the membership. Product plans are annual subscriptions — see the Pricing page. Looking up and verifying products is always free for consumers.",
       },
       {
-        q: "What happens if I don't renew my subscription?",
-        a: "You need to renew your subscription. You won't be able to register new products or update existing ones until you renew.",
+        q: "What happens if I don't renew my membership?",
+        a: "Your Manufacturer ID is permanent and is never deleted, and your product pages and QR codes keep working. Your public profile is marked \"Registry status: Inactive\" with the month you were last active, and you can't add or edit products until you renew. See our Refund Policy for cancellations and refunds.",
       },
     ],
   },

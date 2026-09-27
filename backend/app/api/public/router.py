@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,10 +13,16 @@ from app.models.product_document import ProductDocument
 from app.models.product_document_version import ProductDocumentVersion
 from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
+from app.models.subscription import Subscription
 from app.services import storage
+from app.services.membership import Membership, get_membership, membership_for
 from app.services.verification import LEVEL_LABELS, level_for, verified_attributes
 
 router = APIRouter(prefix="/public", tags=["public"])
+
+
+def _iso(d: date | None) -> str | None:
+    return d.isoformat() if d else None
 
 
 def _safe_signed_url(file_key: str) -> str | None:
@@ -57,6 +65,10 @@ async def lookup_product(
     product.view_count = (product.view_count or 0) + 1
     await db.commit()
 
+    # Product pages and QR codes keep working after a lapse — they just show
+    # the manufacturer's registry status.
+    membership = await get_membership(product.company, db)
+
     # Pick requested language, fall back to English
     translation = None
     en_translation = None
@@ -79,6 +91,8 @@ async def lookup_product(
             "published_at": product.published_at.isoformat() if product.published_at else None,
             "company": {
                 "manufacturer_id": product.company.manufacturer_id,
+                "registry_status": "active" if membership.active else "inactive",
+                "last_active": _iso(membership.last_active),
                 "verification_level": level_for(
                     product.company.trust_score, product.company.trust_checks
                 ),
@@ -231,16 +245,23 @@ async def list_companies(
         .order_by(func.count(Product.id).desc())
     )
     rows = result.all()
+    subs = await db.execute(
+        select(Subscription).where(Subscription.company_id.in_([c.id for c, _ in rows]))
+    )
+    sub_by_company = {sub.company_id: sub for sub in subs.scalars().all()}
     return {
         "success": True,
         "data": [
             {
                 "display_name": company.display_name,
+                "manufacturer_id": company.manufacturer_id,
                 "country_code": company.country_code,
                 "website": company.website,
                 "product_count": count,
             }
             for company, count in rows
+            # Only current registry members are listed.
+            if membership_for(company, sub_by_company.get(company.id)).active
         ],
     }
 
@@ -255,7 +276,9 @@ async def lookup_manufacturer(
         select(Company).where(Company.manufacturer_id == manufacturer_id.upper())
     )
     company = result.scalar_one_or_none()
-    if not company:
+    membership = await get_membership(company, db) if company else None
+    # A Manufacturer ID goes public on the first paid activation.
+    if not company or not membership.ever_active:
         raise NotFound("Manufacturer not found")
 
     prod_result = await db.execute(
@@ -269,40 +292,46 @@ async def lookup_manufacturer(
     )
     products = prod_result.scalars().all()
 
-    # The Manufacturer ID is permanent, but the full public profile is part of
-    # the Registry Membership. Without it the page shows a minimal "Inactive"
-    # record so existing links and QR codes never break.
-    active = bool(company.registry_active)
-
     return {
         "success": True,
-        "data": {
-            "manufacturer_id": company.manufacturer_id,
-            "registry_status": "active" if active else "inactive",
-            "display_name": company.display_name,
-            "legal_name": company.legal_name if active else None,
-            "country_code": company.country_code,
-            "website": company.website if active else None,
-            "support_email": company.support_email if active else None,
-            "logo_url": company.logo_url if active else None,
-            "description": company.description if active else None,
-            "registered_at": company.created_at.isoformat() if company.created_at else None,
-            # Automated signal checks only — not a legal vetting of the company.
-            "verification_level": level_for(company.trust_score, company.trust_checks),
-            "verification_label": LEVEL_LABELS[
-                level_for(company.trust_score, company.trust_checks)
-            ],
-            "verified_attributes": verified_attributes(company.trust_checks),
-            "product_count": len(products),
-            "products": [] if not active else [
-                {
-                    "identification_id": p.identification_id,
-                    "name": p.name,
-                    "category": p.category,
-                    "brand": p.brand,
-                    "cover_image": p.images[0].url if p.images else None,
-                }
-                for p in products
-            ],
-        },
+        "data": manufacturer_profile(company, membership, products),
+    }
+
+
+def manufacturer_profile(company: Company, membership: Membership, products: list[Product]) -> dict:
+    """Public registry profile. Also used for the pre-payment preview."""
+    # The Manufacturer ID is permanent, but the full public profile is part of
+    # the Registry Membership. After a lapse the page shows a minimal "Inactive"
+    # record so existing links and QR codes never break.
+    active = membership.active
+    level = level_for(company.trust_score, company.trust_checks)
+    return {
+        "manufacturer_id": company.manufacturer_id,
+        "registry_status": "active" if active else "inactive",
+        "last_active": _iso(membership.last_active),
+        "display_name": company.display_name,
+        "legal_name": company.legal_name if active else None,
+        "country_code": company.country_code,
+        "website": company.website if active else None,
+        "support_email": company.support_email if active else None,
+        "logo_url": company.logo_url if active else None,
+        "description": company.description if active else None,
+        "contact_phone": company.contact_phone if active else None,
+        "brands": (company.brands or []) if active else [],
+        "registered_at": company.created_at.isoformat() if company.created_at else None,
+        # Automated signal checks only — not a legal vetting of the company.
+        "verification_level": level,
+        "verification_label": LEVEL_LABELS[level],
+        "verified_attributes": verified_attributes(company.trust_checks),
+        "product_count": len(products),
+        "products": [] if not active else [
+            {
+                "identification_id": p.identification_id,
+                "name": p.name,
+                "category": p.category,
+                "brand": p.brand,
+                "cover_image": p.images[0].url if p.images else None,
+            }
+            for p in products
+        ],
     }

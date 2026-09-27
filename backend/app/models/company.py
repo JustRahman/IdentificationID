@@ -47,6 +47,8 @@ class Company(Base, UUIDMixin, TimestampMixin):
     support_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     logo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    contact_phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    brands: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     # Automated trust signals (see services/verification.py). Not a legal check.
     trust_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     trust_checks: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)

@@ -5,18 +5,15 @@ import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { PLANS, REGISTRY_MEMBERSHIP, COMPANY, copyrightLine } from "@/lib/constants";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { TrustedByManufacturers } from "@/components/TrustedByManufacturers";
 
 const ID_PATTERN = /^IID-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-
-interface Manufacturer { display_name: string; product_count: number }
 
 export default function LandingPage() {
   const [query, setQuery] = useState("");
   const [earlyEmail, setEarlyEmail] = useState("");
   const [earlySubmitted, setEarlySubmitted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,13 +21,6 @@ export default function LandingPage() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    fetch(`${API_BASE}/public/companies`)
-      .then((r) => r.json())
-      .then((j) => setManufacturers(j.data ?? []))
-      .catch(() => {});
   }, []);
 
   function handleEarlyAccess(e: FormEvent) {
@@ -191,23 +181,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Trusted by manufacturers (real companies on the platform) ── */}
-      {manufacturers.length > 0 && (
-        <section className="py-10 px-6 border-t border-border">
-          <div className="max-w-5xl mx-auto text-center">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-6">
-              Manufacturers already on Identification ID
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-              {manufacturers.slice(0, 8).map((m) => (
-                <span key={m.display_name} className="text-sm font-semibold text-foreground/70">
-                  {m.display_name}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* ── Trusted by manufacturers (feature-flagged, real customers only) ── */}
+      <TrustedByManufacturers />
 
       {/* ── What is Identification ID ── */}
       <section className="bg-gradient-to-b from-surface to-background py-20 px-6 border-y border-border">
@@ -468,16 +443,64 @@ export default function LandingPage() {
             <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Pricing</p>
             <h2 className="text-3xl font-semibold tracking-tight mb-4">Simple, transparent pricing</h2>
             <p className="text-muted max-w-xl mx-auto">
-              Start free, then choose an annual plan as you grow.
-              Consumers always use the platform for free.
+              Every manufacturer starts with a Registry Membership — add a product plan as you grow.
+              Consumers always look up and verify products for free.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Manufacturer Registry Membership — required (highlighted) */}
+          <div className="relative mb-12 rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md">
+            <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">
+              REQUIRED FOR ALL MANUFACTURERS
+            </div>
+            <div className="flex items-start justify-between gap-6 flex-wrap mt-2">
+              <div className="flex-1 min-w-[260px] text-left">
+                <h3 className="text-lg font-semibold mb-1 text-indigo-950">{REGISTRY_MEMBERSHIP.en.name}</h3>
+                <p className="text-sm text-indigo-900/70 mb-4">{REGISTRY_MEMBERSHIP.en.desc}</p>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                  {REGISTRY_MEMBERSHIP.en.features.map((f) => (
+                    <li key={f} className="text-sm text-indigo-900/80 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="text-center shrink-0">
+                <div>
+                  <span className="text-3xl font-bold text-indigo-950">
+                    ${REGISTRY_MEMBERSHIP.priceCents / 100}
+                  </span>
+                  <span className="text-sm text-indigo-900/60"> / month</span>
+                </div>
+                <p className="text-sm text-indigo-950 mt-1">
+                  or <span className="font-semibold">${REGISTRY_MEMBERSHIP.annualPriceCents / 100} / year</span>
+                </p>
+                <p className="text-xs text-indigo-700 font-medium mt-1 mb-4">
+                  Yearly recommended — save ${(REGISTRY_MEMBERSHIP.priceCents * 12 - REGISTRY_MEMBERSHIP.annualPriceCents) / 100}
+                </p>
+                <Link
+                  href="/register"
+                  className="block text-center px-6 py-2.5 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
+                >
+                  Join the registry
+                </Link>
+              </div>
+            </div>
+            <p className="text-xs text-indigo-900/60 mt-5 pt-4 border-t border-indigo-200 text-left">
+              Your Manufacturer ID is permanent. If your membership lapses, the ID, product pages
+              and QR codes keep working — your profile is marked Inactive and adding or editing
+              products pauses until you renew. Popular, Best Value and Enterprise include the
+              membership; Standard is billed in addition to it.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {PLANS.map((p) => {
               // Per-tier colour theme.
               const THEME: Record<string, { card: string; onLight: boolean; button: string }> = {
-                free:       { card: "bg-green-600 border-green-600 text-white shadow-lg", onLight: false, button: "bg-white text-green-700 hover:bg-green-50" },
                 standard:   { card: "bg-orange-500 border-orange-500 text-white shadow-lg", onLight: false, button: "bg-white text-orange-600 hover:bg-orange-50" },
                 popular:    { card: "bg-accent border-accent text-white shadow-lg", onLight: false, button: "bg-white text-accent hover:bg-blue-50" },
                 best_value: { card: "bg-slate-900 border-slate-900 text-white shadow-xl md:scale-[1.03]", onLight: false, button: "bg-amber-400 text-slate-900 hover:bg-amber-300" },
@@ -530,49 +553,6 @@ export default function LandingPage() {
             })}
           </div>
 
-          {/* Manufacturer Registry Membership — optional add-on (highlighted) */}
-          <div className="relative mt-10 rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md">
-            <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">
-              OPTIONAL ADD-ON
-            </div>
-            <div className="flex items-start justify-between gap-6 flex-wrap mt-2">
-              <div className="flex-1 min-w-[260px] text-left">
-                <h3 className="text-lg font-semibold mb-1 text-indigo-950">{REGISTRY_MEMBERSHIP.en.name}</h3>
-                <p className="text-sm text-indigo-900/70 mb-4">{REGISTRY_MEMBERSHIP.en.desc}</p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-                  {REGISTRY_MEMBERSHIP.en.features.map((f) => (
-                    <li key={f} className="text-sm text-indigo-900/80 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="text-center shrink-0">
-                <div>
-                  <span className="text-3xl font-bold text-indigo-950">
-                    ${REGISTRY_MEMBERSHIP.priceCents / 100}
-                  </span>
-                  <span className="text-sm text-indigo-900/60">{REGISTRY_MEMBERSHIP.en.period}</span>
-                </div>
-                <p className="text-xs text-indigo-700 font-medium mt-1 mb-4">{REGISTRY_MEMBERSHIP.en.annualNote}</p>
-                <Link
-                  href="/register"
-                  className="block text-center px-6 py-2.5 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
-                >
-                  Join the registry
-                </Link>
-              </div>
-            </div>
-            <p className="text-xs text-indigo-900/60 mt-5 pt-4 border-t border-indigo-200 text-left">
-              Your Manufacturer ID is free and permanent. Membership activates your public
-              manufacturer profile, QR code and registry visibility — if it lapses, the ID
-              keeps working and the profile is simply marked inactive.
-            </p>
-          </div>
-
           <p className="text-center text-sm text-muted mt-8">
             Need a custom plan?{" "}
             <a href="mailto:support@identificationid.com" className="text-accent hover:underline">
@@ -592,14 +572,15 @@ export default function LandingPage() {
         <div className="relative max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 text-xs font-medium bg-white/10 text-white px-3 py-1.5 rounded-full mb-6 border border-white/20 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Early access · Free tier forever
+            Early access · Registry now open
           </div>
           <h2 className="text-4xl font-semibold text-white mb-4 tracking-tight">
             Ready to register your products?
           </h2>
           <p className="text-blue-100 text-base mb-8 leading-relaxed">
             Join the manufacturers already using Identification ID.
-            Your first 3 products are free, no card required.
+            Membership from $5/month includes your permanent Manufacturer ID
+            and your first 3 Product IDs.
           </p>
           {earlySubmitted ? (
             <p className="text-white font-medium">Redirecting to registration...</p>
@@ -622,7 +603,7 @@ export default function LandingPage() {
             </form>
           )}
           <div className="flex items-center justify-center gap-4 mt-6 text-blue-100 text-xs flex-wrap">
-            {["3 products free", "No credit card", "Cancel anytime"].map((t) => (
+            {["3 Product IDs included", "$49/year — save $11", "Cancel anytime"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -666,6 +647,7 @@ export default function LandingPage() {
                 <li><Link href="/verification" className="text-foreground hover:text-accent transition-colors">Verification</Link></li>
                 <li><Link href="/terms" className="text-foreground hover:text-accent transition-colors">Terms</Link></li>
                 <li><Link href="/privacy" className="text-foreground hover:text-accent transition-colors">Privacy</Link></li>
+                <li><Link href="/refund" className="text-foreground hover:text-accent transition-colors">Refund Policy</Link></li>
                 <li><Link href="/cookies" className="text-foreground hover:text-accent transition-colors">Cookies</Link></li>
                 <li>
                   <a href="mailto:support@identificationid.com" className="text-foreground hover:text-accent transition-colors">

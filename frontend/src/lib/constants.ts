@@ -35,7 +35,7 @@ export const LANGUAGES = [
 // ── Pricing plans (single source of truth) ──
 // `priceCents` is canonical; surfaces render `$${priceCents / 100}` so prices
 // can never drift between the homepage, pricing page, and billing page.
-export type PlanKey = "free" | "standard" | "popular" | "best_value" | "enterprise";
+export type PlanKey = "standard" | "popular" | "best_value" | "enterprise";
 
 export interface PlanLabels {
   name: string;
@@ -57,26 +57,6 @@ export interface PlanTier {
 
 export const PLANS: PlanTier[] = [
   {
-    key: "free",
-    priceCents: 0,
-    productLimit: 3,
-    perProduct: false,
-    popular: false,
-    premium: false,
-    en: {
-      name: "Free",
-      period: "",
-      desc: "Try it out",
-      features: ["3 products", "Unique ID", "QR code", "Product page"],
-    },
-    ru: {
-      name: "Free",
-      period: "",
-      desc: "Для пробы",
-      features: ["3 товара", "Уникальный ID", "QR-код", "Карточка товара"],
-    },
-  },
-  {
     key: "standard",
     priceCents: 300,
     productLimit: -1,
@@ -87,13 +67,13 @@ export const PLANS: PlanTier[] = [
       name: "Standard",
       period: "per product / mo · billed annually",
       desc: "Pay only per product",
-      features: ["Pay per product", "Unique ID", "QR code", "Product page"],
+      features: ["Pay per product", "Unique ID", "QR code", "Product page", "Requires Registry Membership"],
     },
     ru: {
       name: "Standard",
       period: "за товар / мес · годовая подписка",
       desc: "Оплата за товар",
-      features: ["Оплата за товар", "Уникальный ID", "QR-код", "Карточка товара"],
+      features: ["Оплата за товар", "Уникальный ID", "QR-код", "Карточка товара", "Требуется членство в реестре"],
     },
   },
   {
@@ -107,13 +87,13 @@ export const PLANS: PlanTier[] = [
       name: "Popular",
       period: "/ mo · billed annually",
       desc: "For growing businesses",
-      features: ["Up to 100 products", "Document uploads", "Multi-language", "Priority support"],
+      features: ["Up to 100 products", "Registry Membership included", "Document uploads", "Multi-language", "Priority support"],
     },
     ru: {
       name: "Popular",
       period: "/ мес · годовая подписка",
       desc: "Для растущего бизнеса",
-      features: ["До 100 товаров", "Загрузка документов", "Мультиязычность", "Приоритетная поддержка"],
+      features: ["До 100 товаров", "Членство в реестре включено", "Загрузка документов", "Мультиязычность", "Приоритетная поддержка"],
     },
   },
   {
@@ -127,13 +107,13 @@ export const PLANS: PlanTier[] = [
       name: "Best Value",
       period: "/ mo · billed annually",
       desc: "For large manufacturers",
-      features: ["Up to 500 products", "All Popular features", "API access"],
+      features: ["Up to 500 products", "Registry Membership included", "All Popular features", "API access"],
     },
     ru: {
       name: "Best Value",
       period: "/ мес · годовая подписка",
       desc: "Для крупных производителей",
-      features: ["До 500 товаров", "Все функции Popular", "API-доступ"],
+      features: ["До 500 товаров", "Членство в реестре включено", "Все функции Popular", "API-доступ"],
     },
   },
   {
@@ -147,20 +127,20 @@ export const PLANS: PlanTier[] = [
       name: "Enterprise",
       period: "/ mo · billed annually",
       desc: "Individual / Custom",
-      features: ["Unlimited products", "API access", "Dedicated support"],
+      features: ["Unlimited products", "Registry Membership included", "API access", "Dedicated support"],
     },
     ru: {
       name: "Enterprise",
       period: "/ мес · годовая подписка",
       desc: "Индивидуально / под заказ",
-      features: ["Неограниченно товаров", "API-доступ", "Выделенная поддержка"],
+      features: ["Неограниченно товаров", "Членство в реестре включено", "API-доступ", "Выделенная поддержка"],
     },
   },
 ];
 
-// ── Manufacturer Registry Membership (optional add-on) ──
-// The Manufacturer ID itself is free and permanent. Membership activates the
-// public manufacturer profile, QR code and registry/API visibility.
+// ── Manufacturer Registry Membership (required) ──
+// Every manufacturer needs it. Popular, Best Value and Enterprise include it;
+// Standard is billed on top of it. Activates the Manufacturer ID and profile.
 export const REGISTRY_MEMBERSHIP = {
   key: "manufacturer_registry",
   priceCents: 500,
@@ -169,28 +149,28 @@ export const REGISTRY_MEMBERSHIP = {
     name: "Manufacturer Registry Membership",
     period: "/ mo",
     annualNote: "or $49 / year — save $11",
-    desc: "Your company's public identity in the global registry",
+    desc: "Includes your permanent Manufacturer ID, public profile, manufacturer QR code, API visibility, basic analytics, and your first 3 Product IDs at no additional cost.",
     features: [
       "Permanent Manufacturer ID (MID-XXXX-XXXX)",
-      "Public manufacturer profile page",
+      "Public manufacturer profile",
       "Manufacturer QR code",
-      "All products linked to one source profile",
-      "Registry & API visibility",
-      "Basic profile analytics",
+      "API visibility",
+      "Basic analytics",
+      "First 3 Product IDs at no additional cost",
     ],
   },
   ru: {
     name: "Членство в реестре производителей",
     period: "/ мес",
     annualNote: "или $49 / год — экономия $11",
-    desc: "Публичная идентичность вашей компании в глобальном реестре",
+    desc: "Включает постоянный Manufacturer ID, публичный профиль, QR-код производителя, видимость через API, базовую аналитику и первые 3 Product ID без доплаты.",
     features: [
       "Постоянный Manufacturer ID (MID-XXXX-XXXX)",
       "Публичный профиль производителя",
       "QR-код производителя",
-      "Все товары связаны с одним профилем",
-      "Видимость в реестре и через API",
-      "Базовая аналитика профиля",
+      "Видимость через API",
+      "Базовая аналитика",
+      "Первые 3 Product ID без доплаты",
     ],
   },
 };

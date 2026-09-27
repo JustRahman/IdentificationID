@@ -67,6 +67,7 @@ export default function PublicLayout({
               <Link href="/about" className="hover:text-foreground">About</Link>
               <Link href="/terms" className="hover:text-foreground">Terms</Link>
               <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+              <Link href="/refund" className="hover:text-foreground">Refund Policy</Link>
               <Link href="/cookies" className="hover:text-foreground">Cookies</Link>
             </div>
           </div>
