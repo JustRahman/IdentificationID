@@ -259,16 +259,15 @@ async def stripe_webhook(
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature", "")
 
-    if settings.stripe_webhook_secret:
-        try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, settings.stripe_webhook_secret
-            )
-        except (ValueError, stripe.error.SignatureVerificationError):
-            raise ValidationError("Invalid webhook signature")
-    else:
-        import json
-        event = json.loads(payload)
+    # Never accept unsigned events — anyone could POST a fake "paid" event.
+    if not settings.stripe_webhook_secret:
+        raise ValidationError("Stripe webhooks are not configured")
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.stripe_webhook_secret
+        )
+    except (ValueError, stripe.error.SignatureVerificationError):
+        raise ValidationError("Invalid webhook signature")
 
     event_type = event.get("type", "")
 

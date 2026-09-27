@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.webhook_endpoint import WebhookEndpoint
+from app.services.net_guard import is_public_url
 
 logger = logging.getLogger("webhooks")
 
@@ -27,7 +28,11 @@ TIMEOUT = 8.0
 async def _deliver(url: str, secret: str, body: str) -> None:
     signature = hmac.new(secret.encode(), body.encode(), hashlib.sha256).hexdigest()
     try:
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+        # Re-check at send time (DNS may have changed); never follow redirects.
+        if not await is_public_url(url):
+            logger.info("webhook delivery to %s blocked: not a public address", url)
+            return
+        async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=False) as client:
             await client.post(
                 url,
                 content=body,

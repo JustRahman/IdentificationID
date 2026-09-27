@@ -13,6 +13,7 @@ from app.models.company import Company
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.models.webhook_endpoint import WEBHOOK_EVENTS, WebhookEndpoint
+from app.services.net_guard import is_public_url
 
 router = APIRouter(prefix="/manufacturer/webhooks", tags=["webhooks"])
 
@@ -24,8 +25,8 @@ class CreateWebhookRequest(BaseModel):
     @field_validator("url")
     @classmethod
     def _https(cls, v: str) -> str:
-        if not (v.startswith("https://") or v.startswith("http://")):
-            raise ValueError("URL must start with http:// or https://")
+        if not v.startswith("https://"):
+            raise ValueError("URL must start with https://")
         return v
 
     @field_validator("events")
@@ -88,6 +89,8 @@ async def create_webhook(
 
     if not body.events:
         raise ValidationError("Select at least one event")
+    if not await is_public_url(body.url):
+        raise ValidationError("URL must point to a public internet address")
 
     webhook = WebhookEndpoint(
         company_id=company.id,

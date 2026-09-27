@@ -19,6 +19,8 @@ from typing import Any, Optional
 
 import httpx
 
+from app.services.net_guard import resolve_public, safe_get
+
 # Free/consumer mail providers — a manufacturer using these can't be
 # domain-matched, so they simply score lower (not rejected).
 FREE_EMAIL_DOMAINS = {
@@ -135,9 +137,14 @@ async def _check_ssl_and_age(domain: str) -> tuple[bool, Optional[int]]:
     if not domain:
         return False, None
 
+    # Connect to the vetted IP (not the name) so DNS can't be swapped in between.
+    ip = await resolve_public(domain)
+    if not ip:
+        return False, None
+
     def _probe():
         ctx = ssl.create_default_context()
-        with socket.create_connection((domain, 443), timeout=6) as sock:
+        with socket.create_connection((ip, 443), timeout=6) as sock:
             with ctx.wrap_socket(sock, server_hostname=domain) as ssock:
                 return ssock.getpeercert()
 
@@ -187,10 +194,10 @@ async def _check_site(domain: str, company_name: str) -> tuple[bool, bool]:
         return False, False
     try:
         async with httpx.AsyncClient(
-            timeout=10.0, follow_redirects=True, headers={"User-Agent": "IdentificationID-Verifier/1.0"}
+            timeout=10.0, headers={"User-Agent": "IdentificationID-Verifier/1.0"}
         ) as client:
-            resp = await client.get(f"https://{domain}")
-            if resp.status_code >= 400:
+            resp = await safe_get(client, f"https://{domain}")
+            if resp is None or resp.status_code >= 400:
                 return False, False
             body = _normalize(resp.text[:200_000])
             name = _normalize(company_name)

@@ -1,4 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+
+def _clean_website(v: str | None) -> str | None:
+    """Only http(s) URLs — blocks javascript:/data: links on public pages."""
+    if v is None or not v.strip():
+        return None
+    v = v.strip()
+    if v.lower().startswith(("http://", "https://")):
+        return v
+    if ":" in v:
+        raise ValueError("Website must start with http:// or https://")
+    return f"https://{v}"
 
 
 class CompanyCreate(BaseModel):
@@ -10,6 +22,11 @@ class CompanyCreate(BaseModel):
     logo_url: str | None = None
     description: str | None = None
 
+    @field_validator("website")
+    @classmethod
+    def _website(cls, v: str | None) -> str | None:
+        return _clean_website(v)
+
 
 class CompanyUpdate(BaseModel):
     legal_name: str | None = None
@@ -19,6 +36,11 @@ class CompanyUpdate(BaseModel):
     support_email: str | None = None
     logo_url: str | None = None
     description: str | None = None
+
+    @field_validator("website")
+    @classmethod
+    def _website(cls, v: str | None) -> str | None:
+        return _clean_website(v)
 
 
 class CompanyResponse(BaseModel):

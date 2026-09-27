@@ -200,7 +200,7 @@ export default function ManufacturerPage({
             ].map((f) => (
               <div key={f.label}>
                 <p className="text-xs text-muted">{f.label}</p>
-                {f.label === "Website" && data.website ? (
+                {f.label === "Website" && data.website && /^https?:\/\//i.test(data.website) ? (
                   <a href={data.website} target="_blank" rel="noopener noreferrer" className="text-sm text-accent hover:underline break-all">
                     {data.website}
                   </a>
