@@ -1,24 +1,20 @@
 """Stripe webhook handling for the Registry Membership and product plans.
 
-Needs a disposable Postgres database (tables are created, nothing is committed):
-    TEST_DATABASE_URL=postgresql+asyncpg://localhost/identification_id_test pytest
+Needs TEST_DATABASE_URL (see tests/db.py).
 """
 
-import asyncio
-import os
 import uuid
 from datetime import date, datetime, time, timedelta, timezone
 
 import pytest
 import stripe
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.models import Base, Company, Subscription, SubscriptionStatus, User, UserRole
+from app.models import Company, Subscription, SubscriptionStatus, User, UserRole
 from app.services.membership import membership_for
 from app.services.stripe_events import handle_event
+from tests.db import requires_db, run
 
-TEST_DB = os.environ.get("TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(not TEST_DB, reason="TEST_DATABASE_URL not set")
+pytestmark = requires_db
 
 TODAY = datetime.now(timezone.utc).date()
 
@@ -37,21 +33,6 @@ def stripe_period(monkeypatch):
 
     monkeypatch.setattr(stripe.Subscription, "retrieve", retrieve)
     return periods
-
-
-def run(scenario):
-    async def main():
-        engine = create_async_engine(TEST_DB)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        async with AsyncSession(engine, expire_on_commit=False) as db:
-            try:
-                await scenario(db)
-            finally:
-                await db.rollback()
-        await engine.dispose()
-
-    asyncio.run(main())
 
 
 async def make_company(db, **kwargs) -> Company:

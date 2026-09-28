@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     from_email: str = "noreply@identificationid.com"
 
+    # Local dev only: let the seeded demo manufacturers log in with the demo
+    # password. Off by default so production never has known-password logins.
+    demo_logins_enabled: bool = False
+
     # CORS
     frontend_url: str = "http://localhost:3000"
 
