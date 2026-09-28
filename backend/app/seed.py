@@ -1,13 +1,14 @@
 """Seed database with mock data for testing."""
 
 import hashlib
+import logging
 from datetime import date, datetime, timezone
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.models.api_key import ApiKey
 from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
@@ -19,6 +20,14 @@ from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User, UserRole
 from app.models.webhook_endpoint import WebhookEndpoint
 from app.services.id_generator import generate_identification_id, generate_manufacturer_id
+
+logger = logging.getLogger("seed")
+
+ADMIN_EMAIL = "danilbobrow1234@gmail.com"
+# Passwords that were once public in this repo. An admin still using one of
+# these is disabled on startup. Stored as values to check against, never to set.
+LEAKED_ADMIN_PASSWORDS = ("123123123",)
+MIN_ADMIN_PASSWORD_LENGTH = 12
 
 # Public sample PDF used as a placeholder manual for seeded products so the
 # "Open" download link works without Supabase storage configured.
@@ -200,6 +209,49 @@ async def _sync_demo_logins(session: AsyncSession) -> bool:
     return changed
 
 
+async def _sync_admin(session: AsyncSession) -> bool:
+    """Admin password comes only from ADMIN_PASSWORD. Returns True if changed."""
+    result = await session.execute(select(User).where(User.email == ADMIN_EMAIL))
+    admin = result.scalar_one_or_none()
+    changed = False
+
+    # Lock an admin that still has a password that was published in the repo.
+    if admin and admin.password_hash and any(
+        verify_password(p, admin.password_hash) for p in LEAKED_ADMIN_PASSWORDS
+    ):
+        admin.password_hash = None
+        admin.is_active = False
+        changed = True
+        logger.warning(
+            "Admin %s had a publicly known password and has been disabled. "
+            "Set ADMIN_PASSWORD to restore access.", ADMIN_EMAIL,
+        )
+
+    password = settings.admin_password
+    if not password:
+        return changed
+    if len(password) < MIN_ADMIN_PASSWORD_LENGTH or password in LEAKED_ADMIN_PASSWORDS:
+        logger.error(
+            "ADMIN_PASSWORD ignored: use at least %d characters and not a leaked password.",
+            MIN_ADMIN_PASSWORD_LENGTH,
+        )
+        return changed
+
+    if admin is None:
+        session.add(User(
+            email=ADMIN_EMAIL,
+            password_hash=hash_password(password),
+            role=UserRole.admin,
+            is_active=True,
+        ))
+        return True
+    if not (admin.password_hash and verify_password(password, admin.password_hash)) or not admin.is_active:
+        admin.password_hash = hash_password(password)
+        admin.is_active = True
+        changed = True
+    return changed
+
+
 async def _get_or_create_company(session: AsyncSession, display_name: str, owner_id, **kwargs) -> Company:
     result = await session.execute(select(Company).where(Company.display_name == display_name))
     company = result.scalar_one_or_none()
@@ -244,6 +296,9 @@ async def seed_data(session: AsyncSession) -> None:
     if await _sync_demo_logins(session):
         backfilled = True
 
+    if await _sync_admin(session):
+        backfilled = True
+
     if backfilled:
         await session.commit()
 
@@ -267,13 +322,6 @@ async def seed_data(session: AsyncSession) -> None:
         return  # Fully seeded — nothing to do
 
     now = datetime.now(timezone.utc)
-
-    # ── Admin ──
-    await _get_or_create_user(
-        session, "danilbobrow1234@gmail.com",
-        password_hash=hash_password("123123123"),
-        role=UserRole.admin, is_active=True,
-    )
 
     # ── Users ──
     john   = await _get_or_create_user(session, "john@acmecorp.com",   role=UserRole.manufacturer, **_demo_login_fields())

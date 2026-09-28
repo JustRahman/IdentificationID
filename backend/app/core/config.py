@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     # password. Off by default so production never has known-password logins.
     demo_logins_enabled: bool = False
 
+    # Platform admin login. Never hardcoded: if unset, the admin user is not
+    # created or changed.
+    admin_password: str = ""
+
     # CORS
     frontend_url: str = "http://localhost:3000"
 
