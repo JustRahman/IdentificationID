@@ -82,12 +82,15 @@ export function ManufacturerProfileView({
                 </Link>
                 <span
                   className={`text-xs font-medium px-3 py-1.5 rounded-lg border ${
-                    inactive
+                    preview
+                      ? "text-amber-700 bg-amber-50 border-amber-200"
+                      : inactive
                       ? "text-gray-600 bg-gray-50 border-gray-200"
                       : "text-green-700 bg-green-50 border-green-200"
                   }`}
                 >
-                  Registry status: {inactive ? "Inactive" : "Active"}
+                  {/* Before payment the preview must not claim an active registry. */}
+                  Registry status: {preview ? "Pending activation" : inactive ? "Inactive" : "Active"}
                 </span>
               </div>
             </div>

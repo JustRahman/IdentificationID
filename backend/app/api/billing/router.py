@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from datetime import date, timedelta
 
 import stripe
@@ -8,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
-from app.core.exceptions import NotFound, ValidationError
+from app.core.exceptions import AppException, NotFound, ValidationError
 from app.models.company import Company
 from app.models.payment import Payment
 from app.models.product import Product
@@ -21,6 +23,34 @@ from app.services.stripe_events import handle_event
 router = APIRouter(prefix="/billing", tags=["billing"])
 
 stripe.api_key = settings.stripe_secret_key
+logger = logging.getLogger("billing")
+
+# Checkout Sessions are created with the same API version as our webhook
+# endpoint: managed_payments needs 2025-03-31 or later, and stripe 11.4.1 pins
+# 2024-12-18 for everything else.
+CHECKOUT_API_VERSION = "2026-08-26.dahlia"
+
+
+async def _create_checkout_session(**params) -> str:
+    """Create a Stripe Checkout Session and return its URL."""
+    try:
+        session = await asyncio.to_thread(
+            stripe.checkout.Session.create,
+            **params,
+            # No Managed Payments (Stripe as merchant of record, +3.5% fee).
+            # Sent as the literal "false", exactly as Stripe documents it.
+            managed_payments={"enabled": "false"},
+            stripe_version=CHECKOUT_API_VERSION,
+        )
+    except stripe.error.StripeError as e:
+        logger.error("Stripe checkout session failed: %s", e)
+        raise AppException(
+            "PAYMENT_PROVIDER_ERROR",
+            "We couldn't start checkout with our payment provider. Please try again in a "
+            "few minutes or contact support@identificationid.com.",
+            502,
+        )
+    return session.url
 
 PLANS = {
     # Registry Membership alone: the first 3 Product IDs at no additional cost.
@@ -158,7 +188,7 @@ async def create_checkout(
             },
         }
 
-    session = stripe.checkout.Session.create(
+    checkout_url = await _create_checkout_session(
         mode="subscription",
         customer_email=user.email,
         line_items=[
@@ -176,8 +206,7 @@ async def create_checkout(
         success_url=f"{settings.frontend_url}/billing?success=true",
         cancel_url=f"{settings.frontend_url}/billing?canceled=true",
     )
-
-    return {"success": True, "data": {"checkout_url": session.url}}
+    return {"success": True, "data": {"checkout_url": checkout_url}}
 
 
 @router.get("/registry")
@@ -254,7 +283,7 @@ async def create_registry_checkout(
     if not price_id:
         raise ValidationError("Registry membership prices are not configured")
 
-    session = stripe.checkout.Session.create(
+    checkout_url = await _create_checkout_session(
         mode="subscription",
         customer_email=user.email,
         line_items=[{"price": price_id, "quantity": 1}],
@@ -262,7 +291,7 @@ async def create_registry_checkout(
         success_url=f"{settings.frontend_url}/dashboard?registry=active",
         cancel_url=f"{settings.frontend_url}/onboarding?step=activate",
     )
-    return {"success": True, "data": {"checkout_url": session.url}}
+    return {"success": True, "data": {"checkout_url": checkout_url}}
 
 
 @router.post("/webhook")
