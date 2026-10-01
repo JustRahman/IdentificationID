@@ -10,6 +10,8 @@ const adminNavItems = [
   { href: "/admin/companies", label: "Companies" },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/payments", label: "Payments" },
+  { href: "/admin/reports", label: "Reports" },
+  { href: "/admin/audit", label: "Audit trail" },
 ];
 
 export default function AdminLayout({

@@ -7,6 +7,7 @@ import { CompanyProfileForm } from "@/components/CompanyProfileForm";
 import { ManufacturerProfileView } from "@/components/ManufacturerProfileView";
 import { REGISTRY_MEMBERSHIP } from "@/lib/constants";
 import { useMembership } from "@/lib/membership";
+import { AgreementCheckbox, acceptAgreement } from "@/components/AgreementCheckbox";
 import type { Company, ManufacturerProfile } from "@/types";
 
 type Step = "profile" | "preview" | "activate";
@@ -29,9 +30,10 @@ function OnboardingInner() {
   const [preview, setPreview] = useState<ManufacturerProfile | null>(null);
   const [billing, setBilling] = useState<Billing>("annual");
   const [paying, setPaying] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
 
-  // Already an active member — nothing to onboard.
+  // Already an active member - nothing to onboard.
   useEffect(() => {
     if (registry?.active) router.replace("/dashboard");
   }, [registry, router]);
@@ -62,9 +64,11 @@ function OnboardingInner() {
   }, [step]);
 
   async function activate() {
+    if (!agreed) return;
     setPaying(true);
     setError("");
     try {
+      await acceptAgreement();
       const res = await api.post<{
         success: boolean;
         data: { checkout_url?: string; message?: string };
@@ -108,7 +112,7 @@ function OnboardingInner() {
                 {i < current ? "✓" : i + 1}
               </span>
               <span className={i === current ? "font-medium" : "text-muted"}>{s.label}</span>
-              {i < STEPS.length - 1 && <span className="text-border mx-1">—</span>}
+              {i < STEPS.length - 1 && <span className="text-border mx-1">-</span>}
             </li>
           );
         })}
@@ -159,7 +163,7 @@ function OnboardingInner() {
                 onClick={() => setStep("activate")}
                 className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover"
               >
-                Looks good — continue
+                Looks good - continue
               </button>
             </div>
           </div>
@@ -234,6 +238,10 @@ function OnboardingInner() {
             </p>
           </div>
 
+          <div className="mb-4">
+            <AgreementCheckbox checked={agreed} onChange={setAgreed} />
+          </div>
+
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => setStep("preview")}
@@ -243,12 +251,12 @@ function OnboardingInner() {
             </button>
             <button
               onClick={activate}
-              disabled={paying}
+              disabled={paying || !agreed}
               className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
             >
               {paying
                 ? "Processing..."
-                : `Continue to payment — ${billing === "annual" ? `$${annual}/year` : `$${monthly}/month`}`}
+                : `Continue to payment - ${billing === "annual" ? `$${annual}/year` : `$${monthly}/month`}`}
             </button>
           </div>
           <p className="text-xs text-muted mt-3">

@@ -9,7 +9,7 @@ const faqs = [
     items: [
       {
         q: "What is an Identification ID?",
-        a: "An Identification ID (IID) is a unique code printed on a product's packaging — like IID-4F9A-2K7Q. You enter it on this website to instantly access the official product page: manuals, warranty info, safety certificates, and manufacturer details.",
+        a: "An Identification ID (IID) is a unique code printed on a product's packaging - like IID-4F9A-2K7Q. You enter it on this website to access the product page maintained by the manufacturer: manuals, warranty info, safety certificates, and manufacturer details.",
       },
       {
         q: "Where do I find the ID on my product?",
@@ -38,15 +38,15 @@ const faqs = [
     items: [
       {
         q: "How do I register my products?",
-        a: "Create an account, set up your company profile, then register your products — upload PDF manuals and photos, and each product gets its unique Identification ID. Choose a plan, complete the payment, and publish your product pages.",
+        a: "Create an account, set up your company profile, then register your products - upload PDF manuals and photos, and each product gets its unique Identification ID. Choose a plan, complete the payment, and publish your product pages.",
       },
       {
         q: "What file formats are supported for documents?",
-        a: "Currently PDF only, up to 20 MB per file. You can upload multiple documents per product — manuals, warranties, certificates, and more.",
+        a: "Currently PDF only, up to 20 MB per file. You can upload multiple documents per product - manuals, warranties, certificates, and more.",
       },
       {
         q: "Can I update product information after publishing?",
-        a: "Yes. You can edit product details, upload new document versions, and add translations at any time without reprinting the packaging — the ID stays the same.",
+        a: "Yes. You can edit product details, upload new document versions, and add translations at any time without reprinting the packaging - the ID stays the same.",
       },
       {
         q: "How do I put the Identification ID on my packaging?",
@@ -58,7 +58,7 @@ const faqs = [
       },
       {
         q: "How much does it cost?",
-        a: "Every manufacturer needs a Manufacturer Registry Membership: $5/month or $49/year. It includes your permanent Manufacturer ID, public profile, manufacturer QR code, API visibility, basic analytics, and your first 3 Product IDs at no additional cost. For more products: Standard $3 per product / mo (billed in addition to the membership), Popular $29/mo (up to 100 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual) — these three include the membership. Product plans are annual subscriptions — see the Pricing page. Looking up and verifying products is always free for consumers.",
+        a: "Every manufacturer needs a Manufacturer Registry Membership: $5/month or $49/year. It includes your permanent Manufacturer ID, public profile, manufacturer QR code, API visibility, basic analytics, and your first 3 Product IDs at no additional cost. For more products: Standard $3 per product / mo (billed in addition to the membership), Popular $29/mo (up to 100 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual) - these three include the membership. Product plans are annual subscriptions - see the Pricing page. Looking up and verifying products is always free for consumers.",
       },
       {
         q: "What happens if I don't renew my membership?",
@@ -71,15 +71,15 @@ const faqs = [
     items: [
       {
         q: "How is product information kept trustworthy?",
-        a: "Every product page is tied to a registered, paying manufacturer account and its unique Identification ID. IDs cannot be forged or reused, and each page shows exactly which company published it.",
+        a: "Every product page is tied to a registered manufacturer account and its unique Identification ID, and each page shows which company registered it. Product information is provided and maintained by the manufacturer; Identification ID does not certify it. If something looks wrong, use \"Report incorrect information\" on the page.",
       },
       {
         q: "Can anyone create a fake product page?",
-        a: "Product pages can only be created from a registered manufacturer account with an active plan, and every Identification ID is uniquely tied to the company that registered it.",
+        a: "Product pages can only be created from a registered manufacturer account with an active membership, and every Identification ID is tied to the company that registered it. Products in regulated categories are reviewed before they are published.",
       },
       {
         q: "Is my data safe?",
-        a: "Yes. All data is encrypted in transit (HTTPS) and at rest. File storage uses signed URLs that expire — files are not publicly accessible without a valid link.",
+        a: "Yes. All data is encrypted in transit (HTTPS) and at rest. File storage uses signed URLs that expire - files are not publicly accessible without a valid link.",
       },
     ],
   },

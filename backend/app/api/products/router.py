@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -23,9 +23,14 @@ from app.models.product_translation import ProductTranslation
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.id_generator import generate_identification_id
+from app.services import audit
 from app.services.membership import require_membership
+from app.services.regulated import is_regulated
 
 router = APIRouter(prefix="/manufacturer/products", tags=["products"])
+
+PRODUCT_FIELDS = ("name", "category", "brand", "model", "country_of_origin", "status")
+TRANSLATION_FIELDS = ("short_description", "full_description", "usage_instructions")
 
 
 async def _get_user_company(user: User, db: AsyncSession) -> Company:
@@ -56,6 +61,7 @@ async def list_products(
 @router.post("", response_model=ProductResponse)
 async def create_product(
     body: ProductCreate,
+    request: Request,
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
@@ -105,6 +111,8 @@ async def create_product(
     )
     db.add(product)
     await db.flush()
+    await audit.record(db, request, user.id, "product.create", "product", product.id,
+                       new=audit.snapshot(product, PRODUCT_FIELDS + ("identification_id",)))
     return _product_response(product)
 
 
@@ -122,19 +130,38 @@ async def get_product(
 async def update_product(
     product_id: str,
     body: ProductUpdate,
+    request: Request,
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
     product = await _get_owned_product(product_id, user, db)
     await require_membership(product.company_id, db)
 
+    before = audit.snapshot(product, PRODUCT_FIELDS)
     for field, value in body.model_dump(exclude_unset=True).items():
         if field == "status" and value:
-            product.status = ProductStatus(value)
-        else:
+            # Manufacturers may only unpublish. Publishing goes through
+            # /publish (checks + regulated review); hidden is admin-only.
+            if value != ProductStatus.draft.value or product.status not in (
+                ProductStatus.published, ProductStatus.pending_review
+            ):
+                raise ValidationError("Status can only be changed back to draft")
+            product.status = ProductStatus.draft
+        elif field != "status":
             setattr(product, field, value)
 
+    # Moving a live product into a regulated category sends it to review.
+    if (
+        product.status == ProductStatus.published
+        and is_regulated(product.category)
+        and not is_regulated(before["category"])
+    ):
+        product.status = ProductStatus.pending_review
+
     await db.flush()
+    old, new = audit.diff(before, audit.snapshot(product, PRODUCT_FIELDS))
+    if new:
+        await audit.record(db, request, user.id, "product.update", "product", product.id, old, new)
     await dispatch_event(db, product.company_id, "product.updated", {
         "identification_id": product.identification_id,
         "name": product.name,
@@ -146,6 +173,7 @@ async def update_product(
 @router.post("/{product_id}/publish", response_model=ProductResponse)
 async def publish_product(
     product_id: str,
+    request: Request,
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
@@ -179,9 +207,20 @@ async def publish_product(
     if errors:
         raise ValidationError("Cannot publish product", details={"errors": errors})
 
+    before = audit.snapshot(product, ("status",))
+    # Regulated categories wait for an admin. Already-live products stay live.
+    if is_regulated(product.category) and product.status != ProductStatus.published:
+        product.status = ProductStatus.pending_review
+        await db.flush()
+        await audit.record(db, request, user.id, "product.submit_for_review", "product",
+                           product.id, before, audit.snapshot(product, ("status",)))
+        return _product_response(product)
+
     product.status = ProductStatus.published
     product.published_at = datetime.now(timezone.utc)
     await db.flush()
+    await audit.record(db, request, user.id, "product.publish", "product", product.id,
+                       before, audit.snapshot(product, ("status",)))
     await dispatch_event(db, product.company_id, "product.published", {
         "identification_id": product.identification_id,
         "name": product.name,
@@ -194,6 +233,7 @@ async def publish_product(
 async def upsert_translation(
     product_id: str,
     body: TranslationCreate,
+    request: Request,
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
@@ -207,6 +247,7 @@ async def upsert_translation(
         )
     )
     translation = result.scalar_one_or_none()
+    before = audit.snapshot(translation, TRANSLATION_FIELDS) if translation else {}
 
     if translation:
         for field, value in body.model_dump(exclude_unset=True).items():
@@ -222,6 +263,10 @@ async def upsert_translation(
         db.add(translation)
 
     await db.flush()
+    old, new = audit.diff(before, audit.snapshot(translation, TRANSLATION_FIELDS))
+    if new:
+        await audit.record(db, request, user.id, f"product.translation.{body.lang}", "product",
+                           product.id, old, new)
     return TranslationResponse(
         id=str(translation.id),
         product_id=str(translation.product_id),

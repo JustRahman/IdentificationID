@@ -10,8 +10,26 @@ export const CATEGORIES = [
   { value: "sports", label: "Sports" },
   { value: "automotive", label: "Automotive" },
   { value: "medical", label: "Medical" },
+  { value: "pharmaceuticals", label: "Pharmaceuticals" },
+  { value: "food_beverage", label: "Food & Beverage" },
+  { value: "baby_children", label: "Baby & Children's Products" },
   { value: "other", label: "Other" },
 ] as const;
+
+// Regulated categories are published only after an admin review
+// (mirrors backend/app/services/regulated.py).
+export const REGULATED_CATEGORIES = new Set([
+  "medical", "pharmaceuticals", "food_beverage", "toys", "baby_children", "automotive",
+]);
+export const REGULATED_NOTICE =
+  "Additional verification may be required for regulated product categories.";
+
+// ── Legal wording (shown verbatim; keep in sync with the Manufacturer Agreement) ──
+export const AGREEMENT_VERSION = "2026-10-01";
+export const PRODUCT_DISCLAIMER =
+  "Product information is provided and maintained by the manufacturer. Identification ID provides product identity and registry infrastructure and does not manufacture, sell, certify or warrant this product.";
+export const VERIFICATION_DISCLAIMER =
+  "Verification confirms specific account and company attributes checked by Identification ID. It is not government certification, product safety approval, or a guarantee of product authenticity or quality.";
 
 export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
   CATEGORIES.map((c) => [c.value, c.label])
@@ -148,7 +166,7 @@ export const REGISTRY_MEMBERSHIP = {
   en: {
     name: "Manufacturer Registry Membership",
     period: "/ mo",
-    annualNote: "or $49 / year — save $11",
+    annualNote: "or $49 / year - save $11",
     desc: "Includes your permanent Manufacturer ID, public profile, manufacturer QR code, API visibility, basic analytics, and your first 3 Product IDs at no additional cost.",
     features: [
       "Permanent Manufacturer ID (MID-XXXX-XXXX)",
@@ -162,7 +180,7 @@ export const REGISTRY_MEMBERSHIP = {
   ru: {
     name: "Членство в реестре производителей",
     period: "/ мес",
-    annualNote: "или $49 / год — экономия $11",
+    annualNote: "или $49 / год - экономия $11",
     desc: "Включает постоянный Manufacturer ID, публичный профиль, QR-код производителя, видимость через API, базовую аналитику и первые 3 Product ID без доплаты.",
     features: [
       "Постоянный Manufacturer ID (MID-XXXX-XXXX)",

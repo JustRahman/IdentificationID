@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { COMPANY } from "@/lib/constants";
+import { COMPANY, VERIFICATION_DISCLAIMER } from "@/lib/constants";
 
 export const metadata = {
-  title: "How Manufacturer Verification Works — Identification ID",
+  title: "How Manufacturer Verification Works - Identification ID",
   description:
     "What Identification ID checks, what each verification level means, and what it does not certify.",
 };
@@ -56,7 +56,7 @@ export default function VerificationPage() {
       </h1>
       <p className="text-lg text-muted leading-relaxed mb-10">
         Verification is included with every Manufacturer Registry Membership at no extra cost.
-        This page explains exactly what we check at each level — and what we do not.
+        This page explains exactly what we check at each level - and what we do not.
       </p>
 
       {/* Levels */}
@@ -95,7 +95,7 @@ export default function VerificationPage() {
         <h2 className="text-xl font-semibold mb-3">How the checks run</h2>
         <p className="text-sm text-muted leading-relaxed mb-3">
           Verification is automatic. When a manufacturer saves their company profile, we check
-          the website and email address they provided — there is nothing to install, no DNS
+          the website and email address they provided - there is nothing to install, no DNS
           records to add, and no documents to upload. Results are stored on the profile and can
           be re-run at any time from the dashboard.
         </p>
@@ -105,13 +105,11 @@ export default function VerificationPage() {
         </p>
       </section>
 
-      {/* The disclaimer — deliberately prominent */}
+      {/* The disclaimer - deliberately prominent */}
       <section className="border-2 border-amber-200 bg-amber-50 rounded-xl p-6 mb-10">
         <h2 className="text-base font-semibold mb-2">What verification does not mean</h2>
         <p className="text-sm text-amber-900 leading-relaxed mb-3">
-          Verification confirms specified account, domain, or company-profile attributes checked
-          by Identification ID. It does not constitute government certification, product safety
-          certification, or a guarantee of product authenticity.
+          {VERIFICATION_DISCLAIMER}
         </p>
         <ul className="space-y-1.5 text-sm text-amber-900">
           {[

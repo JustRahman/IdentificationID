@@ -5,10 +5,10 @@
 // A single client-side layer that translates every visible text node into the
 // selected language using the shared translateText() helper, caches results in
 // localStorage, and re-applies on navigation / re-render. No per-string wiring
-// needed — pick a language in the nav and the whole app follows.
+// needed - pick a language in the nav and the whole app follows.
 //
 // Translations are fetched in one batched request from our own backend
-// (/translate), which caches every phrase in the database — so the external
+// (/translate), which caches every phrase in the database - so the external
 // translation API is hit at most once per phrase across all visitors. No
 // per-visitor rate limits, no request storm.
 // ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ function shouldSkip(node: I18nText): boolean {
   if (!p) return true;
   if (SKIP_TAGS.has(p.tagName)) return true;
   if (p.closest("[data-no-i18n]")) return true;
-  // Evaluate against the ORIGINAL English source when we have it — a node
+  // Evaluate against the ORIGINAL English source when we have it - a node
   // already translated to e.g. Chinese has no Latin letters but must still be
   // re-translatable into another language.
   const cur = node.textContent || "";

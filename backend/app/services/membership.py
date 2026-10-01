@@ -1,4 +1,4 @@
-"""Manufacturer Registry Membership — required to publish and manage products.
+"""Manufacturer Registry Membership - required to publish and manage products.
 
 Membership comes from the Registry Membership itself ($5/mo or $49/yr) or from
 a product plan that includes it (Popular, Best Value, Enterprise). The
@@ -62,7 +62,7 @@ def membership_for(company: Company, sub: Optional[Subscription]) -> Membership:
         active=active,
         included_in_plan=plan_ok,
         paid_until=paid_until,
-        # A cancelled subscription can still carry a future date — cap at today.
+        # A cancelled subscription can still carry a future date - cap at today.
         last_active=None if active or not paid_until else min(paid_until, today),
     )
 

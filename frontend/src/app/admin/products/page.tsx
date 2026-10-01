@@ -17,7 +17,7 @@ interface ProductItem {
   published_at: string | null;
 }
 
-const statusTabs = ["All", "Draft", "Published", "Hidden"];
+const statusTabs = ["All", "Pending review", "Draft", "Published", "Hidden"];
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -29,7 +29,7 @@ export default function AdminProductsPage() {
   async function load(tab: string) {
     setLoading(true);
     try {
-      const param = tab === "All" ? "" : `?status=${tab.toLowerCase()}`;
+      const param = tab === "All" ? "" : `?status=${tab.toLowerCase().replace(" ", "_")}`;
       const res = await api.get<{ success: boolean; data: ProductItem[] }>(
         `/admin/products${param}`
       );
@@ -47,7 +47,7 @@ export default function AdminProductsPage() {
     setExpanded((prev) => (prev === id ? null : id));
   }
 
-  async function moderateProduct(id: string, action: "hide" | "unhide") {
+  async function moderateProduct(id: string, action: "hide" | "unhide" | "approve" | "reject") {
     setActionLoading(id);
     try {
       await api.post(`/admin/products/${id}/moderate`, { action });
@@ -109,7 +109,7 @@ export default function AdminProductsPage() {
                         : "bg-gray-50 text-gray-600 border border-gray-200"
                     }`}
                   >
-                    {p.status}
+                    {p.status.replace("_", " ")}
                   </span>
                   <svg
                     className={`w-4 h-4 text-muted transition-transform ${expanded === p.id ? "rotate-180" : ""}`}
@@ -130,7 +130,7 @@ export default function AdminProductsPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Company</p>
-                      <p>{p.company_name || "—"}</p>
+                      <p>{p.company_name || "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Category</p>
@@ -138,23 +138,41 @@ export default function AdminProductsPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Brand / Model</p>
-                      <p>{[p.brand, p.model].filter(Boolean).join(" · ") || "—"}</p>
+                      <p>{[p.brand, p.model].filter(Boolean).join(" · ") || "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Country of Origin</p>
-                      <p>{p.country_of_origin || "—"}</p>
+                      <p>{p.country_of_origin || "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Created</p>
-                      <p>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "—"}</p>
+                      <p>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Published At</p>
-                      <p>{p.published_at ? new Date(p.published_at).toLocaleDateString() : "—"}</p>
+                      <p>{p.published_at ? new Date(p.published_at).toLocaleDateString() : "-"}</p>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
+                    {p.status === "pending_review" && (
+                      <>
+                        <button
+                          onClick={() => moderateProduct(p.id, "approve")}
+                          disabled={actionLoading === p.id}
+                          className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {actionLoading === p.id ? "Processing..." : "Approve and publish"}
+                        </button>
+                        <button
+                          onClick={() => moderateProduct(p.id, "reject")}
+                          disabled={actionLoading === p.id}
+                          className="text-sm border border-border px-4 py-2 rounded-lg hover:bg-surface disabled:opacity-50"
+                        >
+                          Send back to draft
+                        </button>
+                      </>
+                    )}
                     {p.status === "published" && (
                       <button
                         onClick={() => moderateProduct(p.id, "hide")}

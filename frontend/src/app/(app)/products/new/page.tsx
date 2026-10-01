@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 import type { Product } from "@/types";
-import { CATEGORIES } from "@/lib/constants";
+import { CATEGORIES, REGULATED_CATEGORIES, REGULATED_NOTICE } from "@/lib/constants";
 
 export default function CreateProductPage() {
   const router = useRouter();
@@ -77,6 +77,11 @@ export default function CreateProductPage() {
                 <option key={c.value} value={c.value}>{c.label}</option>
               ))}
             </select>
+            {REGULATED_CATEGORIES.has(category) && (
+              <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-2">
+                {REGULATED_NOTICE} Products in this category are reviewed by our team before they are published.
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { ManufacturerProfile } from "@/types";
+import { PublicPageNotice } from "@/components/PublicPageNotice";
 
 /** "2026-09-30" → "September 2026" (parsed as a local date, not UTC). */
 export function monthYear(isoDate: string): string {
@@ -119,7 +120,7 @@ export function ManufacturerProfileView({
               </div>
             )}
 
-            {/* What was actually verified — transparency over a bare checkmark */}
+            {/* What was actually verified - transparency over a bare checkmark */}
             {data.verified_attributes.length > 0 && (
               <div className="mt-4">
                 <p className="text-xs text-muted mb-1.5">Verified by Identification ID:</p>
@@ -240,14 +241,9 @@ export function ManufacturerProfileView({
       <p className="text-xs text-muted mt-6 leading-relaxed">
         A Manufacturer ID is a unique identifier assigned to a manufacturer within the
         Identification ID global product registry. It is not a government, tax, or
-        internationally recognized business identifier. Verification confirms specified
-        account, domain, or company-profile attributes checked by Identification ID. It does
-        not constitute government certification, product safety certification, or a guarantee
-        of product authenticity.{" "}
-        <Link href="/verification" className="text-accent hover:underline">
-          How verification works
-        </Link>
+        internationally recognized business identifier.
       </p>
+      <PublicPageNotice targetType="manufacturer" targetId={data.manufacturer_id} showReport={!preview} />
     </>
   );
 }

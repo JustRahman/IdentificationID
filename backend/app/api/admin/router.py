@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,10 +9,12 @@ from sqlalchemy.orm import selectinload
 from app.core.deps import get_current_admin, get_db
 from app.core.exceptions import NotFound, ValidationError
 from app.models.audit_log import AuditLog
+from app.models.content_report import ContentReport, ReportStatus
 from app.models.company import Company, CompanyStatus
 from app.models.payment import Payment
 from app.models.product import Product, ProductStatus
 from app.models.user import User
+from app.services import audit
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -25,8 +27,12 @@ class CompanyReviewRequest(BaseModel):
 
 
 class ProductModerationRequest(BaseModel):
-    action: str  # "hide" or "unhide"
+    action: str  # "hide", "unhide", "approve" (pending_review -> published), "reject"
     reason: str | None = None
+
+
+class ReportResolveRequest(BaseModel):
+    note: str | None = None
 
 
 # --- Companies ---
@@ -77,6 +83,7 @@ async def list_companies(
 @router.post("/companies/{company_id}/review")
 async def review_company(
     company_id: str,
+    request: Request,
     body: CompanyReviewRequest,
     admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
@@ -96,12 +103,8 @@ async def review_company(
     else:
         raise ValidationError("Action must be 'approve' or 'reject'")
 
-    log = AuditLog(
-        actor_user_id=admin.id,
-        action=f"company.{body.action}",
-        metadata_={"company_id": str(company.id), "note": body.note},
-    )
-    db.add(log)
+    await audit.record(db, request, admin.id, f"admin.company.{body.action}", "company", company.id,
+                       new={"status": company.status.value, "note": body.note})
     await db.flush()
 
     return {
@@ -162,6 +165,7 @@ async def list_all_products(
 @router.post("/products/{product_id}/moderate")
 async def moderate_product(
     product_id: str,
+    request: Request,
     body: ProductModerationRequest,
     admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
@@ -171,19 +175,25 @@ async def moderate_product(
     if not product:
         raise NotFound("Product not found")
 
+    old_status = product.status.value
     if body.action == "hide":
         product.status = ProductStatus.hidden
     elif body.action == "unhide":
         product.status = ProductStatus.draft
+    elif body.action in ("approve", "reject"):
+        if product.status != ProductStatus.pending_review:
+            raise ValidationError("Only products pending review can be approved or rejected")
+        if body.action == "approve":
+            product.status = ProductStatus.published
+            product.published_at = datetime.now(timezone.utc)
+        else:
+            product.status = ProductStatus.draft
     else:
-        raise ValidationError("Action must be 'hide' or 'unhide'")
+        raise ValidationError("Action must be 'hide', 'unhide', 'approve' or 'reject'")
 
-    log = AuditLog(
-        actor_user_id=admin.id,
-        action=f"product.{body.action}",
-        metadata_={"product_id": str(product.id), "reason": body.reason},
-    )
-    db.add(log)
+    await audit.record(db, request, admin.id, f"admin.product.{body.action}", "product", product.id,
+                       old={"status": old_status},
+                       new={"status": product.status.value, "reason": body.reason})
     await db.flush()
 
     return {
@@ -266,4 +276,98 @@ async def admin_stats(
             "products_published": products_published,
             "users_total": users_total,
         },
+    }
+
+
+# --- Reports ---
+
+@router.get("/reports")
+async def list_reports(
+    status: str | None = Query("open"),
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(ContentReport).order_by(ContentReport.created_at.desc()).limit(200)
+    if status:
+        query = query.where(ContentReport.status == ReportStatus(status))
+    reports = (await db.execute(query)).scalars().all()
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": str(r.id),
+                "target_type": r.target_type,
+                "target_id": r.target_id,
+                "reason": r.reason.value,
+                "message": r.message,
+                "reporter_email": r.reporter_email,
+                "status": r.status.value,
+                "admin_note": r.admin_note,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None,
+            }
+            for r in reports
+        ],
+    }
+
+
+@router.post("/reports/{report_id}/resolve")
+async def resolve_report(
+    report_id: str,
+    body: ReportResolveRequest,
+    request: Request,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    report = (await db.execute(select(ContentReport).where(ContentReport.id == report_id))).scalar_one_or_none()
+    if not report:
+        raise NotFound("Report not found")
+    report.status = ReportStatus.resolved
+    report.admin_note = body.note
+    report.resolved_at = datetime.now(timezone.utc)
+    await audit.record(db, request, admin.id, "admin.report.resolve", report.target_type,
+                       report.target_id, new={"report_id": str(report.id), "note": body.note})
+    await db.flush()
+    return {"success": True, "data": {"id": str(report.id), "status": report.status.value}}
+
+
+# --- Audit trail (read-only) ---
+
+@router.get("/audit-logs")
+async def list_audit_logs(
+    entity_type: str | None = Query(None),
+    entity_id: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(50, ge=1, le=200),
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    query = (
+        select(AuditLog, User.email)
+        .outerjoin(User, User.id == AuditLog.actor_user_id)
+        .order_by(AuditLog.created_at.desc())
+    )
+    if entity_type:
+        query = query.where(AuditLog.entity_type == entity_type)
+    if entity_id:
+        query = query.where(AuditLog.entity_id == entity_id)
+    rows = (await db.execute(query.offset((page - 1) * per_page).limit(per_page))).all()
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": str(log.id),
+                "created_at": log.created_at.isoformat() if log.created_at else None,
+                "actor_email": email,
+                "action": log.action,
+                "entity_type": log.entity_type,
+                "entity_id": log.entity_id,
+                "old_values": log.old_values,
+                "new_values": log.new_values,
+                "ip_address": log.ip_address,
+                "metadata": log.metadata_,
+            }
+            for log, email in rows
+        ],
+        "meta": {"page": page, "per_page": per_page},
     }

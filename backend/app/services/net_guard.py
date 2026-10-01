@@ -1,6 +1,6 @@
 """SSRF guard for outbound requests to user-supplied hosts.
 
-Only public internet addresses are allowed — never loopback, private (RFC1918),
+Only public internet addresses are allowed - never loopback, private (RFC1918),
 link-local (incl. cloud metadata 169.254.169.254), reserved or multicast.
 """
 

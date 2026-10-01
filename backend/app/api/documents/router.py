@@ -1,7 +1,7 @@
 import hashlib
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +14,7 @@ from app.models.product import Product
 from app.models.product_document import DocType, ProductDocument
 from app.models.product_document_version import ProductDocumentVersion
 from app.models.user import User
-from app.services import storage
+from app.services import audit, storage
 from app.services.membership import require_membership
 
 router = APIRouter(prefix="/manufacturer", tags=["documents"])
@@ -42,6 +42,7 @@ async def _get_owned_product(product_id: str, user: User, db: AsyncSession) -> P
 @router.post("/products/{product_id}/documents", response_model=DocumentResponse)
 async def upload_document(
     product_id: str,
+    request: Request,
     file: UploadFile = File(...),
     doc_type: str = Form("manual"),
     title: str = Form(None),
@@ -90,6 +91,10 @@ async def upload_document(
 
     document.current_version_id = version.id
     await db.flush()
+    await audit.record(db, request, user.id, "document.create", "product", product.id, new={
+        "document_id": str(document.id), "doc_type": document.doc_type.value,
+        "title": document.title, "file_name": version.file_name, "sha256": sha256, "version": 1,
+    })
 
     await dispatch_event(db, product.company_id, "document.uploaded", {
         "identification_id": product.identification_id,
@@ -161,6 +166,7 @@ async def list_documents(
 @router.post("/documents/{doc_id}/versions", response_model=DocumentVersionResponse)
 async def upload_new_version(
     doc_id: str,
+    request: Request,
     file: UploadFile = File(...),
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
@@ -211,8 +217,15 @@ async def upload_new_version(
     db.add(version)
     await db.flush()
 
+    previous_version_id = document.current_version_id
     document.current_version_id = version.id
     await db.flush()
+    await audit.record(
+        db, request, user.id, "document.new_version", "product", product.id,
+        old={"document_id": str(document.id), "current_version_id": str(previous_version_id)},
+        new={"document_id": str(document.id), "current_version_id": str(version.id),
+             "file_name": version.file_name, "sha256": sha256, "version": version.version},
+    )
 
     return DocumentVersionResponse(
         id=str(version.id),

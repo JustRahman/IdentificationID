@@ -101,7 +101,7 @@ async def _checkout_completed(session: Any, db: AsyncSession) -> None:
 
 
 async def _invoice_paid(invoice: Any, db: AsyncSession) -> None:
-    """A renewal (or first) payment — extend to the new period end."""
+    """A renewal (or first) payment - extend to the new period end."""
     subscription_id = _invoice_subscription_id(invoice)
     if not subscription_id:
         return

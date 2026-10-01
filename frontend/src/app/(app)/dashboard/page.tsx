@@ -57,7 +57,7 @@ export default function DashboardPage() {
           <span className="text-blue-500 text-lg shrink-0">🕐</span>
           <div>
             <p className="text-sm font-semibold text-blue-800">Verification in progress</p>
-            <p className="text-xs text-blue-700 mt-0.5">Your company is under review — typically 1–2 business days. You'll receive an email once approved.</p>
+            <p className="text-xs text-blue-700 mt-0.5">Your company is under review - typically 1–2 business days. You'll receive an email once approved.</p>
           </div>
         </div>
       )}
@@ -134,10 +134,12 @@ export default function DashboardPage() {
                       ? "bg-green-50 text-green-700 border border-green-200"
                       : p.status === "hidden"
                       ? "bg-red-50 text-red-700 border border-red-200"
+                      : p.status === "pending_review"
+                      ? "bg-amber-50 text-amber-700 border border-amber-200"
                       : "bg-gray-50 text-gray-600 border border-gray-200"
                   }`}
                 >
-                  {p.status}
+                  {p.status.replace("_", " ")}
                 </span>
               </Link>
             ))}

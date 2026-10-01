@@ -1,7 +1,7 @@
 import { COMPANY } from "@/lib/constants";
 
 export const metadata = {
-  title: "Privacy Policy — Identification ID",
+  title: "Privacy Policy - Identification ID",
 };
 
 export default function PrivacyPage() {

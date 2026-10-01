@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 def _clean_website(v: str | None) -> str | None:
-    """Only http(s) URLs — blocks javascript:/data: links on public pages."""
+    """Only http(s) URLs - blocks javascript:/data: links on public pages."""
     if v is None or not v.strip():
         return None
     v = v.strip()

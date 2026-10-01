@@ -1,6 +1,6 @@
 export type UserRole = "consumer" | "manufacturer" | "admin";
 export type CompanyStatus = "pending" | "verified" | "rejected";
-export type ProductStatus = "draft" | "published" | "hidden";
+export type ProductStatus = "draft" | "published" | "hidden" | "pending_review";
 export type DocType = "manual" | "warranty" | "certificate" | "other";
 export type SubscriptionStatus = "active" | "past_due" | "canceled";
 export type PaymentStatus = "pending" | "succeeded" | "failed";
@@ -34,7 +34,7 @@ export interface Company {
   trust_checked_at: string | null;
 }
 
-/** GET /billing/registry — Manufacturer Registry Membership status. */
+/** GET /billing/registry - Manufacturer Registry Membership status. */
 export interface RegistryStatus {
   manufacturer_id: string | null;
   active: boolean;

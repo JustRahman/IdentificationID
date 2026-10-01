@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +10,7 @@ from app.models.company import Company
 from app.models.product import Product
 from app.models.product_image import ProductImage
 from app.models.user import User
-from app.services import storage
+from app.services import audit, storage
 from app.services.membership import require_membership
 
 router = APIRouter(prefix="/manufacturer", tags=["images"])
@@ -36,6 +36,7 @@ async def _get_owned_product(product_id: str, user: User, db: AsyncSession) -> P
 @router.post("/products/{product_id}/images")
 async def upload_image(
     product_id: str,
+    request: Request,
     file: UploadFile = File(...),
     alt_text: str = Form(None),
     user: User = Depends(get_verified_manufacturer),
@@ -76,6 +77,10 @@ async def upload_image(
         alt_text=alt_text,
     )
     db.add(image)
+    await db.flush()
+    await audit.record(db, request, user.id, "image.create", "product", product.id, new={
+        "image_id": str(image.id), "url": url, "alt_text": alt_text, "display_order": display_order,
+    })
     await db.commit()
     await db.refresh(image)
 
@@ -109,6 +114,7 @@ async def list_images(
 @router.delete("/images/{image_id}")
 async def delete_image(
     image_id: str,
+    request: Request,
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
@@ -121,6 +127,10 @@ async def delete_image(
     product = await _get_owned_product(str(image.product_id), user, db)
     await require_membership(product.company_id, db)
 
+    await audit.record(db, request, user.id, "image.delete", "product", product.id, old={
+        "image_id": str(image.id), "url": image.url, "alt_text": image.alt_text,
+        "display_order": image.display_order,
+    })
     await db.delete(image)
     await db.commit()
     return {"success": True}

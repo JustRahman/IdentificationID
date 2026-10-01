@@ -2,7 +2,8 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { LANGUAGES } from "@/lib/constants";
+import { LANGUAGES, VERIFICATION_DISCLAIMER } from "@/lib/constants";
+import { PublicPageNotice } from "@/components/PublicPageNotice";
 import { translateText } from "@/lib/translate";
 import { monthYear } from "@/components/ManufacturerProfileView";
 
@@ -245,7 +246,7 @@ export default function PublicProductPage({
           </div>
           <Link
             href="/verification"
-            title="What this status means"
+            title={VERIFICATION_DISCLAIMER}
             className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors shrink-0 ${
               product.company.verification_level === "verified"
                 ? "text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -436,6 +437,8 @@ export default function PublicProductPage({
           </div>
         )}
       </div>
+
+      <PublicPageNotice targetType="product" targetId={product.identification_id} />
     </div>
   );
 }

@@ -11,6 +11,8 @@ from app.api.companies.router import router as companies_router
 from app.api.products.router import router as products_router
 from app.api.documents.router import router as documents_router
 from app.api.billing.router import router as billing_router
+from app.api.agreement.router import router as agreement_router
+from app.api.reports.router import router as reports_router
 from app.api.public.router import router as public_router
 from app.api.admin.router import router as admin_router
 from app.api.images.router import router as images_router
@@ -23,31 +25,12 @@ from app.api.webhooks.router import router as webhooks_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Auto-create all tables on startup
-    from sqlalchemy import text
     from app.core.database import engine
+    from app.core.migrations import run_migrations
     from app.models import Base
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # Lightweight idempotent migrations for columns added to existing tables
-        # (create_all only creates missing tables, not missing columns).
-        for stmt in (
-            "ALTER TABLE products ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500)",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT",
-            "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS plan VARCHAR(32) NOT NULL DEFAULT 'free'",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS manufacturer_id VARCHAR(13)",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS trust_score INTEGER",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS trust_checks JSONB",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS trust_checked_at TIMESTAMPTZ",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS registry_active BOOLEAN NOT NULL DEFAULT false",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS registry_paid_until DATE",
-            "CREATE UNIQUE INDEX IF NOT EXISTS ix_companies_manufacturer_id ON companies (manufacturer_id)",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(50)",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS brands JSONB",
-            "ALTER TABLE companies ADD COLUMN IF NOT EXISTS registry_stripe_subscription_id VARCHAR(255)",
-            "CREATE INDEX IF NOT EXISTS ix_companies_registry_stripe_subscription_id ON companies (registry_stripe_subscription_id)",
-        ):
-            await conn.execute(text(stmt))
+        await run_migrations(conn)
 
     # Seed mock data
     from app.core.database import AsyncSessionLocal
@@ -95,7 +78,9 @@ app.include_router(images_router, prefix=API_V1)
 app.include_router(translate_router, prefix=API_V1)
 app.include_router(apikeys_router, prefix=API_V1)
 app.include_router(webhooks_router, prefix=API_V1)
-# Partner (public developer) API — clean short base: /v1/...
+app.include_router(agreement_router, prefix=API_V1)
+app.include_router(reports_router, prefix=API_V1)
+# Partner (public developer) API - clean short base: /v1/...
 app.include_router(partner_router)
 
 
@@ -130,5 +115,5 @@ async def partner_openapi():
 async def partner_docs() -> HTMLResponse:
     return get_swagger_ui_html(
         openapi_url="/v1/openapi.json",
-        title="Identification ID Partner API — Reference",
+        title="Identification ID Partner API - Reference",
     )

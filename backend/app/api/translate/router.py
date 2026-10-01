@@ -2,7 +2,7 @@
 
 Translates short UI strings into a target language using the free MyMemory
 API, caching every result in the database so each unique phrase is fetched
-from the external API at most once — not once per visitor.
+from the external API at most once - not once per visitor.
 """
 
 import asyncio
@@ -49,7 +49,7 @@ async def _mymemory(client: httpx.AsyncClient, text: str, target: str) -> str:
         translated = (data.get("responseData") or {}).get("translatedText")
         status = data.get("responseStatus")
         # MyMemory returns warnings (rate limit, etc.) in translatedText with a
-        # non-200 responseStatus — treat those as failures, keep English.
+        # non-200 responseStatus - treat those as failures, keep English.
         if translated and str(status) == "200":
             return translated
     except Exception:

@@ -144,23 +144,23 @@ export default function AdminCompaniesPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Owner</p>
-                      <p>{c.owner_email || "—"}</p>
+                      <p>{c.owner_email || "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Website</p>
-                      <p>{c.website || "—"}</p>
+                      <p>{c.website || "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Support Email</p>
-                      <p>{c.support_email || "—"}</p>
+                      <p>{c.support_email || "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Registered</p>
-                      <p>{c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}</p>
+                      <p>{c.created_at ? new Date(c.created_at).toLocaleDateString() : "-"}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted mb-0.5">Verified At</p>
-                      <p>{c.verified_at ? new Date(c.verified_at).toLocaleDateString() : "—"}</p>
+                      <p>{c.verified_at ? new Date(c.verified_at).toLocaleDateString() : "-"}</p>
                     </div>
                     {c.admin_note && (
                       <div className="col-span-2">

@@ -89,10 +89,12 @@ export default function ProductsPage() {
                     ? "bg-green-50 text-green-700 border border-green-200"
                     : p.status === "hidden"
                     ? "bg-red-50 text-red-700 border border-red-200"
+                    : p.status === "pending_review"
+                    ? "bg-amber-50 text-amber-700 border border-amber-200"
                     : "bg-gray-50 text-gray-600 border border-gray-200"
                 }`}
               >
-                {p.status}
+                {p.status.replace("_", " ")}
               </span>
             </Link>
           ))}

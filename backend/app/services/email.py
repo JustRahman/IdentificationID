@@ -26,7 +26,7 @@ def is_configured() -> bool:
 async def send_email(to: str, subject: str, html: str) -> bool:
     """Send an email. Returns True on success, False if SMTP not configured."""
     if not is_configured():
-        logger.warning("SMTP not configured — skipping email to %s", to)
+        logger.warning("SMTP not configured - skipping email to %s", to)
         return False
 
     msg = MIMEMultipart("alternative")
@@ -82,7 +82,7 @@ async def send_welcome_email(to: str) -> bool:
         <li>Fill in your company profile</li>
         <li>Preview your public manufacturer profile</li>
         <li>Activate your Manufacturer Registry Membership ($5/month or $49/year)</li>
-        <li>Add your products — your first 3 Product IDs are included</li>
+        <li>Add your products - your first 3 Product IDs are included</li>
       </ol>
       <a href="{settings.frontend_url}/dashboard"
          style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px;

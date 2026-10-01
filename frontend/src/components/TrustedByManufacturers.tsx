@@ -1,9 +1,9 @@
 /**
- * "Trusted by Manufacturers" — logos and short quotes from real customers.
+ * "Trusted by Manufacturers" - logos and short quotes from real customers.
  *
  * Hidden unless NEXT_PUBLIC_SHOW_TRUSTED_BY=true AND there is at least one
  * entry below. Only add manufacturers who are real customers and have given
- * written permission to use their logo and quote — never placeholders.
+ * written permission to use their logo and quote - never placeholders.
  */
 interface TrustedEntry {
   company: string;

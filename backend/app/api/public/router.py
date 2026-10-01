@@ -27,7 +27,7 @@ def _iso(d: date | None) -> str | None:
 
 def _safe_signed_url(file_key: str) -> str | None:
     """Best-effort download URL; None if storage is unconfigured or fails."""
-    # Seeded/external docs may store a full URL directly — serve it as-is.
+    # Seeded/external docs may store a full URL directly - serve it as-is.
     if file_key.startswith("http"):
         return file_key
     if not storage.is_configured():
@@ -65,7 +65,7 @@ async def lookup_product(
     product.view_count = (product.view_count or 0) + 1
     await db.commit()
 
-    # Product pages and QR codes keep working after a lapse — they just show
+    # Product pages and QR codes keep working after a lapse - they just show
     # the manufacturer's registry status.
     membership = await get_membership(product.company, db)
 
@@ -319,7 +319,7 @@ def manufacturer_profile(company: Company, membership: Membership, products: lis
         "contact_phone": company.contact_phone if active else None,
         "brands": (company.brands or []) if active else [],
         "registered_at": company.created_at.isoformat() if company.created_at else None,
-        # Automated signal checks only — not a legal vetting of the company.
+        # Automated signal checks only - not a legal vetting of the company.
         "verification_level": level,
         "verification_label": LEVEL_LABELS[level],
         "verified_attributes": verified_attributes(company.trust_checks),

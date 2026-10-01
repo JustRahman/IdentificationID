@@ -33,7 +33,7 @@ const NAV = [
   { href: "#rate-limits", label: "Rate limits" },
   { href: "#list-products", label: "List products" },
   { href: "#get-product", label: "Get a product" },
-  { href: "#lookup", label: "Verify / lookup" },
+  { href: "#lookup", label: "Lookup" },
   { href: "#stats", label: "Stats" },
   { href: "#webhooks", label: "Webhooks" },
   { href: "#errors", label: "Errors" },
@@ -47,7 +47,7 @@ export default function ApiDocsPage() {
         <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-3">Developers · API Reference</p>
         <h1 className="text-4xl font-semibold tracking-tight mb-4">Identification ID API</h1>
         <p className="text-lg text-muted leading-relaxed mb-6">
-          A simple REST API to read your product registry, verify products, and
+          A simple REST API to read your product registry, look up products, and
           pull live stats. JSON responses, one <code className="text-sm bg-surface px-1.5 py-0.5 rounded border border-border">X-API-Key</code> header.
         </p>
         <div className="flex flex-wrap gap-3">
@@ -78,7 +78,7 @@ export default function ApiDocsPage() {
             <ol className="space-y-3 text-sm">
               {[
                 ["Register & choose a plan", "Create a manufacturer account and pick a plan that includes API access (Best Value or Enterprise)."],
-                ["Create an API key", "In your dashboard, open API Access and generate a key. It's shown once — store it securely."],
+                ["Create an API key", "In your dashboard, open API Access and generate a key. It's shown once - store it securely."],
                 ["Call the API", "Send your key in the X-API-Key header on every request. That's it."],
               ].map(([t, d], i) => (
                 <li key={t} className="flex gap-3">
@@ -115,10 +115,10 @@ export default function ApiDocsPage() {
             <p className="text-sm text-muted mb-3">Treat your API key like a password. A few rules:</p>
             <ul className="space-y-2 text-sm text-muted">
               {[
-                ["Shown once", "The full key is displayed only when you create it. Copy and store it immediately — we keep only a hashed prefix and can't show it again."],
+                ["Shown once", "The full key is displayed only when you create it. Copy and store it immediately - we keep only a hashed prefix and can't show it again."],
                 ["Keep it server-side", "Never embed a key in frontend/browser code, mobile apps, or public repositories. Call the API from your backend only."],
                 ["Store as a secret", "Keep keys in environment variables or a secrets manager, not in source control."],
-                ["Revoke anytime", "If a key is exposed, revoke it in your dashboard under API Access and issue a new one — revoked keys stop working immediately."],
+                ["Revoke anytime", "If a key is exposed, revoke it in your dashboard under API Access and issue a new one - revoked keys stop working immediately."],
                 ["One key per integration", "Use separate keys per app or environment so you can rotate or revoke them independently."],
               ].map(([t, d]) => (
                 <li key={t} className="flex gap-2.5">
@@ -134,7 +134,7 @@ export default function ApiDocsPage() {
             <h2 className="text-2xl font-semibold mb-3">Rate limits</h2>
             <p className="text-sm text-muted mb-3">
               Requests are rate-limited per API key. If you exceed your limit you&apos;ll receive a{" "}
-              <code className="text-xs bg-surface px-1.5 py-0.5 rounded border border-border">429</code> response — back off and retry.
+              <code className="text-xs bg-surface px-1.5 py-0.5 rounded border border-border">429</code> response - back off and retry.
             </p>
             <div className="border border-border rounded-lg text-sm overflow-hidden">
               {[
@@ -219,9 +219,9 @@ export default function ApiDocsPage() {
 
           {/* Lookup */}
           <section id="lookup" className="scroll-mt-6">
-            <h2 className="text-2xl font-semibold mb-3">Verify / lookup</h2>
+            <h2 className="text-2xl font-semibold mb-3">Lookup</h2>
             <Get path="/lookup/{identification_id}" />
-            <p className="text-sm text-muted my-3">Verify that <em>any</em> published product is authentic and see which manufacturer owns it. Great for anti-counterfeit checks.</p>
+            <p className="text-sm text-muted my-3">Check whether <em>any</em> Identification ID is registered and published, and see which manufacturer registered it.</p>
             <Code title="Request">{`curl ${BASE}/lookup/IID-4F9A-2K7Q \\
   -H "X-API-Key: iid_live_…"`}</Code>
             <Code title="Response 200">{`{
@@ -289,7 +289,7 @@ export default function ApiDocsPage() {
 }`}</Code>
             <p className="text-sm text-muted mt-3 mb-1">
               Verify each delivery with the <code className="text-xs bg-surface px-1.5 py-0.5 rounded border border-border">X-IID-Signature</code> header
-              — an HMAC-SHA256 of the raw body using your webhook signing secret:
+              - an HMAC-SHA256 of the raw body using your webhook signing secret:
             </p>
             <Code title="Verify (Node.js)">{`const crypto = require("crypto");
 const expected = "sha256=" + crypto
@@ -315,7 +315,7 @@ const expected = "sha256=" + crypto
               {[
                 ["403", "FORBIDDEN", "Missing or invalid X-API-Key"],
                 ["404", "NOT_FOUND", "No product with that Identification ID"],
-                ["429", "RATE_LIMITED", "Too many requests — slow down"],
+                ["429", "RATE_LIMITED", "Too many requests - slow down"],
               ].map(([code, name, desc]) => (
                 <div key={code} className="flex gap-4 px-3 py-2 border-b border-border last:border-0">
                   <span className="font-mono text-xs w-10 shrink-0">{code}</span>

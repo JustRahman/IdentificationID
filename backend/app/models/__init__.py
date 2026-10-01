@@ -12,6 +12,8 @@ from app.models.audit_log import AuditLog
 from app.models.ui_translation import UiTranslation
 from app.models.api_key import ApiKey
 from app.models.webhook_endpoint import WebhookEndpoint
+from app.models.agreement_acceptance import AgreementAcceptance
+from app.models.content_report import ContentReport, ReportReason, ReportStatus
 
 __all__ = [
     "Base",
@@ -34,4 +36,8 @@ __all__ = [
     "UiTranslation",
     "ApiKey",
     "WebhookEndpoint",
+    "AgreementAcceptance",
+    "ContentReport",
+    "ReportReason",
+    "ReportStatus",
 ]

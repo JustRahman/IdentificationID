@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -13,10 +13,16 @@ from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
 from app.models.user import User
 from app.services.id_generator import generate_manufacturer_id
+from app.services import audit
 from app.services.membership import Membership
 from app.services.verification import evaluate_company
 
 router = APIRouter(prefix="/manufacturer/company", tags=["companies"])
+
+COMPANY_FIELDS = (
+    "legal_name", "display_name", "country_code", "website", "support_email",
+    "contact_phone", "brands", "logo_url", "description",
+)
 
 
 async def _run_verification(company: Company, user: User, db: AsyncSession) -> None:
@@ -53,6 +59,7 @@ async def _unique_manufacturer_id(db: AsyncSession) -> str:
 @router.post("", response_model=CompanyResponse)
 async def create_company(
     body: CompanyCreate,
+    request: Request,
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
@@ -79,6 +86,8 @@ async def create_company(
     )
     db.add(company)
     await db.flush()
+    await audit.record(db, request, user.id, "company.create", "company", company.id,
+                       new=audit.snapshot(company, COMPANY_FIELDS + ("manufacturer_id",)))
     await _run_verification(company, user, db)
 
     return _company_response(company)
@@ -109,6 +118,7 @@ async def get_company(
 @router.put("", response_model=CompanyResponse)
 async def update_company(
     body: CompanyUpdate,
+    request: Request,
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
@@ -119,8 +129,12 @@ async def update_company(
     if not company:
         raise NotFound("No company found")
 
+    before = audit.snapshot(company, COMPANY_FIELDS)
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(company, field, value)
+    old, new = audit.diff(before, audit.snapshot(company, COMPANY_FIELDS))
+    if new:
+        await audit.record(db, request, user.id, "company.update", "company", company.id, old, new)
 
     # If rejected, allow resubmission by resetting to pending
     if company.status == CompanyStatus.rejected:
@@ -128,7 +142,7 @@ async def update_company(
         company.admin_note = None
 
     await db.flush()
-    # Website/email may have changed — re-score.
+    # Website/email may have changed - re-score.
     await _run_verification(company, user, db)
     return _company_response(company)
 

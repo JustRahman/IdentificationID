@@ -19,7 +19,7 @@ export default function PricingPage() {
         Consumers always look up and verify products for free.
       </p>
 
-      {/* Manufacturer Registry Membership — required */}
+      {/* Manufacturer Registry Membership - required */}
       <div className="relative rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md mb-12">
         <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">
           REQUIRED FOR ALL MANUFACTURERS
@@ -48,7 +48,7 @@ export default function PricingPage() {
               or <span className="font-semibold">${annual} / year</span>
             </p>
             <p className="text-xs text-indigo-700 font-medium mt-1 mb-4">
-              Yearly recommended — save ${monthly * 12 - annual}
+              Yearly recommended - save ${monthly * 12 - annual}
             </p>
             <Link
               href="/register"
@@ -60,7 +60,7 @@ export default function PricingPage() {
         </div>
         <p className="text-xs text-indigo-900/60 mt-5 pt-4 border-t border-indigo-200">
           Your Manufacturer ID is permanent. If your membership lapses, the ID, product pages
-          and QR codes keep working — your profile is marked Inactive and adding or editing
+          and QR codes keep working - your profile is marked Inactive and adding or editing
           products pauses until you renew.
         </p>
       </div>

@@ -10,7 +10,7 @@ class UiTranslation(Base, UUIDMixin, TimestampMixin):
     """Server-side cache of machine-translated UI strings.
 
     Each unique (source text, target language) pair is translated once and
-    reused for every visitor — so the external translation API is hit at most
+    reused for every visitor - so the external translation API is hit at most
     once per phrase, not once per page view.
     """
 

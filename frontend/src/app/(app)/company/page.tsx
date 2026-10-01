@@ -6,6 +6,7 @@ import { api } from "@/services/api";
 import { CompanyProfileForm } from "@/components/CompanyProfileForm";
 import { monthYear } from "@/components/ManufacturerProfileView";
 import { useMembership } from "@/lib/membership";
+import { VERIFICATION_DISCLAIMER } from "@/lib/constants";
 import type { Company } from "@/types";
 
 export default function CompanyPage() {
@@ -169,7 +170,7 @@ export default function CompanyPage() {
             )}
           </div>
           <p className="text-xs text-muted mb-4">
-            These checks run automatically from your website and email — nothing for you to do.
+            These checks run automatically from your website and email - nothing for you to do.
             Add a company website and use a work email address to score higher.
           </p>
 
@@ -216,9 +217,7 @@ export default function CompanyPage() {
           </div>
 
           <p className="text-[11px] text-muted mt-4 pt-3 border-t border-border leading-relaxed">
-            Verification confirms specified account, domain, or company-profile attributes
-            checked by Identification ID. It does not constitute government certification,
-            product safety certification, or a guarantee of product authenticity.{" "}
+            {VERIFICATION_DISCLAIMER}{" "}
             <a href="/verification" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
               How verification works
             </a>

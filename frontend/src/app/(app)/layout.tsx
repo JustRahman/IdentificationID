@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { monthYear } from "@/components/ManufacturerProfileView";
 import { MembershipProvider, useMembership } from "@/lib/membership";
+import { AgreementBanner } from "@/components/AgreementBanner";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -135,6 +136,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         )}
+        {registry && <AgreementBanner />}
         {children}
       </main>
     </div>

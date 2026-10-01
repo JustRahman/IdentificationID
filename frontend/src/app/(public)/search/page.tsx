@@ -24,7 +24,7 @@ interface CompanyResult {
   product_count: number;
 }
 
-// Browse chips — derived from the shared category list.
+// Browse chips - derived from the shared category list.
 const CATEGORIES = ALL_CATEGORIES.map((c) => ({ label: c.label, q: c.value }));
 
 function ProductCard({ r }: { r: SearchResult }) {
@@ -157,7 +157,7 @@ function SearchPageContent() {
           <div className="text-center max-w-2xl mx-auto mb-8 pt-4">
             <h1 className="text-3xl font-semibold tracking-tight mb-3">Search the Product Registry</h1>
             <p className="text-muted text-sm">
-              Find any product by name, brand, or manufacturer — or paste an
+              Find any product by name, brand, or manufacturer - or paste an
               Identification ID like <span className="font-mono text-foreground">IID-4F9A-2K7Q</span> to
               open its page directly.
             </p>
@@ -271,7 +271,7 @@ function SearchPageContent() {
                 </div>
               ) : (
                 <p className="text-sm text-muted border border-dashed border-border rounded-xl p-6 text-center">
-                  No products published yet — be the first.{" "}
+                  No products published yet - be the first.{" "}
                   <Link href="/register" className="text-accent hover:underline">Register a product</Link>
                 </p>
               )}

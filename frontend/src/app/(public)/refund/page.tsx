@@ -1,7 +1,7 @@
 import { COMPANY } from "@/lib/constants";
 
 export const metadata = {
-  title: "Refund Policy — Identification ID",
+  title: "Refund Policy - Identification ID",
 };
 
 export default function RefundPolicyPage() {
@@ -27,11 +27,11 @@ export default function RefundPolicyPage() {
           </p>
           <ul className="list-disc pl-5 space-y-1">
             <li>
-              <strong className="text-foreground">Monthly — $5 per month.</strong> Renews automatically each month
+              <strong className="text-foreground">Monthly - $5 per month.</strong> Renews automatically each month
               until cancelled.
             </li>
             <li>
-              <strong className="text-foreground">Yearly — $49 per year.</strong> Renews automatically each year until
+              <strong className="text-foreground">Yearly - $49 per year.</strong> Renews automatically each year until
               cancelled.
             </li>
           </ul>

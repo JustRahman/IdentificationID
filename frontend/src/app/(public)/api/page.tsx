@@ -5,12 +5,12 @@ const FEATURES = [
   {
     icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4",
     title: "Pull your product catalog",
-    desc: "List every product you've registered, filter by status, and read full details — specs, images, and multilingual descriptions.",
+    desc: "List every product you've registered, filter by status, and read full details - specs, images, and multilingual descriptions.",
   },
   {
     icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z",
-    title: "Verify any product",
-    desc: "Check whether any Identification ID is real and published, and see which verified manufacturer owns it — perfect for anti-counterfeit checks.",
+    title: "Look up any product",
+    desc: "Check whether an Identification ID is registered and published, and see which manufacturer registered it.",
   },
   {
     icon: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z",
@@ -27,7 +27,7 @@ const FEATURES = [
 const ENDPOINTS = [
   { method: "GET", path: "/v1/products", desc: "List your products (filter by status)" },
   { method: "GET", path: "/v1/products/{id}", desc: "Full product detail + images + translations" },
-  { method: "GET", path: "/v1/lookup/{id}", desc: "Verify any published product" },
+  { method: "GET", path: "/v1/lookup/{id}", desc: "Look up any published product" },
   { method: "GET", path: "/v1/stats", desc: "Product & view counts" },
 ];
 
@@ -41,12 +41,12 @@ export default function ApiMarketingPage() {
           Build on the Identification ID API
         </h1>
         <p className="text-lg text-muted leading-relaxed mb-5">
-          Access your product registry programmatically. Sync catalogs, verify
-          products, and pull live stats — straight into your storefront,
+          Access your product registry programmatically. Sync catalogs, look up
+          products, and pull live stats - straight into your storefront,
           marketplace, or internal tools.
         </p>
         <p className="text-sm font-medium text-foreground bg-surface border border-border rounded-xl px-4 py-3 mb-8 max-w-xl mx-auto">
-          Identification ID — a Digital Product Identity Platform with Public Registry, QR Passports and Developer API.
+          Identification ID - a Digital Product Identity Platform with Public Registry, QR Passports and Developer API.
         </p>
         <div className="flex flex-wrap gap-3 justify-center">
           <Link

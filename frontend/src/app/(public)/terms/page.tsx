@@ -1,7 +1,7 @@
 import { COMPANY } from "@/lib/constants";
 
 export const metadata = {
-  title: "Terms of Service — Identification ID",
+  title: "Terms of Service - Identification ID",
 };
 
 export default function TermsPage() {
@@ -44,7 +44,9 @@ export default function TermsPage() {
             addition to it. You may not register or publish more products than your plan allows. If your membership
             lapses, your Manufacturer ID is kept and your profile is marked inactive until you renew. Cancellations and
             refunds are governed by our{" "}
-            <a href="/refund" className="text-accent hover:underline">Refund Policy</a>.
+            <a href="/refund" className="text-accent hover:underline">Refund Policy</a>. Manufacturer accounts are also
+            governed by our{" "}
+            <a href="/manufacturer-agreement" className="text-accent hover:underline">Manufacturer Agreement</a>.
           </p>
         </section>
 

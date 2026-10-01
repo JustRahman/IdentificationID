@@ -101,14 +101,14 @@ export default function LandingPage() {
             The Digital Identity Platform for Physical Products
           </p>
           <p className="text-base text-muted mb-4 leading-relaxed max-w-xl mx-auto">
-            Public registry, QR passports, and a developer API — a unique, verifiable ID for every product.
+            Public registry, QR passports, and a developer API - a unique, verifiable ID for every product.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {[
               { icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4", label: "Product Registry" },
               { icon: "M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z", label: "QR Passport" },
-              { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", label: "Verified Manufacturer Profiles" },
+              { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", label: "Manufacturer Registry Profiles" },
             ].map(({ icon, label }) => (
               <span
                 key={label}
@@ -167,9 +167,9 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm">
             {[
-              { n: "1,200+", label: "Products — target" },
-              { n: "50+", label: "Manufacturers — target" },
-              { n: "30+", label: "Countries — target" },
+              { n: "1,200+", label: "Products - target" },
+              { n: "50+", label: "Manufacturers - target" },
+              { n: "30+", label: "Countries - target" },
               { n: "100%", label: "Free for consumers" },
             ].map((s) => (
               <div key={s.label} className="text-center">
@@ -194,7 +194,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-muted max-w-2xl mx-auto leading-relaxed">
               Identification ID is an independent, unified digital product passport and an
-              international product catalog — one standard for describing a product and one passport for each item.
+              international product catalog - one standard for describing a product and one passport for each item.
             </p>
           </div>
 
@@ -203,22 +203,22 @@ export default function LandingPage() {
               {
                 icon: "M7 20l4-16m2 16l4-16M6 9h14M4 15h14",
                 title: "A unique ID for every product",
-                desc: "Each product gets a unique identifier that stays with it forever — from manufacturing to the consumer.",
+                desc: "Each product gets a unique identifier that stays with it forever - from manufacturing to the consumer.",
               },
               {
                 icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4",
                 title: "All information in one place",
-                desc: "Documents, manuals, certificates, and photos — all stored in one system and always available by ID.",
+                desc: "Documents, manuals, certificates, and photos - all stored in one system and always available by ID.",
               },
               {
                 icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z",
                 title: "Consumer verification",
-                desc: "Any consumer can retrieve and verify a product's full information by its ID — fast and free.",
+                desc: "Any consumer can retrieve and verify a product's full information by its ID - fast and free.",
               },
               {
                 icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
                 title: "Digital product passport",
-                desc: "Manufacturers get a living digital passport — update information without reprinting manuals and save on paper documentation.",
+                desc: "Manufacturers get a living digital passport - update information without reprinting manuals and save on paper documentation.",
               },
             ].map((item) => (
               <div key={item.title} className="bg-white border border-border rounded-2xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all">
@@ -241,7 +241,7 @@ export default function LandingPage() {
           <div className="text-center mb-14">
             <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">For everyone</p>
             <h2 className="text-3xl font-semibold tracking-tight mb-3">
-              One platform — for consumers and manufacturers
+              One platform - for consumers and manufacturers
             </h2>
           </div>
 
@@ -260,7 +260,7 @@ export default function LandingPage() {
                   "Get instant access to product data by ID",
                   "Read descriptions and usage instructions in multiple languages",
                   "Check a product against its manufacturer's record",
-                  "Use it free — no sign-up, no apps",
+                  "Use it free - no sign-up, no apps",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <svg className="w-4 h-4 text-green-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -313,25 +313,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Anti-Counterfeit ── */}
+      {/* ── Product identity ── */}
       <section className="py-20 px-6 bg-surface border-y border-border">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-3">Anti-Counterfeit</p>
+              <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-3">Product identity</p>
               <h2 className="text-3xl font-semibold tracking-tight mb-4">
-                Anti&#8209;Counterfeit platform
+                A persistent digital identity for every registered product
               </h2>
               <p className="text-muted mb-8 leading-relaxed">
-                Identification ID makes counterfeits easier to spot. Every item carries a unique
-                code that anyone can check against the manufacturer&apos;s registered record.
+                Identification ID helps consumers access manufacturer-provided product information.
+                Every registered product carries a unique code that anyone can look up to see the
+                information its manufacturer registered.
               </p>
               <ul className="space-y-4">
                 {[
-                  { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", text: "Check the ID on the product against the manufacturer's record" },
+                  { icon: "M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z", text: "Look up the ID on the product to see the manufacturer's registered information" },
                   { icon: "M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z", text: "A unique code for every individual item" },
-                  { icon: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0zM9 10h4M11 8v4", text: "Instant check before buying — right in the store" },
-                  { icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z", text: "Protect your brand's reputation from counterfeits" },
+                  { icon: "M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0zM9 10h4M11 8v4", text: "Look up a product before buying, right in the store" },
+                  { icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z", text: "Give customers one manufacturer-provided source of product information" },
                 ].map(({ icon, text }) => (
                   <li key={text} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg bg-white border border-border flex items-center justify-center shrink-0 mt-0.5">
@@ -409,7 +410,7 @@ export default function LandingPage() {
               {
                 icon: "M13 10V3L4 14h7v7l9-11h-7z",
                 title: "No paper documentation",
-                desc: "Just print the Identification ID on the product or packaging — no more printed manuals.",
+                desc: "Just print the Identification ID on the product or packaging - no more printed manuals.",
               },
               {
                 icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
@@ -419,7 +420,7 @@ export default function LandingPage() {
               {
                 icon: "M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129",
                 title: "Multilingual descriptions",
-                desc: "Automatic translation of descriptions and instructions — your product is clear to consumers worldwide.",
+                desc: "Automatic translation of descriptions and instructions - your product is clear to consumers worldwide.",
               },
             ].map((item) => (
               <div key={item.title} className="bg-white border border-border rounded-2xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all group">
@@ -443,12 +444,12 @@ export default function LandingPage() {
             <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-2">Pricing</p>
             <h2 className="text-3xl font-semibold tracking-tight mb-4">Simple, transparent pricing</h2>
             <p className="text-muted max-w-xl mx-auto">
-              Every manufacturer starts with a Registry Membership — add a product plan as you grow.
+              Every manufacturer starts with a Registry Membership - add a product plan as you grow.
               Consumers always look up and verify products for free.
             </p>
           </div>
 
-          {/* Manufacturer Registry Membership — required (highlighted) */}
+          {/* Manufacturer Registry Membership - required (highlighted) */}
           <div className="relative mb-12 rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md">
             <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">
               REQUIRED FOR ALL MANUFACTURERS
@@ -479,7 +480,7 @@ export default function LandingPage() {
                   or <span className="font-semibold">${REGISTRY_MEMBERSHIP.annualPriceCents / 100} / year</span>
                 </p>
                 <p className="text-xs text-indigo-700 font-medium mt-1 mb-4">
-                  Yearly recommended — save ${(REGISTRY_MEMBERSHIP.priceCents * 12 - REGISTRY_MEMBERSHIP.annualPriceCents) / 100}
+                  Yearly recommended - save ${(REGISTRY_MEMBERSHIP.priceCents * 12 - REGISTRY_MEMBERSHIP.annualPriceCents) / 100}
                 </p>
                 <Link
                   href="/register"
@@ -491,7 +492,7 @@ export default function LandingPage() {
             </div>
             <p className="text-xs text-indigo-900/60 mt-5 pt-4 border-t border-indigo-200 text-left">
               Your Manufacturer ID is permanent. If your membership lapses, the ID, product pages
-              and QR codes keep working — your profile is marked Inactive and adding or editing
+              and QR codes keep working - your profile is marked Inactive and adding or editing
               products pauses until you renew. Popular, Best Value and Enterprise include the
               membership; Standard is billed in addition to it.
             </p>
@@ -603,7 +604,7 @@ export default function LandingPage() {
             </form>
           )}
           <div className="flex items-center justify-center gap-4 mt-6 text-blue-100 text-xs flex-wrap">
-            {["3 Product IDs included", "$49/year — save $11", "Cancel anytime"].map((t) => (
+            {["3 Product IDs included", "$49/year - save $11", "Cancel anytime"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -627,7 +628,7 @@ export default function LandingPage() {
                 <span>Identification ID</span>
               </Link>
               <p className="text-sm text-muted max-w-xs leading-relaxed">
-                A global online product registry. Digital product passport, anti-counterfeit protection, and an international catalog.
+                A global online product registry. Persistent digital identity for registered products, manufacturer-provided product information, and an international catalog.
               </p>
             </div>
             <div>
@@ -646,6 +647,7 @@ export default function LandingPage() {
                 <li><Link href="/faq" className="text-foreground hover:text-accent transition-colors">FAQ</Link></li>
                 <li><Link href="/verification" className="text-foreground hover:text-accent transition-colors">Verification</Link></li>
                 <li><Link href="/terms" className="text-foreground hover:text-accent transition-colors">Terms</Link></li>
+                <li><Link href="/manufacturer-agreement" className="text-foreground hover:text-accent transition-colors">Manufacturer Agreement</Link></li>
                 <li><Link href="/privacy" className="text-foreground hover:text-accent transition-colors">Privacy</Link></li>
                 <li><Link href="/refund" className="text-foreground hover:text-accent transition-colors">Refund Policy</Link></li>
                 <li><Link href="/cookies" className="text-foreground hover:text-accent transition-colors">Cookies</Link></li>

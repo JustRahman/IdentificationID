@@ -12,7 +12,7 @@ from app.models.base import Base, TimestampMixin, UUIDMixin
 if TYPE_CHECKING:
     from app.models.company import Company
 
-# Events a webhook can subscribe to (product.viewed is intentionally excluded —
+# Events a webhook can subscribe to (product.viewed is intentionally excluded -
 # it is high-volume and would flood endpoints).
 WEBHOOK_EVENTS = ("product.published", "product.updated", "document.uploaded")
 

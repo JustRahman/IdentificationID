@@ -15,6 +15,7 @@ from app.models.product import Product
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.membership import PLANS_WITH_MEMBERSHIP, get_membership, membership_for
+from app.services.agreement import require_agreement
 from app.services.stripe_events import handle_event
 
 router = APIRouter(prefix="/billing", tags=["billing"])
@@ -104,6 +105,7 @@ async def create_checkout(
 ):
     if body.plan not in PURCHASABLE_PLANS:
         raise ValidationError(f"Plan must be one of {', '.join(PURCHASABLE_PLANS)}")
+    await require_agreement(user.id, db)
 
     result = await db.execute(
         select(Company).where(Company.owner_user_id == user.id)
@@ -114,7 +116,7 @@ async def create_checkout(
 
     plan = PLANS[body.plan]
 
-    # Standard doesn't include the Registry Membership — it's billed on top.
+    # Standard doesn't include the Registry Membership - it's billed on top.
     if body.plan not in PLANS_WITH_MEMBERSHIP and not (
         company.registry_active
         and (company.registry_paid_until is None or company.registry_paid_until >= date.today())
@@ -150,7 +152,7 @@ async def create_checkout(
         return {
             "success": True,
             "data": {
-                "message": "Plan activated (demo mode — Stripe not configured).",
+                "message": "Plan activated (demo mode - Stripe not configured).",
                 "plan": body.plan,
                 "price_cents": plan["price_cents"],
             },
@@ -216,7 +218,8 @@ async def create_registry_checkout(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Purchase the Manufacturer Registry Membership add-on."""
+    """Purchase the Manufacturer Registry Membership."""
+    await require_agreement(user.id, db)
     result = await db.execute(
         select(Company).where(Company.owner_user_id == user.id)
     )
@@ -236,7 +239,7 @@ async def create_registry_checkout(
         return {
             "success": True,
             "data": {
-                "message": "Registry membership activated (demo mode — Stripe not configured).",
+                "message": "Registry membership activated (demo mode - Stripe not configured).",
                 "active": True,
                 "paid_until": company.registry_paid_until.isoformat(),
             },
@@ -270,7 +273,7 @@ async def stripe_webhook(
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature", "")
 
-    # Never accept unsigned events — anyone could POST a fake "paid" event.
+    # Never accept unsigned events - anyone could POST a fake "paid" event.
     if not settings.stripe_webhook_secret:
         raise ValidationError("Stripe webhooks are not configured")
     try:

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { COMPANY } from "@/lib/constants";
 
 export const metadata = {
-  title: "About — Identification ID",
+  title: "About - Identification ID",
   description: "Identification ID is developed and operated by Global Product Identification Inc.",
 };
 
@@ -19,8 +19,8 @@ export default function AboutPage() {
         <section>
           <h2 className="text-base font-semibold mb-2">What we do</h2>
           <p className="text-muted">
-            We give every physical product a unique, verifiable digital identity — a single Identification ID that
-            links to its official product page: descriptions, manuals, certificates, images, and manufacturer details.
+            We give every registered product a persistent digital identity - a single Identification ID that
+            links to its manufacturer-maintained product page: descriptions, manuals, certificates, images, and manufacturer details.
             Consumers look up products instantly by ID or QR code; manufacturers manage a living digital passport
             without reprinting packaging.
           </p>
@@ -29,7 +29,7 @@ export default function AboutPage() {
         <section>
           <h2 className="text-base font-semibold mb-2">The platform</h2>
           <p className="text-muted">
-            Identification ID combines a public product registry, QR passports, verified manufacturer data, and a
+            Identification ID combines a public product registry, QR passports, manufacturer-provided data, and a
             developer API into one product-identity platform. It is designed for manufacturers, distributors,
             marketplaces, and the consumers who rely on trustworthy product information.
           </p>

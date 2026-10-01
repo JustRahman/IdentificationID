@@ -1,7 +1,7 @@
 import { COMPANY } from "@/lib/constants";
 
 export const metadata = {
-  title: "Cookie Policy — Identification ID",
+  title: "Cookie Policy - Identification ID",
 };
 
 export default function CookiesPage() {
@@ -19,9 +19,9 @@ export default function CookiesPage() {
         <section>
           <h2 className="text-base font-semibold text-foreground mb-2">What we use</h2>
           <ul className="list-disc list-inside space-y-1">
-            <li><strong className="text-foreground">Essential</strong> — sign-in sessions and security. The platform cannot work without these.</li>
-            <li><strong className="text-foreground">Preferences</strong> — remembering your chosen interface language and cached translations (stored locally in your browser).</li>
-            <li><strong className="text-foreground">Analytics</strong> — aggregate, non-identifying usage such as product-page view counts.</li>
+            <li><strong className="text-foreground">Essential</strong> - sign-in sessions and security. The platform cannot work without these.</li>
+            <li><strong className="text-foreground">Preferences</strong> - remembering your chosen interface language and cached translations (stored locally in your browser).</li>
+            <li><strong className="text-foreground">Analytics</strong> - aggregate, non-identifying usage such as product-page view counts.</li>
           </ul>
         </section>
 

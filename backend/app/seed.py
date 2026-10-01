@@ -319,7 +319,7 @@ async def seed_data(session: AsyncSession) -> None:
     versions_done = ver_check.scalar_one_or_none() is not None
 
     if products_done and images_done and versions_done:
-        return  # Fully seeded — nothing to do
+        return  # Fully seeded - nothing to do
 
     now = datetime.now(timezone.utc)
 
@@ -345,11 +345,11 @@ async def seed_data(session: AsyncSession) -> None:
         dict(company=acme, name="ProChef Air Fryer 5.5L", category="kitchen_appliances", brand="ACME", model="AF-550", country="US", status=ProductStatus.published,
              short="Large 5.5L digital air fryer with 8 cooking presets.",
              full="The ProChef Air Fryer 5.5L uses rapid air circulation to cook with up to 80% less fat than traditional frying. Features a digital touchscreen with 8 presets including fries, chicken, fish, steak, shrimp, cake, and pizza. The non-stick dishwasher-safe basket makes cleanup effortless.",
-             usage="1. Preheat for 3 minutes before cooking\n2. Place food in the basket — do not overfill\n3. Select preset or manually set temperature (80–200°C) and time\n4. Shake basket halfway through for even cooking\n5. Allow to cool before cleaning"),
+             usage="1. Preheat for 3 minutes before cooking\n2. Place food in the basket - do not overfill\n3. Select preset or manually set temperature (80–200°C) and time\n4. Shake basket halfway through for even cooking\n5. Allow to cool before cleaning"),
         dict(company=greenleaf, name="BrewMaster Coffee Maker", category="kitchen_appliances", brand="GreenLeaf", model="BM-12", country="GB", status=ProductStatus.published,
              short="12-cup programmable coffee maker with thermal carafe.",
              full="Brew up to 12 cups of rich, flavorful coffee with the BrewMaster. Features a 24-hour programmable timer, adjustable brew strength (mild, medium, bold), and a double-wall thermal stainless steel carafe that keeps coffee hot for up to 4 hours without a warming plate.",
-             usage="1. Fill the water reservoir to the desired level\n2. Insert a paper or reusable filter and add ground coffee\n3. Set timer or press Brew Now\n4. Pour and enjoy — carafe keeps coffee hot without burning"),
+             usage="1. Fill the water reservoir to the desired level\n2. Insert a paper or reusable filter and add ground coffee\n3. Set timer or press Brew Now\n4. Pour and enjoy - carafe keeps coffee hot without burning"),
         dict(company=casahome, name="SilentBlend 1200W", category="kitchen_appliances", brand="Casa Home", model="SB-1200", country="ES", status=ProductStatus.published,
              short="High-performance blender with noise-reduction enclosure.",
              full="The SilentBlend 1200W delivers powerful blending at up to 24,000 RPM while keeping noise below 65dB thanks to the included acoustic enclosure. Ideal for smoothies, soups, nut butters, and crushing ice. 2L BPA-free jug with self-cleaning function.",
@@ -367,7 +367,7 @@ async def seed_data(session: AsyncSession) -> None:
         dict(company=novatools, name="OrbitalSander OS-5", category="power_tools", brand="Nova Tools", model="OS-5", country="US", status=ProductStatus.published,
              short="Random orbital sander, 5-inch with variable speed.",
              full="5-inch random orbital sander with variable speed dial (4,000–12,000 OPM) for everything from stock removal to fine finishing. Hook-and-loop pad change system, integrated dust collection bag, and low-vibration design for fatigue-free extended use.",
-             usage="1. Attach sanding disc to hook-and-loop pad\n2. Set speed — lower for fine finish, higher for stock removal\n3. Keep sander moving to avoid swirl marks\n4. Empty dust bag when full"),
+             usage="1. Attach sanding disc to hook-and-loop pad\n2. Set speed - lower for fine finish, higher for stock removal\n3. Keep sander moving to avoid swirl marks\n4. Empty dust bag when full"),
 
         # ── Electronics ──
         dict(company=acme, name="SmartThermo X1", category="electronics", brand="ACME", model="ST-X1", country="US", status=ProductStatus.published,
@@ -397,11 +397,11 @@ async def seed_data(session: AsyncSession) -> None:
         dict(company=greenleaf, name="TrailRunner Jacket", category="clothing", brand="GreenLeaf", model="TRJ-M", country="GB", status=ProductStatus.published,
              short="Lightweight windproof running jacket, unisex.",
              full="The TrailRunner Jacket is made from recycled ripstop nylon with a water-resistant DWR coating. Packable into its own chest pocket. Reflective detailing for visibility in low light. Available in S, M, L, XL. Machine washable.",
-             usage="1. Machine wash cold, gentle cycle\n2. Do not tumble dry — hang to air dry\n3. Re-apply DWR coating annually with Nikwax TX.Direct\n4. Store in chest pocket when not in use"),
+             usage="1. Machine wash cold, gentle cycle\n2. Do not tumble dry - hang to air dry\n3. Re-apply DWR coating annually with Nikwax TX.Direct\n4. Store in chest pocket when not in use"),
         dict(company=zenfit, name="ZenFit Compression Tights", category="clothing", brand="ZenFit", model="CT-BLK-M", country="JP", status=ProductStatus.published,
              short="4-way stretch compression tights for training and recovery.",
              full="Made from 78% polyamide / 22% elastane with graduated compression (15–20 mmHg). Moisture-wicking, anti-odor fabric. Flat-seam construction prevents chafing. UPF 50+ sun protection. Available in XS–XXL.",
-             usage="1. Machine wash cold, inside out\n2. Do not bleach or iron\n3. Air dry — avoid direct sunlight\n4. Replace every 6 months or when compression decreases"),
+             usage="1. Machine wash cold, inside out\n2. Do not bleach or iron\n3. Air dry - avoid direct sunlight\n4. Replace every 6 months or when compression decreases"),
 
         # ── Toys ──
         dict(company=techvision, name="RoboKit STEM Builder", category="toys", brand="TechVision", model="RK-200", country="DE", status=ProductStatus.published,
@@ -411,7 +411,7 @@ async def seed_data(session: AsyncSession) -> None:
         dict(company=novatools, name="WoodCraft Junior Set", category="toys", brand="Nova Tools", model="WCJ-30", country="US", status=ProductStatus.published,
              short="30-piece real wood construction toy set for ages 4+.",
              full="Handcrafted from sustainably sourced beechwood. Sanded smooth, no sharp edges. Includes arches, columns, planks, and cylinders. Stimulates spatial reasoning and creative play. Coated with child-safe, non-toxic paint. Conforms to EN71 and ASTM F963 safety standards.",
-             usage="1. Suitable for ages 4 and above — always adult supervision for under 3s\n2. Clean with damp cloth only — do not submerge in water\n3. Sand any splinters lightly with fine grit sandpaper\n4. Store in included cotton bag"),
+             usage="1. Suitable for ages 4 and above - always adult supervision for under 3s\n2. Clean with damp cloth only - do not submerge in water\n3. Sand any splinters lightly with fine grit sandpaper\n4. Store in included cotton bag"),
 
         # ── Sports ──
         dict(company=zenfit, name="ZenMat Pro 6mm", category="sports", brand="ZenFit", model="ZM-PRO-6", country="JP", status=ProductStatus.published,
@@ -427,7 +427,7 @@ async def seed_data(session: AsyncSession) -> None:
         dict(company=novatools, name="JumpStart Pro 2000A", category="automotive", brand="Nova Tools", model="JSP-2000", country="US", status=ProductStatus.published,
              short="2000A peak portable car jump starter with USB-C.",
              full="The JumpStart Pro 2000A safely jump starts vehicles up to 8L gas or 6L diesel. Built-in 20,000mAh battery bank charges phones and laptops via USB-C PD (65W) and USB-A. Bright 500-lumen LED flashlight with SOS mode. Reverse polarity and overcharge protection.",
-             usage="1. Ensure jump starter is charged above 25%\n2. Connect red clamp to positive battery terminal, black to negative\n3. Start the vehicle — do not hold starter for more than 5 seconds\n4. Disconnect clamps in reverse order after vehicle starts"),
+             usage="1. Ensure jump starter is charged above 25%\n2. Connect red clamp to positive battery terminal, black to negative\n3. Start the vehicle - do not hold starter for more than 5 seconds\n4. Disconnect clamps in reverse order after vehicle starts"),
         dict(company=techvision, name="DriveCam 4K Duo", category="automotive", brand="TechVision", model="DC-4KD", country="DE", status=ProductStatus.published,
              short="Front and rear 4K dashcam with night vision and GPS.",
              full="Dual-channel dashcam with 4K front and 1080P rear recording. GPS tracking records speed and route. SONY STARVIS sensor for clear night footage. Loop recording overwrites oldest footage. 24H parking mode with hardwire kit (included). WiFi for phone preview.",
@@ -475,7 +475,7 @@ async def seed_data(session: AsyncSession) -> None:
                 doc = ProductDocument(
                     product_id=product.id,
                     doc_type=DocType.manual,
-                    title=f"{pd['name']} — User Manual",
+                    title=f"{pd['name']} - User Manual",
                 )
                 session.add(doc)
                 await session.flush()

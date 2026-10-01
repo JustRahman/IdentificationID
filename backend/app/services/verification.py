@@ -2,7 +2,7 @@
 
 Runs a set of free, zero-effort checks against data the manufacturer already
 provides at signup (work email + company website) and produces a trust score.
-No action is required from the manufacturer — no DNS records, no paperwork.
+No action is required from the manufacturer - no DNS records, no paperwork.
 
 Wording matters: a high score means "these automated signals check out",
 NOT "we legally vetted this company". Keep the public label modest.
@@ -21,7 +21,7 @@ import httpx
 
 from app.services.net_guard import resolve_public, safe_get
 
-# Free/consumer mail providers — a manufacturer using these can't be
+# Free/consumer mail providers - a manufacturer using these can't be
 # domain-matched, so they simply score lower (not rejected).
 FREE_EMAIL_DOMAINS = {
     "gmail.com", "googlemail.com", "yahoo.com", "yahoo.co.uk", "hotmail.com",
@@ -30,7 +30,7 @@ FREE_EMAIL_DOMAINS = {
     "163.com", "126.com", "protonmail.com", "proton.me", "zoho.com",
 }
 
-# Throwaway / disposable mail domains — a strong negative signal.
+# Throwaway / disposable mail domains - a strong negative signal.
 DISPOSABLE_EMAIL_DOMAINS = {
     "mailinator.com", "guerrillamail.com", "10minutemail.com", "tempmail.com",
     "temp-mail.org", "throwawaymail.com", "yopmail.com", "trashmail.com",
@@ -51,7 +51,7 @@ AUTO_VERIFY_THRESHOLD = 70   # >= this → verified automatically
 REVIEW_THRESHOLD = 40        # >= this → needs human review; below → rejected
 
 # Public trust levels. Deliberately named so each one states what was actually
-# checked — an automated check must never read as a legal vetting.
+# checked - an automated check must never read as a legal vetting.
 LEVEL_REGISTERED = "registered"    # signed up, holds a Manufacturer ID
 LEVEL_VERIFIED = "verified"        # corporate email + company domain confirmed
 LEVEL_BUSINESS = "business"        # legal entity confirmed (manual/paid, later)
@@ -110,7 +110,7 @@ def _domain_from_url(url: str) -> str:
 
 
 def _normalize(text: str) -> str:
-    """Lowercase alphanumerics only — for fuzzy company-name matching."""
+    """Lowercase alphanumerics only - for fuzzy company-name matching."""
     return re.sub(r"[^a-z0-9]", "", (text or "").lower())
 
 
@@ -259,7 +259,7 @@ async def evaluate_company(
         score += W_SSL
 
     if is_disposable:
-        score = 0  # hard fail — throwaway email
+        score = 0  # hard fail - throwaway email
 
     score = max(0, min(100, score))
 

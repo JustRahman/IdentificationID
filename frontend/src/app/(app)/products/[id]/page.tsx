@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent, use } from "react";
 import { api } from "@/services/api";
 import type { Product, ProductTranslation } from "@/types";
-import { CATEGORIES, LANGUAGES } from "@/lib/constants";
+import { CATEGORIES, REGULATED_CATEGORIES, REGULATED_NOTICE, LANGUAGES } from "@/lib/constants";
 import { translateText } from "@/lib/translate";
 
 interface DocumentInfo {
@@ -118,7 +118,7 @@ export default function EditProductPage({
   async function autoTranslate() {
     const src = getLang(activeLang);
     if (!src.short && !src.full && !src.usage) {
-      setError("Nothing to translate — fill in the current language fields first.");
+      setError("Nothing to translate - fill in the current language fields first.");
       return;
     }
     setTranslating(true);
@@ -267,7 +267,11 @@ export default function EditProductPage({
     try {
       const updated = await api.post<Product>(`/manufacturer/products/${id}/publish`);
       setProduct(updated);
-      setMessage("Product published successfully!");
+      setMessage(
+        updated.status === "pending_review"
+          ? "Submitted for review. Products in regulated categories are published after our team reviews them."
+          : "Product published successfully!"
+      );
     } catch (err: unknown) {
       const msg = (err as { error?: { message?: string } })?.error?.message;
       const details = (err as { error?: { details?: { errors?: string[] } } })?.error?.details?.errors;
@@ -293,7 +297,7 @@ export default function EditProductPage({
     : `https://identificationid.com/p/${product.identification_id}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(publicUrl)}`;
 
-  // Product completion — motivates finishing the listing before publishing.
+  // Product completion - motivates finishing the listing before publishing.
   const completionSteps = [
     { label: "Details", done: !!(name && category) },
     { label: "Image", done: images.length > 0 },
@@ -330,9 +334,10 @@ export default function EditProductPage({
         <span className={`text-xs px-2.5 py-1 rounded-lg font-medium shrink-0 ${
           product.status === "published" ? "bg-green-50 text-green-700 border border-green-200"
           : product.status === "hidden" ? "bg-red-50 text-red-700 border border-red-200"
+          : product.status === "pending_review" ? "bg-amber-50 text-amber-700 border border-amber-200"
           : "bg-gray-50 text-gray-600 border border-gray-200"
         }`}>
-          {product.status}
+          {product.status.replace("_", " ")}
         </span>
       </div>
 
@@ -403,6 +408,11 @@ export default function EditProductPage({
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
+              {REGULATED_CATEGORIES.has(category) && (
+              <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-2">
+                {REGULATED_NOTICE} Products in this category are reviewed by our team before they are published.
+              </p>
+            )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -600,6 +610,10 @@ export default function EditProductPage({
             </ul>
             {product.status === "published" ? (
               <p className="text-sm text-green-600 font-medium">This product is already published.</p>
+            ) : product.status === "pending_review" ? (
+              <p className="text-sm text-amber-700 font-medium">
+                Waiting for review. {REGULATED_NOTICE} We&apos;ll publish it once our team has reviewed it.
+              </p>
             ) : (
               <button onClick={publishProduct} disabled={saving}
                 className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50">

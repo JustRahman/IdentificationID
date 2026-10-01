@@ -37,7 +37,7 @@ const BASE_URL = "https://api.identificationid.com/v1";
 const ENDPOINTS = [
   { method: "GET", path: "/products", desc: "List all your products (optional ?status=published)" },
   { method: "GET", path: "/products/{identification_id}", desc: "Full product detail with images and translations" },
-  { method: "GET", path: "/lookup/{identification_id}", desc: "Public verification of any published product" },
+  { method: "GET", path: "/lookup/{identification_id}", desc: "Public lookup of any published product" },
   { method: "GET", path: "/stats", desc: "Product and view counts for your company" },
 ];
 
@@ -225,7 +225,7 @@ export default function ApiKeysPage() {
         {createdKey && (
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <p className="text-sm font-medium text-amber-800 mb-2">
-              Save this key now — you won&apos;t see it again.
+              Save this key now - you won&apos;t see it again.
             </p>
             <div className="flex items-center gap-2">
               <pre className="flex-1 bg-background border border-border rounded-lg p-3 text-xs overflow-x-auto">
@@ -264,7 +264,7 @@ export default function ApiKeysPage() {
                   </p>
                   <p className="text-xs text-muted font-mono">{k.key_prefix}</p>
                   <p className="text-xs text-muted">
-                    Created {k.created_at ? new Date(k.created_at).toLocaleDateString() : "—"}
+                    Created {k.created_at ? new Date(k.created_at).toLocaleDateString() : "-"}
                     {" · "}
                     Last used{" "}
                     {k.last_used_at ? new Date(k.last_used_at).toLocaleString() : "never"}
@@ -341,7 +341,7 @@ export default function ApiKeysPage() {
         {newWebhook?.secret && (
           <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <p className="text-sm font-medium text-amber-800 mb-2">
-              Signing secret — save it to verify webhook signatures.
+              Signing secret - save it to verify webhook signatures.
             </p>
             <pre className="bg-background border border-border rounded-lg p-3 text-xs overflow-x-auto">
               {newWebhook.secret}

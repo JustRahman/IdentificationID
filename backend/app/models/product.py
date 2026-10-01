@@ -22,6 +22,7 @@ class ProductStatus(str, enum.Enum):
     draft = "draft"
     published = "published"
     hidden = "hidden"
+    pending_review = "pending_review"  # regulated category, waiting for admin approval
 
 
 class Product(Base, UUIDMixin, TimestampMixin):
