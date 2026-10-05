@@ -646,10 +646,10 @@ export default function LandingPage() {
                 <li><Link href="/about" className="text-foreground hover:text-accent transition-colors">About</Link></li>
                 <li><Link href="/faq" className="text-foreground hover:text-accent transition-colors">FAQ</Link></li>
                 <li><Link href="/verification" className="text-foreground hover:text-accent transition-colors">Verification</Link></li>
-                <li><Link href="/terms" className="text-foreground hover:text-accent transition-colors">Terms</Link></li>
-                <li><Link href="/manufacturer-agreement" className="text-foreground hover:text-accent transition-colors">Manufacturer Agreement</Link></li>
-                <li><Link href="/privacy" className="text-foreground hover:text-accent transition-colors">Privacy</Link></li>
-                <li><Link href="/refund" className="text-foreground hover:text-accent transition-colors">Refund Policy</Link></li>
+                <li><Link href="/legal" className="text-foreground hover:text-accent transition-colors">Legal &amp; Trust Center</Link></li>
+                <li><Link href="/legal/terms" className="text-foreground hover:text-accent transition-colors">Terms &amp; Manufacturer Agreement</Link></li>
+                <li><Link href="/legal/privacy" className="text-foreground hover:text-accent transition-colors">Privacy</Link></li>
+                <li><Link href="/legal/refund" className="text-foreground hover:text-accent transition-colors">Refund Policy</Link></li>
                 <li><Link href="/cookies" className="text-foreground hover:text-accent transition-colors">Cookies</Link></li>
                 <li>
                   <a href="mailto:support@identificationid.com" className="text-foreground hover:text-accent transition-colors">

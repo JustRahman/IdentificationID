@@ -19,7 +19,16 @@ from app.models import (
     ProductStatus, ProductTranslation, User, UserRole,
 )
 from app.models.audit_log import AuditLog
-from app.services.agreement import AGREEMENT_VERSION
+from app.services.agreement import (
+    AGREEMENT_HASH, AGREEMENT_VERSION, CHECKBOX_TEXT_VERSION, PRIVACY_HASH, PRIVACY_VERSION,
+)
+
+ACCEPT = {
+    "version": AGREEMENT_VERSION, "document_hash": AGREEMENT_HASH,
+    "privacy_version": PRIVACY_VERSION, "privacy_document_hash": PRIVACY_HASH,
+    "checkbox_text_version": CHECKBOX_TEXT_VERSION, "authorized_person_name": "Jane Maker",
+    "billing_period": "monthly",
+}
 from main import app
 from tests.db import requires_db, run
 
@@ -82,9 +91,12 @@ def test_payment_blocked_until_agreement_accepted():
             assert r.status_code == 409
 
             assert (await c.get("/manufacturer/agreement")).json()["data"]["accepted"] is False
-            r = await c.post("/manufacturer/agreement/accept", json={"version": "1999-01-01"})
+            r = await c.post("/manufacturer/agreement/accept", json={**ACCEPT, "version": "1999-01-01"})
             assert r.status_code == 422  # stale version is refused
-            r = await c.post("/manufacturer/agreement/accept", json={"version": AGREEMENT_VERSION})
+            r = await c.post("/manufacturer/agreement/accept", json={**ACCEPT, "document_hash": "0" * 64})
+            assert r.status_code == 422  # text that isn't the published one is refused
+            r = await c.post("/manufacturer/agreement/accept", json=ACCEPT,
+                             headers={"User-Agent": "TestBrowser/1.0"})
             assert r.status_code == 200
             assert (await c.get("/manufacturer/agreement")).json()["data"]["accepted"] is True
 
@@ -92,6 +104,13 @@ def test_payment_blocked_until_agreement_accepted():
                 AgreementAcceptance.user_id == user.id))).scalar_one()
             assert (row.company_id, row.version, row.ip_address) == (company.id, AGREEMENT_VERSION, CLIENT_IP)
             assert row.accepted_at is not None
+            assert row.document_hash == AGREEMENT_HASH and row.privacy_document_hash == PRIVACY_HASH
+            assert row.terms_url.endswith("/legal/terms/1.0")
+            assert row.authorized_person_name == "Jane Maker" and row.authorized_person_email == user.email
+            assert (row.billing_period, row.price_presented_cents, row.currency) == ("monthly", 500, "USD")
+            assert row.auto_renewal_disclosed is True and row.user_agent == "TestBrowser/1.0"
+            assert "authorized to act on behalf of Maker Ltd" in row.checkbox_text
+            assert "renews automatically at USD $5 per month" in row.checkbox_text
 
             # Demo mode (no Stripe key in tests) activates directly once accepted.
             r = await c.post("/billing/registry/checkout", json={"billing": "monthly"})
@@ -193,5 +212,74 @@ def test_regulated_product_waits_for_admin_review():
             assert r.status_code == 200 and r.json()["data"]["status"] == "published"
         await db.refresh(medical)
         assert medical.status == ProductStatus.published and medical.published_at is not None
+
+    run(scenario)
+
+
+# ── 5. Manufacturer ID only after payment ──
+
+def test_manufacturer_id_issued_only_after_payment():
+    async def scenario(db):
+        user = User(email=f"new-{uuid.uuid4().hex[:8]}@test.dev", role=UserRole.manufacturer, is_active=True)
+        db.add(user)
+        await db.flush()
+        async with client_for(db, user) as c:
+            r = await c.post("/manufacturer/company", json={
+                "legal_name": "Fresh Co", "display_name": f"Fresh {uuid.uuid4().hex[:4]}", "country_code": "CN"})
+            assert r.status_code == 200 and r.json()["manufacturer_id"] is None
+            assert (await c.get("/manufacturer/company")).json()["manufacturer_id"] is None
+            assert (await c.get("/manufacturer/company/preview")).json()["data"]["manufacturer_id"] is None
+
+            assert (await c.post("/manufacturer/agreement/accept", json=ACCEPT)).status_code == 200
+            # Demo mode (no Stripe key) stands in for a confirmed payment.
+            assert (await c.post("/billing/registry/checkout", json={"billing": "annual"})).status_code == 200
+            mid = (await c.get("/manufacturer/company")).json()["manufacturer_id"]
+            assert mid and mid.startswith("MID-")
+
+    run(scenario)
+
+
+# ── 6. Complaints: legal reasons need an email, "under review" locks editing ──
+
+def test_under_review_flags_public_page_and_locks_editing(monkeypatch):
+    async def fake_send(to, subject, html):
+        return True
+
+    monkeypatch.setattr(reports_router, "send_email", fake_send)
+
+    async def scenario(db):
+        user, company = await make_member(db)
+        product = await make_publishable_product(db, company, "electronics")
+        product.status = ProductStatus.published
+        admin = User(email=f"admin-{uuid.uuid4().hex[:6]}@test.dev", role=UserRole.admin, is_active=True)
+        db.add(admin)
+        await db.flush()
+
+        async with client_for(db) as c:
+            body = {"target_type": "product", "target_id": product.identification_id,
+                    "reason": "trademark", "message": "This uses our registered mark"}
+            assert (await c.post("/public/reports", json=body)).status_code == 422  # email required
+            r = await c.post("/public/reports", json={**body, "email": "brand@owner.dev",
+                                                      "name": "Brand Owner", "evidence": "TM reg 123"})
+            assert r.status_code == 200
+            report_id = r.json()["data"]["id"]
+            assert (await c.get(f"/public/products/{product.identification_id}")).json()["data"]["under_review"] is False
+
+        async with client_for(db, admin) as c:
+            r = await c.post(f"/admin/reports/{report_id}/under-review", json={"note": "checking"})
+            assert r.status_code == 200 and r.json()["data"]["status"] == "under_review"
+
+        async with client_for(db) as c:
+            assert (await c.get(f"/public/products/{product.identification_id}")).json()["data"]["under_review"] is True
+
+        async with client_for(db, user) as c:
+            r = await c.put(f"/manufacturer/products/{product.id}", json={"name": "Renamed"})
+            assert r.status_code == 423
+
+        async with client_for(db, admin) as c:
+            assert (await c.post(f"/admin/reports/{report_id}/resolve", json={"note": "ok"})).status_code == 200
+
+        async with client_for(db, user) as c:
+            assert (await c.put(f"/manufacturer/products/{product.id}", json={"name": "Renamed"})).status_code == 200
 
     run(scenario)

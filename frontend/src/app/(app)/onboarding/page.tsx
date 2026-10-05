@@ -31,6 +31,7 @@ function OnboardingInner() {
   const [billing, setBilling] = useState<Billing>("annual");
   const [paying, setPaying] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [personName, setPersonName] = useState("");
   const [error, setError] = useState("");
 
   // Already an active member - nothing to onboard.
@@ -64,11 +65,11 @@ function OnboardingInner() {
   }, [step]);
 
   async function activate() {
-    if (!agreed) return;
+    if (!agreed || personName.trim().length < 2) return;
     setPaying(true);
     setError("");
     try {
-      await acceptAgreement();
+      await acceptAgreement({ authorizedPersonName: personName, billingPeriod: billing });
       const res = await api.post<{
         success: boolean;
         data: { checkout_url?: string; message?: string };
@@ -239,7 +240,14 @@ function OnboardingInner() {
           </div>
 
           <div className="mb-4">
-            <AgreementCheckbox checked={agreed} onChange={setAgreed} />
+            <AgreementCheckbox
+              checked={agreed}
+              onChange={setAgreed}
+              companyName={company?.legal_name || company?.display_name || ""}
+              billingPeriod={billing}
+              personName={personName}
+              onPersonNameChange={setPersonName}
+            />
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
@@ -251,7 +259,7 @@ function OnboardingInner() {
             </button>
             <button
               onClick={activate}
-              disabled={paying || !agreed}
+              disabled={paying || !agreed || personName.trim().length < 2}
               className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
             >
               {paying
@@ -261,7 +269,7 @@ function OnboardingInner() {
           </div>
           <p className="text-xs text-muted mt-3">
             Secure payment by Stripe. See our{" "}
-            <a href="/refund" target="_blank" className="text-accent hover:underline">Refund Policy</a>.
+            <a href="/legal/refund" target="_blank" className="text-accent hover:underline">Refund & Cancellation Policy</a>.
           </p>
         </div>
       )}

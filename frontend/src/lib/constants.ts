@@ -25,7 +25,14 @@ export const REGULATED_NOTICE =
   "Additional verification may be required for regulated product categories.";
 
 // ── Legal wording (shown verbatim; keep in sync with the Manufacturer Agreement) ──
-export const AGREEMENT_VERSION = "2026-10-01";
+// Terms of Service and Manufacturer Agreement shown at checkout. Must match
+// backend/app/services/agreement.py; the build fails if a hash doesn't match
+// the published file (see src/lib/legal.ts).
+export const AGREEMENT_VERSION = "1.0";
+export const AGREEMENT_HASH = "ec7b3cf083c6dc52cc30b3c44819528e81d26a59b528d722a477dfd348f6adec";
+export const PRIVACY_VERSION = "1.0";
+export const PRIVACY_HASH = "34e402d26853954bf1415972a1391f3d1a060c9f656cb1bc97fb487832054643";
+export const CHECKBOX_TEXT_VERSION = "2026-10-05";
 export const PRODUCT_DISCLAIMER =
   "Product information is provided and maintained by the manufacturer. Identification ID provides product identity and registry infrastructure and does not manufacture, sell, certify or warrant this product.";
 export const VERIFICATION_DISCLAIMER =

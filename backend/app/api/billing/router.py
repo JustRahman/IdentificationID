@@ -17,7 +17,8 @@ from app.models.product import Product
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.membership import PLANS_WITH_MEMBERSHIP, get_membership, membership_for
-from app.services.agreement import require_agreement
+from app.services.agreement import link_checkout, require_agreement
+from app.services.manufacturer_ids import ensure_manufacturer_id
 from app.services.stripe_events import handle_event
 
 router = APIRouter(prefix="/billing", tags=["billing"])
@@ -31,8 +32,8 @@ logger = logging.getLogger("billing")
 CHECKOUT_API_VERSION = "2026-08-26.dahlia"
 
 
-async def _create_checkout_session(**params) -> str:
-    """Create a Stripe Checkout Session and return its URL."""
+async def _create_checkout_session(**params):
+    """Create a Stripe Checkout Session and return it (url + id)."""
     try:
         session = await asyncio.to_thread(
             stripe.checkout.Session.create,
@@ -50,7 +51,7 @@ async def _create_checkout_session(**params) -> str:
             "few minutes or contact support@identificationid.com.",
             502,
         )
-    return session.url
+    return session
 
 PLANS = {
     # Registry Membership alone: the first 3 Product IDs at no additional cost.
@@ -178,6 +179,8 @@ async def create_checkout(
         subscription.paid_until = date.today() + timedelta(days=365)
         subscription.stripe_customer_id = "demo"
         subscription.stripe_subscription_id = f"demo_{body.plan}"
+        if body.plan in PLANS_WITH_MEMBERSHIP:
+            await ensure_manufacturer_id(company, db)
         await db.flush()
         return {
             "success": True,
@@ -188,7 +191,7 @@ async def create_checkout(
             },
         }
 
-    checkout_url = await _create_checkout_session(
+    session = await _create_checkout_session(
         mode="subscription",
         customer_email=user.email,
         line_items=[
@@ -206,7 +209,8 @@ async def create_checkout(
         success_url=f"{settings.frontend_url}/billing?success=true",
         cancel_url=f"{settings.frontend_url}/billing?canceled=true",
     )
-    return {"success": True, "data": {"checkout_url": checkout_url}}
+    await link_checkout(user.id, session.id, db)
+    return {"success": True, "data": {"checkout_url": session.url}}
 
 
 @router.get("/registry")
@@ -264,6 +268,7 @@ async def create_registry_checkout(
         company.registry_paid_until = date.today() + timedelta(
             days=365 if annual else 30
         )
+        await ensure_manufacturer_id(company, db)
         await db.flush()
         return {
             "success": True,
@@ -283,7 +288,7 @@ async def create_registry_checkout(
     if not price_id:
         raise ValidationError("Registry membership prices are not configured")
 
-    checkout_url = await _create_checkout_session(
+    session = await _create_checkout_session(
         mode="subscription",
         customer_email=user.email,
         line_items=[{"price": price_id, "quantity": 1}],
@@ -291,7 +296,8 @@ async def create_registry_checkout(
         success_url=f"{settings.frontend_url}/dashboard?registry=active",
         cancel_url=f"{settings.frontend_url}/onboarding?step=activate",
     )
-    return {"success": True, "data": {"checkout_url": checkout_url}}
+    await link_checkout(user.id, session.id, db)
+    return {"success": True, "data": {"checkout_url": session.url}}
 
 
 @router.post("/webhook")

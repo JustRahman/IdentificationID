@@ -12,9 +12,10 @@ from app.api.public.router import manufacturer_profile
 from app.models.company import Company, CompanyStatus
 from app.models.product import Product, ProductStatus
 from app.models.user import User
-from app.services.id_generator import generate_manufacturer_id
+from app.services.manufacturer_ids import ensure_manufacturer_id
+from app.services.registry_review import require_not_under_review
 from app.services import audit
-from app.services.membership import Membership
+from app.services.membership import Membership, get_membership
 from app.services.verification import evaluate_company
 
 router = APIRouter(prefix="/manufacturer/company", tags=["companies"])
@@ -44,18 +45,6 @@ async def _run_verification(company: Company, user: User, db: AsyncSession) -> N
         pass
 
 
-async def _unique_manufacturer_id(db: AsyncSession) -> str:
-    """Generate a MID that isn't already taken."""
-    for _ in range(10):
-        mid = generate_manufacturer_id()
-        existing = await db.execute(
-            select(Company).where(Company.manufacturer_id == mid)
-        )
-        if not existing.scalar_one_or_none():
-            return mid
-    raise ValidationError("Failed to generate a unique Manufacturer ID, try again")
-
-
 @router.post("", response_model=CompanyResponse)
 async def create_company(
     body: CompanyCreate,
@@ -71,7 +60,8 @@ async def create_company(
 
     company = Company(
         owner_user_id=user.id,
-        manufacturer_id=await _unique_manufacturer_id(db),
+        # No Manufacturer ID yet: it is issued only after the membership is paid.
+        manufacturer_id=None,
         legal_name=body.legal_name,
         display_name=body.display_name,
         country_code=body.country_code,
@@ -104,10 +94,9 @@ async def get_company(
     company = result.scalar_one_or_none()
     if not company:
         raise NotFound("No company found. Create one first.")
-    # Backfill a Manufacturer ID for companies created before the registry.
-    if not company.manufacturer_id:
-        company.manufacturer_id = await _unique_manufacturer_id(db)
-        await db.flush()
+    # Members who paid before MIDs were issued at payment time still get one.
+    if not company.manufacturer_id and (await get_membership(company, db)).ever_active:
+        await ensure_manufacturer_id(company, db)
     # Score companies that predate automated verification, so existing
     # manufacturers get checked without having to do anything.
     if company.trust_score is None:
@@ -129,6 +118,7 @@ async def update_company(
     if not company:
         raise NotFound("No company found")
 
+    await require_not_under_review("manufacturer", company.manufacturer_id, db)
     before = audit.snapshot(company, COMPANY_FIELDS)
     for field, value in body.model_dump(exclude_unset=True).items():
         setattr(company, field, value)

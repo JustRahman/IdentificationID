@@ -12,6 +12,7 @@ from app.models.product_image import ProductImage
 from app.models.user import User
 from app.services import audit, storage
 from app.services.membership import require_membership
+from app.services.registry_review import require_not_under_review
 
 router = APIRouter(prefix="/manufacturer", tags=["images"])
 
@@ -44,6 +45,7 @@ async def upload_image(
 ):
     product = await _get_owned_product(product_id, user, db)
     await require_membership(product.company_id, db)
+    await require_not_under_review("product", product.identification_id, db)
 
     if file.content_type not in ALLOWED_TYPES:
         raise ValidationError("Only JPEG, PNG, and WebP images are allowed")
@@ -126,6 +128,7 @@ async def delete_image(
     # Verify ownership
     product = await _get_owned_product(str(image.product_id), user, db)
     await require_membership(product.company_id, db)
+    await require_not_under_review("product", product.identification_id, db)
 
     await audit.record(db, request, user.id, "image.delete", "product", product.id, old={
         "image_id": str(image.id), "url": image.url, "alt_text": image.alt_text,

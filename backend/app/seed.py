@@ -273,16 +273,9 @@ async def _get_or_create_company(session: AsyncSession, display_name: str, owner
 
 
 async def seed_data(session: AsyncSession) -> None:
-    # Backfill Manufacturer IDs for any company missing one. Runs on every
-    # startup (before the seeded-already guard) so existing databases get
-    # registry IDs too.
-    missing = await session.execute(
-        select(Company).where(Company.manufacturer_id.is_(None))
-    )
+    # Manufacturer IDs are issued only after payment (see
+    # app/services/manufacturer_ids.py), so nothing is backfilled here.
     backfilled = False
-    for company in missing.scalars().all():
-        company.manufacturer_id = generate_manufacturer_id()
-        backfilled = True
 
     # Demo companies are kept as paid accounts so the public manufacturer
     # profiles stay populated for testing and demos.

@@ -47,7 +47,8 @@ export interface RegistryStatus {
 
 /** Public manufacturer registry profile (also used for the preview). */
 export interface ManufacturerProfile {
-  manufacturer_id: string;
+  manufacturer_id: string | null; // null in the pre-payment preview: issued after payment
+  under_review?: boolean;
   registry_status: "active" | "inactive";
   last_active: string | null;
   display_name: string;

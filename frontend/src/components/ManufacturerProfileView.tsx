@@ -27,7 +27,7 @@ export function ManufacturerProfileView({
   const [copied, setCopied] = useState(false);
 
   function copyId() {
-    navigator.clipboard.writeText(data.manufacturer_id).catch(() => {});
+    navigator.clipboard.writeText(data.manufacturer_id || "").catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -100,13 +100,22 @@ export function ManufacturerProfileView({
             )}
 
             <div className="flex items-center gap-2 mt-3 flex-wrap">
-              <span className="text-sm font-mono font-semibold">{data.manufacturer_id}</span>
-              <button
-                onClick={copyId}
-                className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
-              >
-                {copied ? "✓ Copied" : "Copy ID"}
-              </button>
+              {data.manufacturer_id ? (
+                <>
+                  <span className="text-sm font-mono font-semibold">{data.manufacturer_id}</span>
+                  <button
+                    onClick={copyId}
+                    className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+                  >
+                    {copied ? "✓ Copied" : "Copy ID"}
+                  </button>
+                </>
+              ) : (
+                <span className="text-sm text-muted">
+                  <span className="font-mono">MID-XXXX-XXXX</span>{" "}- your permanent Manufacturer ID is issued
+                  right after payment
+                </span>
+              )}
             </div>
 
             {data.description && (
@@ -175,6 +184,7 @@ export function ManufacturerProfileView({
               </div>
             ))}
           </div>
+          {data.manufacturer_id && (
           <div className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -191,6 +201,7 @@ export function ManufacturerProfileView({
               </p>
             </div>
           </div>
+          )}
         </div>
       </div>
 
@@ -246,7 +257,12 @@ export function ManufacturerProfileView({
         Identification ID global product registry. It is not a government, tax, or
         internationally recognized business identifier.
       </p>
-      <PublicPageNotice targetType="manufacturer" targetId={data.manufacturer_id} showReport={!preview} />
+      <PublicPageNotice
+        targetType="manufacturer"
+        targetId={data.manufacturer_id || ""}
+        showReport={!preview && !!data.manufacturer_id}
+        underReview={!!data.under_review}
+      />
     </>
   );
 }

@@ -25,6 +25,7 @@ interface ProductImage {
 
 interface ProductData {
   identification_id: string;
+  under_review?: boolean;
   name: string;
   category: string;
   brand: string | null;
@@ -438,7 +439,7 @@ export default function PublicProductPage({
         )}
       </div>
 
-      <PublicPageNotice targetType="product" targetId={product.identification_id} />
+      <PublicPageNotice targetType="product" targetId={product.identification_id} underReview={!!product.under_review} />
     </div>
   );
 }

@@ -39,6 +39,47 @@ MIGRATIONS = (
     "FOR EACH STATEMENT EXECUTE FUNCTION audit_logs_append_only()",
     # Regulated categories wait for admin review before going live.
     "ALTER TYPE productstatus ADD VALUE IF NOT EXISTS 'pending_review'",
+    # Full acceptance evidence for the Terms / Manufacturer Agreement.
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS manufacturer_id VARCHAR(13)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS agreement_type VARCHAR(64)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS document_hash VARCHAR(64)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS terms_url VARCHAR(255)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS privacy_version VARCHAR(32)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS privacy_document_hash VARCHAR(64)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS company_name VARCHAR(255)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS authorized_person_name VARCHAR(255)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS authorized_person_email VARCHAR(255)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS price_presented_cents INTEGER",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS currency VARCHAR(8)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS billing_period VARCHAR(16)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS auto_renewal_disclosed BOOLEAN NOT NULL DEFAULT false",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS checkbox_text_version VARCHAR(32)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS checkbox_text TEXT",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS user_agent VARCHAR(512)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS checkout_id VARCHAR(255)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS payment_provider_customer_id VARCHAR(255)",
+    "ALTER TABLE agreement_acceptances ADD COLUMN IF NOT EXISTS payment_provider_subscription_id VARCHAR(255)",
+    "CREATE INDEX IF NOT EXISTS ix_agreement_acceptances_checkout_id ON agreement_acceptances (checkout_id)",
+    # Report reasons from the IP & Trademark Complaint Policy, and "under review".
+    "ALTER TYPE reportreason ADD VALUE IF NOT EXISTS 'incorrect_manufacturer_info'",
+    "ALTER TYPE reportreason ADD VALUE IF NOT EXISTS 'unauthorized_profile'",
+    "ALTER TYPE reportreason ADD VALUE IF NOT EXISTS 'trademark'",
+    "ALTER TYPE reportreason ADD VALUE IF NOT EXISTS 'copyright'",
+    "ALTER TYPE reportreason ADD VALUE IF NOT EXISTS 'counterfeit'",
+    "ALTER TYPE reportreason ADD VALUE IF NOT EXISTS 'incorrect_product_info'",
+    "ALTER TYPE reportstatus ADD VALUE IF NOT EXISTS 'under_review'",
+    "ALTER TABLE content_reports ADD COLUMN IF NOT EXISTS reporter_name VARCHAR(255)",
+    "ALTER TABLE content_reports ADD COLUMN IF NOT EXISTS evidence TEXT",
+    # A Manufacturer ID is issued only after payment: release IDs that were
+    # reserved at sign-up by companies that never paid.
+    """UPDATE companies c SET manufacturer_id = NULL
+       WHERE c.manufacturer_id IS NOT NULL
+         AND c.registry_active = false
+         AND c.registry_paid_until IS NULL
+         AND NOT EXISTS (
+           SELECT 1 FROM subscriptions s
+           WHERE s.company_id = c.id AND s.plan IN ('popular', 'best_value', 'enterprise')
+         )""",
 )
 
 

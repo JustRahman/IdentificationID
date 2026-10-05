@@ -11,6 +11,8 @@ import { AgreementCheckbox, acceptAgreement } from "@/components/AgreementCheckb
 export function AgreementBanner() {
   const [needed, setNeeded] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [personName, setPersonName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,6 +20,10 @@ export function AgreementBanner() {
     api
       .get<{ success: boolean; data: { accepted: boolean } }>("/manufacturer/agreement")
       .then((res) => setNeeded(!res.data.accepted))
+      .catch(() => {});
+    api
+      .get<{ legal_name?: string; display_name?: string }>("/manufacturer/company")
+      .then((c) => setCompanyName(c.legal_name || c.display_name || ""))
       .catch(() => {});
   }, []);
 
@@ -27,7 +33,7 @@ export function AgreementBanner() {
     setSaving(true);
     setError("");
     try {
-      await acceptAgreement();
+      await acceptAgreement({ authorizedPersonName: personName });
       setNeeded(false);
     } catch {
       setError("Could not save your acceptance. Please try again.");
@@ -38,16 +44,22 @@ export function AgreementBanner() {
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-      <p className="text-sm font-semibold text-blue-900">Please review the Manufacturer Agreement</p>
+      <p className="text-sm font-semibold text-blue-900">Please review our updated Terms</p>
       <p className="text-xs text-blue-800 mt-0.5 mb-3">
-        We&apos;ve published a new version of the Manufacturer Agreement. Please review and accept it.
-        Payments are paused until you do; your products are not affected.
+        We&apos;ve published a new version of the Terms of Service and Manufacturer Agreement. Please review and
+        accept it. Payments are paused until you do; your products are not affected.
       </p>
-      <div className="flex items-center gap-4 flex-wrap">
-        <AgreementCheckbox checked={checked} onChange={setChecked} />
+      <div className="flex items-end gap-4 flex-wrap">
+        <AgreementCheckbox
+          checked={checked}
+          onChange={setChecked}
+          companyName={companyName}
+          personName={personName}
+          onPersonNameChange={setPersonName}
+        />
         <button
           onClick={accept}
-          disabled={!checked || saving}
+          disabled={!checked || saving || personName.trim().length < 2}
           className="text-xs bg-accent text-white px-3 py-1.5 rounded-lg hover:bg-accent-hover font-medium disabled:opacity-50"
         >
           {saving ? "Saving..." : "Accept"}

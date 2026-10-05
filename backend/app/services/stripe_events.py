@@ -18,6 +18,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.company import Company
 from app.models.payment import Payment, PaymentStatus
 from app.models.subscription import Subscription, SubscriptionStatus
+from app.services.agreement import record_payment_ids
+from app.services.manufacturer_ids import ensure_manufacturer_id
+from app.services.membership import PLANS_WITH_MEMBERSHIP
 
 logger = logging.getLogger("billing")
 
@@ -71,6 +74,9 @@ async def _checkout_completed(session: Any, db: AsyncSession) -> None:
         return
     company_id = uuid.UUID(company_id)
     paid_until = await _period_end_of(subscription_id)
+    # Link the payment to the Terms acceptance that preceded it.
+    if session.get("id"):
+        await record_payment_ids(session.get("id"), session.get("customer"), subscription_id, db)
 
     if metadata.get("registry") == "1":
         company = await db.get(Company, company_id)
@@ -78,6 +84,8 @@ async def _checkout_completed(session: Any, db: AsyncSession) -> None:
             company.registry_active = True
             company.registry_paid_until = paid_until
             company.registry_stripe_subscription_id = subscription_id
+            # The permanent Manufacturer ID is issued only after confirmed payment.
+            await ensure_manufacturer_id(company, db)
         return
 
     plan = metadata.get("plan", "membership")
@@ -91,6 +99,10 @@ async def _checkout_completed(session: Any, db: AsyncSession) -> None:
     sub.paid_until = paid_until
     sub.stripe_customer_id = session.get("customer") or ""
     sub.stripe_subscription_id = subscription_id
+    if plan in PLANS_WITH_MEMBERSHIP:
+        company = await db.get(Company, company_id)
+        if company:
+            await ensure_manufacturer_id(company, db)
     db.add(Payment(
         company_id=company_id,
         amount_cents=session.get("amount_total") or 0,
@@ -116,6 +128,7 @@ async def _invoice_paid(invoice: Any, db: AsyncSession) -> None:
     if company:
         company.registry_active = True
         company.registry_paid_until = paid_until
+        await ensure_manufacturer_id(company, db)
     if plan_sub:
         plan_sub.status = SubscriptionStatus.active
         plan_sub.paid_until = paid_until

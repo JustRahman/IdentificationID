@@ -301,6 +301,8 @@ async def list_reports(
                 "reason": r.reason.value,
                 "message": r.message,
                 "reporter_email": r.reporter_email,
+                "reporter_name": r.reporter_name,
+                "evidence": r.evidence,
                 "status": r.status.value,
                 "admin_note": r.admin_note,
                 "created_at": r.created_at.isoformat() if r.created_at else None,
@@ -326,6 +328,27 @@ async def resolve_report(
     report.admin_note = body.note
     report.resolved_at = datetime.now(timezone.utc)
     await audit.record(db, request, admin.id, "admin.report.resolve", report.target_type,
+                       report.target_id, new={"report_id": str(report.id), "note": body.note})
+    await db.flush()
+    return {"success": True, "data": {"id": str(report.id), "status": report.status.value}}
+
+
+@router.post("/reports/{report_id}/under-review")
+async def mark_report_under_review(
+    report_id: str,
+    body: ReportResolveRequest,
+    request: Request,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Publicly mark the reported record "Under review" and lock its editing."""
+    report = (await db.execute(select(ContentReport).where(ContentReport.id == report_id))).scalar_one_or_none()
+    if not report:
+        raise NotFound("Report not found")
+    report.status = ReportStatus.under_review
+    if body.note:
+        report.admin_note = body.note
+    await audit.record(db, request, admin.id, "admin.report.under_review", report.target_type,
                        report.target_id, new={"report_id": str(report.id), "note": body.note})
     await db.flush()
     return {"success": True, "data": {"id": str(report.id), "status": report.status.value}}

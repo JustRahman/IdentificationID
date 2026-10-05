@@ -1,5 +1,7 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +17,12 @@ router = APIRouter(prefix="/manufacturer/agreement", tags=["agreement"])
 
 class AcceptRequest(BaseModel):
     version: str
+    document_hash: str
+    privacy_version: str
+    privacy_document_hash: str
+    checkbox_text_version: str
+    authorized_person_name: str = Field(min_length=2, max_length=255)
+    billing_period: Optional[str] = Field(default=None, pattern="^(monthly|annual)$")
 
 
 @router.get("")
@@ -38,10 +46,31 @@ async def accept_agreement(
     user: User = Depends(get_verified_manufacturer),
     db: AsyncSession = Depends(get_db),
 ):
-    # The client must have shown the current version, not an older cached one.
-    if body.version != agreement.AGREEMENT_VERSION:
-        raise ValidationError("The Manufacturer Agreement has changed. Please reload and review it.")
-    result = await db.execute(select(Company.id).where(Company.owner_user_id == user.id))
-    company_id = result.scalar_one_or_none()
-    await agreement.accept(user.id, company_id, client_ip(request), db)
-    return {"success": True, "data": {"version": agreement.AGREEMENT_VERSION, "accepted": True}}
+    # The client must have shown exactly the current published text.
+    if (
+        body.version != agreement.AGREEMENT_VERSION
+        or body.document_hash != agreement.AGREEMENT_HASH
+        or body.privacy_version != agreement.PRIVACY_VERSION
+        or body.privacy_document_hash != agreement.PRIVACY_HASH
+        or body.checkbox_text_version != agreement.CHECKBOX_TEXT_VERSION
+    ):
+        raise ValidationError("Our Terms have changed. Please reload the page and review them.")
+    result = await db.execute(select(Company).where(Company.owner_user_id == user.id))
+    company = result.scalar_one_or_none()
+    company_name = (company.legal_name or company.display_name) if company else None
+    row = await agreement.accept(
+        user_id=user.id,
+        user_email=user.email,
+        company_id=company.id if company else None,
+        company_name=company_name,
+        manufacturer_id=company.manufacturer_id if company else None,
+        authorized_person_name=body.authorized_person_name.strip(),
+        billing_period=body.billing_period,
+        ip_address=client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+        db=db,
+    )
+    return {
+        "success": True,
+        "data": {"version": agreement.AGREEMENT_VERSION, "accepted": True, "acceptance_id": str(row.id)},
+    }

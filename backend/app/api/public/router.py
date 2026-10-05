@@ -15,6 +15,7 @@ from app.models.product_image import ProductImage
 from app.models.product_translation import ProductTranslation
 from app.models.subscription import Subscription
 from app.services import storage
+from app.services.registry_review import is_under_review
 from app.services.membership import Membership, get_membership, membership_for
 from app.services.verification import LEVEL_LABELS, level_for, verified_attributes
 
@@ -78,11 +79,15 @@ async def lookup_product(
         if t.lang == "en":
             en_translation = t
     translation = translation or en_translation
+    under_review = await is_under_review("product", product.identification_id, db) or await is_under_review(
+        "manufacturer", product.company.manufacturer_id, db
+    )
 
     return {
         "success": True,
         "data": {
             "identification_id": product.identification_id,
+            "under_review": under_review,
             "name": product.name,
             "category": product.category,
             "brand": product.brand,
@@ -292,10 +297,9 @@ async def lookup_manufacturer(
     )
     products = prod_result.scalars().all()
 
-    return {
-        "success": True,
-        "data": manufacturer_profile(company, membership, products),
-    }
+    data = manufacturer_profile(company, membership, products)
+    data["under_review"] = await is_under_review("manufacturer", company.manufacturer_id, db)
+    return {"success": True, "data": data}
 
 
 def manufacturer_profile(company: Company, membership: Membership, products: list[Product]) -> dict:

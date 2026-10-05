@@ -16,6 +16,7 @@ from app.models.product_document_version import ProductDocumentVersion
 from app.models.user import User
 from app.services import audit, storage
 from app.services.membership import require_membership
+from app.services.registry_review import require_not_under_review
 
 router = APIRouter(prefix="/manufacturer", tags=["documents"])
 
@@ -51,6 +52,7 @@ async def upload_document(
 ):
     product = await _get_owned_product(product_id, user, db)
     await require_membership(product.company_id, db)
+    await require_not_under_review("product", product.identification_id, db)
 
     if file.content_type != "application/pdf":
         raise ValidationError("Only PDF files are allowed")
@@ -181,6 +183,7 @@ async def upload_new_version(
     # Verify ownership
     product = await _get_owned_product(str(document.product_id), user, db)
     await require_membership(product.company_id, db)
+    await require_not_under_review("product", product.identification_id, db)
 
     if file.content_type != "application/pdf":
         raise ValidationError("Only PDF files are allowed")

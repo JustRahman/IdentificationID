@@ -25,6 +25,7 @@ from app.models.user import User
 from app.services.id_generator import generate_identification_id
 from app.services import audit
 from app.services.membership import require_membership
+from app.services.registry_review import require_not_under_review
 from app.services.regulated import is_regulated
 
 router = APIRouter(prefix="/manufacturer/products", tags=["products"])
@@ -136,6 +137,7 @@ async def update_product(
 ):
     product = await _get_owned_product(product_id, user, db)
     await require_membership(product.company_id, db)
+    await require_not_under_review("product", product.identification_id, db)
 
     before = audit.snapshot(product, PRODUCT_FIELDS)
     for field, value in body.model_dump(exclude_unset=True).items():
@@ -179,6 +181,7 @@ async def publish_product(
 ):
     product = await _get_owned_product(product_id, user, db)
     await require_membership(product.company_id, db)
+    await require_not_under_review("product", product.identification_id, db)
 
     errors = []
     if not product.name:
@@ -239,6 +242,7 @@ async def upsert_translation(
 ):
     product = await _get_owned_product(product_id, user, db)
     await require_membership(product.company_id, db)
+    await require_not_under_review("product", product.identification_id, db)
 
     result = await db.execute(
         select(ProductTranslation).where(
