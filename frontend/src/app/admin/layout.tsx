@@ -11,6 +11,7 @@ const adminNavItems = [
   { href: "/admin/products", label: "Products" },
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/reports", label: "Reports" },
+  { href: "/admin/do-not-contact", label: "Do not contact" },
   { href: "/admin/audit", label: "Audit trail" },
 ];
 

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -10,11 +10,13 @@ from app.core.deps import get_current_admin, get_db
 from app.core.exceptions import NotFound, ValidationError
 from app.models.audit_log import AuditLog
 from app.models.content_report import ContentReport, ReportStatus
+from app.models.email_suppression import EmailSuppression
 from app.models.company import Company, CompanyStatus
 from app.models.payment import Payment
 from app.models.product import Product, ProductStatus
 from app.models.user import User
 from app.services import audit
+from app.services.suppression import suppress
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -352,6 +354,49 @@ async def mark_report_under_review(
                        report.target_id, new={"report_id": str(report.id), "note": body.note})
     await db.flush()
     return {"success": True, "data": {"id": str(report.id), "status": report.status.value}}
+
+
+# --- Outreach do-not-contact list ---
+
+class SuppressionAddRequest(BaseModel):
+    email: EmailStr
+    reason: str = Field(pattern="^(unsubscribe|bounce|complaint|manual)$")
+    note: str | None = Field(default=None, max_length=1000)
+
+
+@router.get("/suppressions")
+async def list_suppressions(
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = (await db.execute(
+        select(EmailSuppression).order_by(EmailSuppression.created_at.desc()).limit(2000)
+    )).scalars().all()
+    return {
+        "success": True,
+        "data": [
+            {
+                "email": r.email, "reason": r.reason, "source": r.source, "note": r.note,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ],
+    }
+
+
+@router.post("/suppressions")
+async def add_suppression(
+    body: SuppressionAddRequest,
+    request: Request,
+    admin: User = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Record a reply-unsubscribe, bounce or complaint received by email."""
+    row, created = await suppress(body.email, body.reason, "admin", db, note=body.note)
+    if created:
+        await audit.record(db, request, admin.id, "admin.suppression.add", "email", row.email,
+                           new={"reason": body.reason, "note": body.note})
+    return {"success": True, "data": {"email": row.email, "created": created}}
 
 
 # --- Audit trail (read-only) ---

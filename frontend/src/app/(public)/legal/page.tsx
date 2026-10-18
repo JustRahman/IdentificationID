@@ -198,7 +198,10 @@ export default function TrustCenterPage() {
           <p>
             We contact manufacturers whose business email is published for business enquiries, about joining the
             registry. Our emails come from <Mail to="hello@identificationid.com" />, name the sender and our address,
-            and you can stop them at any time by replying &ldquo;unsubscribe&rdquo;.
+            and you can stop them at any time with the unsubscribe link in the email, on our{" "}
+            <Link href="/unsubscribe" className="text-accent hover:underline">unsubscribe page</Link>, or by replying
+            &ldquo;unsubscribe&rdquo;. Unsubscribed addresses are added to our do-not-contact list and are never
+            emailed again.
           </p>
           <p className="text-muted">
             We never ask for passwords or card numbers by email. Payments are only made through the secure checkout

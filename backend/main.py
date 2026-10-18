@@ -13,6 +13,7 @@ from app.api.documents.router import router as documents_router
 from app.api.billing.router import router as billing_router
 from app.api.agreement.router import router as agreement_router
 from app.api.reports.router import router as reports_router
+from app.api.outreach.router import router as outreach_router
 from app.api.public.router import router as public_router
 from app.api.admin.router import router as admin_router
 from app.api.images.router import router as images_router
@@ -80,6 +81,7 @@ app.include_router(apikeys_router, prefix=API_V1)
 app.include_router(webhooks_router, prefix=API_V1)
 app.include_router(agreement_router, prefix=API_V1)
 app.include_router(reports_router, prefix=API_V1)
+app.include_router(outreach_router, prefix=API_V1)
 # Partner (public developer) API - clean short base: /v1/...
 app.include_router(partner_router)
 

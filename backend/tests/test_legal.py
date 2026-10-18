@@ -283,3 +283,36 @@ def test_under_review_flags_public_page_and_locks_editing(monkeypatch):
             assert (await c.put(f"/manufacturer/products/{product.id}", json={"name": "Renamed"})).status_code == 200
 
     run(scenario)
+
+
+# ── 7. Outreach unsubscribe / do-not-contact list ──
+
+def test_unsubscribe_link_adds_to_do_not_contact_list(monkeypatch):
+    import app.api.outreach.router as outreach_router
+    from app.services.suppression import is_suppressed
+    sent = []
+
+    async def fake_send(to, subject, html):
+        sent.append((to, subject))
+        return True
+
+    monkeypatch.setattr(outreach_router, "send_email", fake_send)
+
+    async def scenario(db):
+        addr = f"Sales-{uuid.uuid4().hex[:6]}@Factory.CN"
+        async with client_for(db) as c:
+            assert (await c.post("/public/unsubscribe", json={"email": addr})).status_code == 200
+            assert (await c.post("/public/unsubscribe", json={"email": addr.lower()})).status_code == 200
+        assert await is_suppressed(addr.upper(), db)
+        assert len(sent) == 1 and sent[0][0] == "hello@identificationid.com"  # notified once
+
+        admin = User(email=f"admin-{uuid.uuid4().hex[:6]}@test.dev", role=UserRole.admin, is_active=True)
+        db.add(admin)
+        await db.flush()
+        async with client_for(db, admin) as c:
+            r = await c.post("/admin/suppressions", json={"email": "bounced@x.cn", "reason": "bounce"})
+            assert r.status_code == 200 and r.json()["data"]["created"] is True
+            emails = [x["email"] for x in (await c.get("/admin/suppressions")).json()["data"]]
+            assert addr.lower() in emails and "bounced@x.cn" in emails
+
+    run(scenario)

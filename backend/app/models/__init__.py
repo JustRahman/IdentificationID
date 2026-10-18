@@ -14,6 +14,7 @@ from app.models.api_key import ApiKey
 from app.models.webhook_endpoint import WebhookEndpoint
 from app.models.agreement_acceptance import AgreementAcceptance
 from app.models.content_report import ContentReport, ReportReason, ReportStatus
+from app.models.email_suppression import EmailSuppression
 
 __all__ = [
     "Base",
@@ -38,6 +39,7 @@ __all__ = [
     "WebhookEndpoint",
     "AgreementAcceptance",
     "ContentReport",
+    "EmailSuppression",
     "ReportReason",
     "ReportStatus",
 ]
