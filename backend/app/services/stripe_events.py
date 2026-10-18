@@ -84,6 +84,7 @@ async def _checkout_completed(session: Any, db: AsyncSession) -> None:
             company.registry_active = True
             company.registry_paid_until = paid_until
             company.registry_stripe_subscription_id = subscription_id
+            company.registry_cancel_at_period_end = False
             # The permanent Manufacturer ID is issued only after confirmed payment.
             await ensure_manufacturer_id(company, db)
         return
@@ -99,6 +100,7 @@ async def _checkout_completed(session: Any, db: AsyncSession) -> None:
     sub.paid_until = paid_until
     sub.stripe_customer_id = session.get("customer") or ""
     sub.stripe_subscription_id = subscription_id
+    sub.cancel_at_period_end = False
     if plan in PLANS_WITH_MEMBERSHIP:
         company = await db.get(Company, company_id)
         if company:
@@ -157,6 +159,15 @@ async def handle_event(event: Any, db: AsyncSession) -> None:
     elif event_type == "customer.subscription.updated":
         if obj.get("status") in ENDED_STATUSES:
             await _subscription_ended(obj["id"], db)
+        else:
+            # Keep "cancels at period end" in sync (e.g. cancelled from the Stripe dashboard).
+            pending = bool(obj.get("cancel_at_period_end"))
+            company = await _registry_company(obj["id"], db)
+            if company:
+                company.registry_cancel_at_period_end = pending
+            plan_sub = await _plan_subscription(obj["id"], db)
+            if plan_sub:
+                plan_sub.cancel_at_period_end = pending
     elif event_type == "invoice.payment_failed":
         # Stripe retries; if it finally fails we get subscription.deleted.
         logger.warning(

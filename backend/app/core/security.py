@@ -20,22 +20,23 @@ def create_access_token(
     user_id: str,
     token_type: str = "access",
     ttl_hours: float | None = None,
+    extra: dict | None = None,
 ) -> str:
     if ttl_hours is not None:
         expire = datetime.now(timezone.utc) + timedelta(hours=ttl_hours)
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_access_ttl_min)
     return jwt.encode(
-        {"sub": user_id, "exp": expire, "type": token_type},
+        {"sub": user_id, "exp": expire, "type": token_type, **(extra or {})},
         settings.jwt_secret,
         algorithm=settings.jwt_algorithm,
     )
 
 
-def create_refresh_token(user_id: str) -> str:
+def create_refresh_token(user_id: str, extra: dict | None = None) -> str:
     expire = datetime.now(timezone.utc) + timedelta(days=settings.jwt_refresh_ttl_days)
     return jwt.encode(
-        {"sub": user_id, "exp": expire, "type": "refresh"},
+        {"sub": user_id, "exp": expire, "type": "refresh", **(extra or {})},
         settings.jwt_secret,
         algorithm=settings.jwt_algorithm,
     )

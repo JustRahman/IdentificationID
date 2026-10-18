@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends
@@ -6,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth.schemas import (
     LoginRequest,
+    MfaLoginRequest,
     RefreshRequest,
     RegisterRequest,
     TokenResponse,
@@ -21,6 +23,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User, UserRole
+from app.services import totp
 from app.services.email import send_verification_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -69,9 +72,45 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if not user.is_active:
         raise Unauthorized("Account is disabled")
 
+    if user.totp_enabled_at:
+        # Password OK; the session is only issued after the 2-step code.
+        return TokenResponse(
+            mfa_required=True,
+            mfa_token=create_access_token(str(user.id), token_type="mfa_pending", ttl_hours=5 / 60),
+        )
+
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=create_refresh_token(str(user.id)),
+    )
+
+
+_MFA_FAILS: dict[str, list[float]] = {}
+MFA_MAX_FAILS = 5
+MFA_FAIL_WINDOW = 15 * 60
+
+
+@router.post("/login/mfa", response_model=TokenResponse)
+async def login_mfa(body: MfaLoginRequest, db: AsyncSession = Depends(get_db)):
+    payload = decode_token(body.mfa_token)
+    if not payload or payload.get("type") != "mfa_pending":
+        raise Unauthorized("Your login expired. Please enter your password again.")
+    user_id = payload.get("sub")
+    now = time.time()
+    fails = [t for t in _MFA_FAILS.get(user_id, []) if now - t < MFA_FAIL_WINDOW]
+    if len(fails) >= MFA_MAX_FAILS:
+        raise Unauthorized("Too many wrong codes. Please wait 15 minutes and try again.")
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    if not user or not user.is_active or not user.totp_enabled_at:
+        raise Unauthorized("Invalid login")
+    secret = totp.decrypt(user.totp_secret_enc or "")
+    if not secret or not totp.verify(secret, body.code):
+        _MFA_FAILS[user_id] = fails + [now]
+        raise Unauthorized("Wrong code. Use the current 6-digit code from your authenticator app.")
+    _MFA_FAILS.pop(user_id, None)
+    return TokenResponse(
+        access_token=create_access_token(str(user.id), extra={"mfa": True}),
+        refresh_token=create_refresh_token(str(user.id), extra={"mfa": True}),
     )
 
 
@@ -88,9 +127,10 @@ async def refresh_token(body: RefreshRequest, db: AsyncSession = Depends(get_db)
     if not user or not user.is_active:
         raise Unauthorized("User not found or inactive")
 
+    extra = {"mfa": True} if payload.get("mfa") else None
     return TokenResponse(
-        access_token=create_access_token(str(user.id)),
-        refresh_token=create_refresh_token(str(user.id)),
+        access_token=create_access_token(str(user.id), extra=extra),
+        refresh_token=create_refresh_token(str(user.id), extra=extra),
     )
 
 

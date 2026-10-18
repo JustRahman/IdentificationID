@@ -18,6 +18,7 @@ from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.membership import PLANS_WITH_MEMBERSHIP, get_membership, membership_for
 from app.services.agreement import link_checkout, require_agreement
+from app.services import audit
 from app.services.manufacturer_ids import ensure_manufacturer_id
 from app.services.stripe_events import handle_event
 
@@ -122,6 +123,7 @@ async def get_current_plan(
             "subscription": {
                 "status": subscription.status.value,
                 "paid_until": subscription.paid_until.isoformat(),
+                "cancel_at_period_end": bool(subscription.cancel_at_period_end),
                 "stripe_customer_id": subscription.stripe_customer_id,
             } if subscription else None,
         },
@@ -241,6 +243,9 @@ async def get_registry_membership(
             else None,
             "price_cents": REGISTRY_MEMBERSHIP["price_cents"],
             "annual_price_cents": REGISTRY_MEMBERSHIP["annual_price_cents"],
+            "cancel_at_period_end": bool(company.registry_cancel_at_period_end),
+            # Can be cancelled here when it's its own subscription (not included in a plan).
+            "can_cancel": bool(company.registry_active and not membership.included_in_plan),
         },
     }
 
@@ -298,6 +303,86 @@ async def create_registry_checkout(
     )
     await link_checkout(user.id, session.id, db)
     return {"success": True, "data": {"checkout_url": session.url}}
+
+
+# --- Cancel / resume (takes effect at the end of the paid period, no refund) ---
+
+async def _set_stripe_cancel(subscription_id: str | None, cancel: bool) -> None:
+    """Tell Stripe to stop (or resume) renewing. Demo mode / demo IDs skip Stripe."""
+    if not settings.stripe_secret_key or not subscription_id or subscription_id.startswith("demo"):
+        return
+    try:
+        await asyncio.to_thread(stripe.Subscription.modify, subscription_id, cancel_at_period_end=cancel)
+    except stripe.error.StripeError as e:
+        logger.error("Stripe cancel/resume failed for %s: %s", subscription_id, e)
+        raise AppException(
+            "PAYMENT_PROVIDER_ERROR",
+            "We couldn't update your subscription with our payment provider. Please try again or "
+            "email support@identificationid.com.",
+            502,
+        )
+
+
+async def _own_company(user: User, db: AsyncSession) -> Company:
+    company = (await db.execute(select(Company).where(Company.owner_user_id == user.id))).scalar_one_or_none()
+    if not company:
+        raise NotFound("Create a company first")
+    return company
+
+
+async def _registry_toggle(cancel: bool, user: User, request: Request, db: AsyncSession) -> dict:
+    company = await _own_company(user, db)
+    membership = await get_membership(company, db)
+    if not company.registry_active or membership.included_in_plan:
+        raise ValidationError(
+            "There is no separate Registry Membership to cancel. If it is included in your plan, "
+            "cancel the plan instead."
+        )
+    await _set_stripe_cancel(company.registry_stripe_subscription_id, cancel)
+    company.registry_cancel_at_period_end = cancel
+    await audit.record(db, request, user.id, "billing.registry.cancel" if cancel else "billing.registry.resume",
+                       "company", company.id, new={"cancel_at_period_end": cancel,
+                                                   "paid_until": str(company.registry_paid_until)})
+    await db.flush()
+    return {"success": True, "data": {
+        "cancel_at_period_end": cancel,
+        "paid_until": company.registry_paid_until.isoformat() if company.registry_paid_until else None,
+    }}
+
+
+@router.post("/registry/cancel")
+async def cancel_registry(request: Request, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Stop automatic renewal. The membership stays active until the end of the paid period."""
+    return await _registry_toggle(True, user, request, db)
+
+
+@router.post("/registry/resume")
+async def resume_registry(request: Request, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    return await _registry_toggle(False, user, request, db)
+
+
+async def _plan_toggle(cancel: bool, user: User, request: Request, db: AsyncSession) -> dict:
+    company = await _own_company(user, db)
+    sub = (await db.execute(select(Subscription).where(Subscription.company_id == company.id))).scalar_one_or_none()
+    if not sub or sub.status != SubscriptionStatus.active:
+        raise ValidationError("You don't have an active product plan.")
+    await _set_stripe_cancel(sub.stripe_subscription_id, cancel)
+    sub.cancel_at_period_end = cancel
+    await audit.record(db, request, user.id, "billing.plan.cancel" if cancel else "billing.plan.resume",
+                       "company", company.id, new={"plan": sub.plan, "cancel_at_period_end": cancel,
+                                                   "paid_until": str(sub.paid_until)})
+    await db.flush()
+    return {"success": True, "data": {"cancel_at_period_end": cancel, "paid_until": sub.paid_until.isoformat()}}
+
+
+@router.post("/plan/cancel")
+async def cancel_plan(request: Request, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    return await _plan_toggle(True, user, request, db)
+
+
+@router.post("/plan/resume")
+async def resume_plan(request: Request, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    return await _plan_toggle(False, user, request, db)
 
 
 @router.post("/webhook")

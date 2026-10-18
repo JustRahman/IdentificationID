@@ -16,6 +16,7 @@ from app.models.product_translation import ProductTranslation
 from app.models.subscription import Subscription
 from app.services import storage
 from app.services.registry_review import is_under_review
+from app.services.demo import is_hidden_demo, public_company_filter
 from app.services.membership import Membership, get_membership, membership_for
 from app.services.verification import LEVEL_LABELS, level_for, verified_attributes
 
@@ -59,7 +60,7 @@ async def lookup_product(
         )
     )
     product = result.scalar_one_or_none()
-    if not product:
+    if not product or is_hidden_demo(product.company):
         raise NotFound("Product not found")
 
     # Count this view (a scan / public page open).
@@ -167,7 +168,7 @@ async def search_products(
     base = (
         select(Product)
         .join(Product.company)
-        .where(Product.status == ProductStatus.published)
+        .where(Product.status == ProductStatus.published, public_company_filter())
     )
     search_filter = (
         Product.name.ilike(like)
@@ -215,7 +216,7 @@ async def featured_products(
     result = await db.execute(
         select(Product)
         .join(Product.company)
-        .where(Product.status == ProductStatus.published)
+        .where(Product.status == ProductStatus.published, public_company_filter())
         .options(selectinload(Product.company), selectinload(Product.images))
         .order_by(Product.published_at.desc())
         .limit(limit)
@@ -245,7 +246,7 @@ async def list_companies(
     result = await db.execute(
         select(Company, func.count(Product.id).label("product_count"))
         .outerjoin(Product, (Product.company_id == Company.id) & (Product.status == ProductStatus.published))
-        .where(Company.status == CompanyStatus.verified)
+        .where(Company.status == CompanyStatus.verified, public_company_filter())
         .group_by(Company.id)
         .order_by(func.count(Product.id).desc())
     )
@@ -281,6 +282,8 @@ async def lookup_manufacturer(
         select(Company).where(Company.manufacturer_id == manufacturer_id.upper())
     )
     company = result.scalar_one_or_none()
+    if is_hidden_demo(company):
+        company = None
     membership = await get_membership(company, db) if company else None
     # A Manufacturer ID goes public on the first paid activation.
     if not company or not membership.ever_active:

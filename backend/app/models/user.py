@@ -27,6 +27,9 @@ class User(Base, UUIDMixin, TimestampMixin):
     google_sub: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.consumer, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Admin 2-step login: Fernet-encrypted TOTP secret; enabled once confirmed with a code.
+    totp_secret_enc: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    totp_enabled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     email_verified_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

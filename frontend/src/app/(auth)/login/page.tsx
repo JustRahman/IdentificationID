@@ -5,7 +5,9 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginMfa } = useAuth();
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,7 +18,12 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      if (mfaToken) {
+        await loginMfa(mfaToken, code);
+      } else {
+        const r = await login(email, password);
+        if (r.mfaToken) setMfaToken(r.mfaToken);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -33,6 +40,36 @@ export default function LoginPage() {
           {error}
         </div>
       )}
+      {mfaToken ? (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="mfa-code">Two-step verification code</label>
+            <input
+              id="mfa-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+              maxLength={8}
+              placeholder="123456"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background tracking-widest"
+            />
+            <p className="text-xs text-muted mt-1">Enter the 6-digit code from your authenticator app.</p>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-accent text-white py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
+          >
+            {loading ? "Checking..." : "Verify"}
+          </button>
+          <button type="button" onClick={() => { setMfaToken(null); setCode(""); }} className="w-full text-xs text-muted hover:underline">
+            Start over
+          </button>
+        </form>
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Email</label>
@@ -62,6 +99,7 @@ export default function LoginPage() {
           {loading ? "Signing in..." : "Log in"}
         </button>
       </form>
+      )}
       <div className="relative my-5">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border" />

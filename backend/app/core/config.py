@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     # Platform admin login. Never hardcoded: if unset, the admin user is not
     # created or changed.
     admin_password: str = ""
+    # Lost the admin authenticator? Set ADMIN_TOTP_RESET=true, redeploy, log in,
+    # set up 2-step login again, then remove the variable.
+    admin_totp_reset: bool = False
+    # Show the seeded demo manufacturers publicly (local development only).
+    show_demo_content: bool = False
 
     # CORS
     frontend_url: str = "http://localhost:3000"

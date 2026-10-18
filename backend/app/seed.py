@@ -34,9 +34,7 @@ MIN_ADMIN_PASSWORD_LENGTH = 12
 SAMPLE_PDF_URL = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
 
 # Seeded demo manufacturers (kept as paid accounts for demos).
-DEMO_COMPANY_NAMES = (
-    "ACME Corp", "TechVision", "GreenLeaf", "Nova Tools", "Casa Home", "ZenFit",
-)
+from app.services.demo import DEMO_COMPANY_NAMES  # noqa: E402
 DEMO_PAID_UNTIL = date(2099, 12, 31)
 
 # Seeded demo manufacturer logins. The password is public (it's in this file),
@@ -226,6 +224,12 @@ async def _sync_admin(session: AsyncSession) -> bool:
             "Admin %s had a publicly known password and has been disabled. "
             "Set ADMIN_PASSWORD to restore access.", ADMIN_EMAIL,
         )
+
+    if admin and settings.admin_totp_reset and (admin.totp_secret_enc or admin.totp_enabled_at):
+        admin.totp_secret_enc = None
+        admin.totp_enabled_at = None
+        changed = True
+        logger.warning("Admin 2-step login was reset by ADMIN_TOTP_RESET. Remove the variable now.")
 
     password = settings.admin_password
     if not password:

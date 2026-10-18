@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from uuid import UUID
 
-from fastapi import Depends, Header
+from fastapi import Depends, Header, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +22,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def get_current_user(
+    request: Request,
     authorization: str = Header(...),
     db: AsyncSession = Depends(get_db),
 ) -> User:
@@ -42,14 +43,19 @@ async def get_current_user(
     if not user or not user.is_active:
         raise Unauthorized("User not found or inactive")
 
+    request.state.token_mfa = bool(payload.get("mfa"))
     return user
 
 
 async def get_current_admin(
+    request: Request,
     user: User = Depends(get_current_user),
 ) -> User:
     if user.role != UserRole.admin:
         raise Forbidden("Admin access required")
+    # Once 2-step login is on, admin access needs a session that passed it.
+    if user.totp_enabled_at and not getattr(request.state, "token_mfa", False):
+        raise Unauthorized("Two-step verification required. Please log in again.")
     return user
 
 

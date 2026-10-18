@@ -5,7 +5,7 @@ import uuid
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Date, Enum, ForeignKey, String
+from sqlalchemy import Boolean, Date, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,5 +34,6 @@ class Subscription(Base, UUIDMixin, TimestampMixin):
     stripe_customer_id: Mapped[str] = mapped_column(String(255), nullable=False)
     stripe_subscription_id: Mapped[str] = mapped_column(String(255), nullable=False)
     plan: Mapped[str] = mapped_column(String(32), nullable=False, server_default="membership")
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
 
     company: Mapped[Company] = relationship(back_populates="subscription")

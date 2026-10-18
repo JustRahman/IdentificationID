@@ -13,6 +13,7 @@ const adminNavItems = [
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/do-not-contact", label: "Do not contact" },
   { href: "/admin/audit", label: "Audit trail" },
+  { href: "/admin/security", label: "Security" },
 ];
 
 export default function AdminLayout({

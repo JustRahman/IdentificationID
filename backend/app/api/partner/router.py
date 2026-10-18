@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 from app.core.deps import get_db
 from app.core.exceptions import Forbidden, NotFound
 from app.models.api_key import ApiKey
+from app.services.demo import is_hidden_demo
 from app.models.company import Company
 from app.models.product import Product, ProductStatus
 
@@ -144,7 +145,7 @@ async def lookup_product(
         .options(selectinload(Product.company))
     )
     product = result.scalar_one_or_none()
-    if not product:
+    if not product or is_hidden_demo(product.company):
         raise NotFound("Product not found")
 
     return {

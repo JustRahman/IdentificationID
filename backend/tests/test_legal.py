@@ -138,7 +138,8 @@ def test_report_saved_emailed_and_rate_limited(monkeypatch):
                     "reason": "safety_concern", "message": "<b>Battery</b> overheats", "email": "a@b.dev"}
             assert (await c.post("/public/reports", json=body)).status_code == 200
 
-            report = (await db.execute(select(ContentReport))).scalars().first()
+            report = (await db.execute(select(ContentReport).where(
+                ContentReport.target_id == product.identification_id))).scalars().first()
             assert report.target_id == product.identification_id and report.ip_address == CLIENT_IP
             assert sent and sent[0][0] == "support@identificationid.com"
             assert "&lt;b&gt;Battery" in sent[0][2]  # user text is escaped in the email
@@ -248,6 +249,7 @@ def test_under_review_flags_public_page_and_locks_editing(monkeypatch):
     monkeypatch.setattr(reports_router, "send_email", fake_send)
 
     async def scenario(db):
+        db.commit = db.flush  # the public lookup commits view counts; keep the test DB clean
         user, company = await make_member(db)
         product = await make_publishable_product(db, company, "electronics")
         product.status = ProductStatus.published
@@ -314,5 +316,85 @@ def test_unsubscribe_link_adds_to_do_not_contact_list(monkeypatch):
             assert r.status_code == 200 and r.json()["data"]["created"] is True
             emails = [x["email"] for x in (await c.get("/admin/suppressions")).json()["data"]]
             assert addr.lower() in emails and "bounced@x.cn" in emails
+
+    run(scenario)
+
+
+# ── 8. Cancel / resume membership from the account ──
+
+def test_cancel_and_resume_registry_membership():
+    async def scenario(db):
+        user, company = await make_member(db)
+        async with client_for(db, user) as c:
+            r = (await c.get("/billing/registry")).json()["data"]
+            assert r["can_cancel"] is True and r["cancel_at_period_end"] is False
+            r = await c.post("/billing/registry/cancel")
+            assert r.status_code == 200 and r.json()["data"]["cancel_at_period_end"] is True
+            r = (await c.get("/billing/registry")).json()["data"]
+            assert r["cancel_at_period_end"] is True and r["active"] is True  # active until period end
+            assert (await c.post("/billing/registry/resume")).status_code == 200
+            assert (await c.get("/billing/registry")).json()["data"]["cancel_at_period_end"] is False
+            assert (await c.post("/billing/plan/cancel")).status_code == 422  # no product plan
+        logged = (await db.execute(select(AuditLog).where(
+            AuditLog.entity_id == str(company.id), AuditLog.action.like("billing.registry.%")))).scalars().all()
+        assert len(logged) == 2
+
+    run(scenario)
+
+
+# ── 9. Admin 2-step login ──
+
+def test_admin_two_step_login():
+    from app.core.security import hash_password
+    from app.services import totp
+
+    async def scenario(db):
+        admin = User(email=f"admin-{uuid.uuid4().hex[:6]}@test.dev", role=UserRole.admin, is_active=True,
+                     password_hash=hash_password("a-long-admin-password"))
+        db.add(admin)
+        await db.flush()
+        async with client_for(db, admin) as c:
+            assert (await c.get("/admin/2fa")).json()["data"]["enabled"] is False
+            secret = (await c.post("/admin/2fa/setup")).json()["data"]["secret"]
+            assert (await c.post("/admin/2fa/enable", json={"code": "000000"})).status_code == 422
+            r = await c.post("/admin/2fa/enable", json={"code": totp.current_code(secret)})
+            assert r.status_code == 200 and r.json()["data"]["access_token"]
+            # The old (no-2FA) session no longer opens the admin panel.
+            assert (await c.get("/admin/reports")).status_code == 401
+
+        async with client_for(db) as c:
+            r = (await c.post("/auth/login", json={"email": admin.email, "password": "a-long-admin-password"})).json()
+            assert r["mfa_required"] is True and r["access_token"] is None
+            bad = await c.post("/auth/login/mfa", json={"mfa_token": r["mfa_token"], "code": "123456"})
+            assert bad.status_code == 401
+            ok = (await c.post("/auth/login/mfa", json={"mfa_token": r["mfa_token"],
+                                                         "code": totp.current_code(secret)})).json()
+            token = ok["access_token"]
+            refreshed = (await c.post("/auth/refresh", json={"refresh_token": ok["refresh_token"]})).json()
+        for t in (token, refreshed["access_token"]):
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test/api/v1",
+                                         headers={"Authorization": f"Bearer {t}"}) as c2:
+                assert (await c2.get("/admin/reports")).status_code == 200
+
+    run(scenario)
+
+
+# ── 10. Demo manufacturers are hidden from the public ──
+
+def test_demo_companies_hidden_from_public():
+    async def scenario(db):
+        db.commit = db.flush
+        user, company = await make_member(db)
+        company.display_name = "Nova Tools"
+        product = await make_publishable_product(db, company, "power_tools")
+        product.status = ProductStatus.published
+        await db.flush()
+        async with client_for(db) as c:
+            assert (await c.get(f"/public/products/{product.identification_id}")).status_code == 404
+            assert (await c.get(f"/public/manufacturers/{company.manufacturer_id}")).status_code == 404
+            found = (await c.get("/public/search", params={"q": "Thing"})).json()["data"]
+            assert product.identification_id not in [p["identification_id"] for p in found]
+            featured = (await c.get("/public/featured")).json()["data"]
+            assert product.identification_id not in [p["identification_id"] for p in featured]
 
     run(scenario)

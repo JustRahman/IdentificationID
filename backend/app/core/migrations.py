@@ -70,6 +70,12 @@ MIGRATIONS = (
     "ALTER TYPE reportstatus ADD VALUE IF NOT EXISTS 'under_review'",
     "ALTER TABLE content_reports ADD COLUMN IF NOT EXISTS reporter_name VARCHAR(255)",
     "ALTER TABLE content_reports ADD COLUMN IF NOT EXISTS evidence TEXT",
+    # Admin 2-step login (TOTP).
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret_enc VARCHAR(255)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled_at TIMESTAMPTZ",
+    # Manufacturer-initiated cancellation (ends at the end of the paid period).
+    "ALTER TABLE companies ADD COLUMN IF NOT EXISTS registry_cancel_at_period_end BOOLEAN NOT NULL DEFAULT false",
+    "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS cancel_at_period_end BOOLEAN NOT NULL DEFAULT false",
     # A Manufacturer ID is issued only after payment: release IDs that were
     # reserved at sign-up by companies that never paid.
     """UPDATE companies c SET manufacturer_id = NULL

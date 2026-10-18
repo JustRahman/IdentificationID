@@ -23,9 +23,17 @@ class GoogleAuthRequest(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
+    access_token: str | None = None
+    refresh_token: str | None = None
     token_type: str = "bearer"
+    # Admins with 2-step login: no tokens yet, send mfa_token + code to /auth/login/mfa.
+    mfa_required: bool = False
+    mfa_token: str | None = None
+
+
+class MfaLoginRequest(BaseModel):
+    mfa_token: str
+    code: str
 
 
 class RefreshRequest(BaseModel):

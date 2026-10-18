@@ -43,6 +43,8 @@ class Company(Base, UUIDMixin, TimestampMixin):
     registry_stripe_subscription_id: Mapped[Optional[str]] = mapped_column(
         String(255), nullable=True, index=True
     )
+    # Cancelled by the manufacturer: stays active until registry_paid_until, then ends.
+    registry_cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     legal_name: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     country_code: Mapped[str] = mapped_column(String(2), nullable=False)

@@ -19,7 +19,9 @@ interface AuthTokens {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  /** Returns an mfa_token when a 2-step code is still needed (admins). */
+  login: (email: string, password: string) => Promise<{ mfaToken?: string }>;
+  loginMfa: (mfaToken: string, code: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   token: string | null;
@@ -106,12 +108,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const err = await res.json();
       throw new Error(err.error?.message || "Login failed");
     }
-    const tokens: AuthTokens = await res.json();
+    const data: AuthTokens & { mfa_required?: boolean; mfa_token?: string } = await res.json();
+    if (data.mfa_required && data.mfa_token) return { mfaToken: data.mfa_token };
+    await finishLogin(data);
+    return {};
+  };
+
+  const finishLogin = async (tokens: AuthTokens) => {
     localStorage.setItem("access_token", tokens.access_token);
     localStorage.setItem("refresh_token", tokens.refresh_token);
     setToken(tokens.access_token);
     const loggedInUser = await fetchUser(tokens.access_token);
     router.push(loggedInUser?.role === "admin" ? "/admin/companies" : "/dashboard");
+  };
+
+  const loginMfa = async (mfaToken: string, code: string) => {
+    const res = await fetch(`${API_BASE}/auth/login/mfa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mfa_token: mfaToken, code }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || "Wrong code");
+    }
+    await finishLogin(await res.json());
   };
 
   const register = async (email: string, password: string) => {
@@ -141,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, token }}>
+    <AuthContext.Provider value={{ user, loading, login, loginMfa, register, logout, token }}>
       {children}
     </AuthContext.Provider>
   );

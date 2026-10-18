@@ -14,7 +14,23 @@ interface PlanData {
   subscription: {
     status: string;
     paid_until: string;
+    cancel_at_period_end?: boolean;
   } | null;
+}
+
+interface RegistryData {
+  manufacturer_id: string | null;
+  active: boolean;
+  included_in_plan: boolean;
+  paid_until: string | null;
+  cancel_at_period_end: boolean;
+  can_cancel: boolean;
+}
+
+function fmtDate(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 }
 
 interface PaymentItem {
@@ -28,27 +44,57 @@ interface PaymentItem {
 export default function BillingPage() {
   const [plan, setPlan] = useState<PlanData | null>(null);
   const [payments, setPayments] = useState<PaymentItem[]>([]);
+  const [registry, setRegistry] = useState<RegistryData | null>(null);
+  const [confirming, setConfirming] = useState<"registry" | "plan" | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [planRes, paymentsRes] = await Promise.allSettled([
-          api.get<{ success: boolean; data: PlanData }>("/billing/plan"),
-          api.get<{ success: boolean; data: PaymentItem[] }>("/billing/payments"),
-        ]);
-        if (planRes.status === "fulfilled") setPlan(planRes.value.data);
-        if (paymentsRes.status === "fulfilled") setPayments(paymentsRes.value.data);
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
-      }
+  async function load() {
+    try {
+      const [planRes, paymentsRes, registryRes] = await Promise.allSettled([
+        api.get<{ success: boolean; data: PlanData }>("/billing/plan"),
+        api.get<{ success: boolean; data: PaymentItem[] }>("/billing/payments"),
+        api.get<{ success: boolean; data: RegistryData }>("/billing/registry"),
+      ]);
+      if (planRes.status === "fulfilled") setPlan(planRes.value.data);
+      if (paymentsRes.status === "fulfilled") setPayments(paymentsRes.value.data);
+      if (registryRes.status === "fulfilled") setRegistry(registryRes.value.data);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     load();
   }, []);
+
+  async function toggle(what: "registry" | "plan", action: "cancel" | "resume") {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const res = await api.post<{ success: boolean; data: { paid_until: string | null } }>(
+        `/billing/${what}/${action}`
+      );
+      setNotice(
+        action === "cancel"
+          ? `Cancelled. Nothing more will be charged. Everything stays active until ${fmtDate(res.data.paid_until)}.`
+          : "Automatic renewal is back on."
+      );
+      setConfirming(null);
+      await load();
+    } catch (err: unknown) {
+      const msg = (err as { error?: { message?: string } })?.error?.message;
+      setError(msg || "Could not update your subscription. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleUpgrade(planKey: string) {
     setUpgrading(true);
@@ -89,6 +135,74 @@ export default function BillingPage() {
         </div>
       )}
 
+      {notice && (
+        <div className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg p-3 mb-4 max-w-lg">
+          {notice}
+        </div>
+      )}
+
+      {registry && registry.active && !registry.included_in_plan && (
+        <div className="bg-background border border-border rounded-xl p-6 max-w-lg mb-6">
+          <h2 className="text-base font-semibold mb-1">Manufacturer Registry Membership</h2>
+          {registry.manufacturer_id && (
+            <p className="text-xs text-muted font-mono mb-3">{registry.manufacturer_id}</p>
+          )}
+          {registry.cancel_at_period_end ? (
+            <>
+              <p className="text-sm mb-3">
+                <span className="text-amber-700 font-medium">Cancelled.</span> Active until{" "}
+                <strong>{fmtDate(registry.paid_until)}</strong>. It will not renew and you won&apos;t be charged again.
+              </p>
+              <button
+                onClick={() => toggle("registry", "resume")}
+                disabled={busy}
+                className="text-sm border border-border px-4 py-2 rounded-lg hover:bg-surface disabled:opacity-50"
+              >
+                Keep my membership
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted mb-3">
+                Renews automatically on <strong className="text-foreground">{fmtDate(registry.paid_until)}</strong>.
+              </p>
+              {confirming === "registry" ? (
+                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm space-y-2">
+                  <p>
+                    Cancel automatic renewal? Your membership stays active until {fmtDate(registry.paid_until)}.
+                    After that your profile shows as Inactive and you can&apos;t add or edit products. Your
+                    Manufacturer ID stays reserved for you. Payments already made are not refunded (see the{" "}
+                    <a href="/legal/refund" target="_blank" className="underline">Refund &amp; Cancellation Policy</a>).
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => toggle("registry", "cancel")}
+                      disabled={busy}
+                      className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {busy ? "Cancelling..." : "Yes, cancel"}
+                    </button>
+                    <button
+                      onClick={() => setConfirming(null)}
+                      className="border border-border px-4 py-1.5 rounded-lg text-sm hover:bg-background"
+                    >
+                      Keep it
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirming("registry")}
+                  className="text-sm text-red-700 hover:underline"
+                >
+                  Cancel membership
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       <div className="bg-background border border-border rounded-xl p-6 max-w-lg mb-6">
         <h2 className="text-base font-semibold mb-4">Current Plan</h2>
         <div className="mb-4">
@@ -110,7 +224,7 @@ export default function BillingPage() {
               <p className="text-sm font-medium capitalize">{plan.subscription.status}</p>
             </div>
             <div>
-              <p className="text-xs text-muted">Next billing / renews</p>
+              <p className="text-xs text-muted">{plan.subscription.cancel_at_period_end ? "Active until (cancelled)" : "Next billing / renews"}</p>
               <p className="text-sm font-medium">
                 {(() => {
                   const d = new Date(plan.subscription.paid_until);
@@ -118,6 +232,34 @@ export default function BillingPage() {
                 })()}
               </p>
             </div>
+          </div>
+        )}
+        {plan?.subscription && plan.subscription.status === "active" && plan.plan !== "membership" && (
+          <div className="mb-4">
+            {plan.subscription.cancel_at_period_end ? (
+              <button onClick={() => toggle("plan", "resume")} disabled={busy}
+                className="text-sm border border-border px-4 py-2 rounded-lg hover:bg-surface disabled:opacity-50">
+                Keep my plan
+              </button>
+            ) : confirming === "plan" ? (
+              <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm space-y-2">
+                <p>Cancel automatic renewal of this plan? It stays active until the date above and is not refunded.</p>
+                <div className="flex gap-2">
+                  <button onClick={() => toggle("plan", "cancel")} disabled={busy}
+                    className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-red-700 disabled:opacity-50">
+                    {busy ? "Cancelling..." : "Yes, cancel"}
+                  </button>
+                  <button onClick={() => setConfirming(null)}
+                    className="border border-border px-4 py-1.5 rounded-lg text-sm hover:bg-background">
+                    Keep it
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setConfirming("plan")} className="text-sm text-red-700 hover:underline">
+                Cancel plan
+              </button>
+            )}
           </div>
         )}
         {(!plan || plan.plan === "membership") && (

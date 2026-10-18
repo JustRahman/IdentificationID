@@ -15,7 +15,8 @@ from app.models.company import Company, CompanyStatus
 from app.models.payment import Payment
 from app.models.product import Product, ProductStatus
 from app.models.user import User
-from app.services import audit
+from app.core.security import create_access_token, create_refresh_token
+from app.services import audit, totp
 from app.services.suppression import suppress
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -354,6 +355,52 @@ async def mark_report_under_review(
                        report.target_id, new={"report_id": str(report.id), "note": body.note})
     await db.flush()
     return {"success": True, "data": {"id": str(report.id), "status": report.status.value}}
+
+
+# --- Admin 2-step login (TOTP) ---
+
+class TotpCodeRequest(BaseModel):
+    code: str
+
+
+@router.get("/2fa")
+async def admin_2fa_status(admin: User = Depends(get_current_admin)):
+    return {"success": True, "data": {
+        "enabled": bool(admin.totp_enabled_at),
+        "enabled_at": admin.totp_enabled_at.isoformat() if admin.totp_enabled_at else None,
+    }}
+
+
+@router.post("/2fa/setup")
+async def admin_2fa_setup(admin: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db)):
+    """Start setup: a new secret to add to an authenticator app. Not active until confirmed."""
+    if admin.totp_enabled_at:
+        raise ValidationError("Two-step login is already on.")
+    secret = totp.new_secret()
+    admin.totp_secret_enc = totp.encrypt(secret)
+    await db.flush()
+    return {"success": True, "data": {"secret": secret, "otpauth_uri": totp.otpauth_uri(secret, admin.email)}}
+
+
+@router.post("/2fa/enable")
+async def admin_2fa_enable(
+    body: TotpCodeRequest, request: Request,
+    admin: User = Depends(get_current_admin), db: AsyncSession = Depends(get_db),
+):
+    secret = totp.decrypt(admin.totp_secret_enc or "")
+    if admin.totp_enabled_at or not secret:
+        raise ValidationError("Start the setup first.")
+    if not totp.verify(secret, body.code):
+        raise ValidationError("Wrong code. Use the current 6-digit code from your authenticator app.")
+    admin.totp_enabled_at = datetime.now(timezone.utc)
+    await audit.record(db, request, admin.id, "admin.2fa.enable", "user", admin.id, new={"enabled": True})
+    await db.flush()
+    # Keep this session working: it just proved the second factor.
+    return {"success": True, "data": {
+        "enabled": True,
+        "access_token": create_access_token(str(admin.id), extra={"mfa": True}),
+        "refresh_token": create_refresh_token(str(admin.id), extra={"mfa": True}),
+    }}
 
 
 # --- Outreach do-not-contact list ---
