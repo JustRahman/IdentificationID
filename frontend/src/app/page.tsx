@@ -218,7 +218,7 @@ export default function LandingPage() {
               {
                 icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
                 title: "Digital product passport",
-                desc: "Manufacturers get a living digital passport - update information without reprinting manuals and save on paper documentation.",
+                desc: "Manufacturers get a living digital passport - update information online without reprinting extra documentation.",
               },
             ].map((item) => (
               <div key={item.title} className="bg-white border border-border rounded-2xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all">
@@ -409,8 +409,8 @@ export default function LandingPage() {
               },
               {
                 icon: "M13 10V3L4 14h7v7l9-11h-7z",
-                title: "No paper documentation",
-                desc: "Just print the Identification ID on the product or packaging - no more printed manuals.",
+                title: "Extra info behind one QR code",
+                desc: "Print the Identification ID or QR code next to your required label - buyers scan it for full manuals, safety info and contacts. It adds to the physical label, it does not replace it.",
               },
               {
                 icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
@@ -452,7 +452,7 @@ export default function LandingPage() {
           {/* Manufacturer Registry Membership - required (highlighted) */}
           <div className="relative mb-12 rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md">
             <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">
-              REQUIRED FOR ALL MANUFACTURERS
+              START HERE
             </div>
             <div className="flex items-start justify-between gap-6 flex-wrap mt-2">
               <div className="flex-1 min-w-[260px] text-left">

@@ -22,7 +22,7 @@ export default function PricingPage() {
       {/* Manufacturer Registry Membership - required */}
       <div className="relative rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md mb-12">
         <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">
-          REQUIRED FOR ALL MANUFACTURERS
+          START HERE
         </div>
         <div className="flex items-start justify-between gap-6 flex-wrap mt-2">
           <div className="flex-1 min-w-[260px]">
