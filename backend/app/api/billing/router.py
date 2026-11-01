@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import stripe
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -244,8 +244,14 @@ async def get_registry_membership(
             "price_cents": REGISTRY_MEMBERSHIP["price_cents"],
             "annual_price_cents": REGISTRY_MEMBERSHIP["annual_price_cents"],
             "cancel_at_period_end": bool(company.registry_cancel_at_period_end),
-            # Can be cancelled here when it's its own subscription (not included in a plan).
-            "can_cancel": bool(company.registry_active and not membership.included_in_plan),
+            "founding_member": company.founding_member_since is not None,
+            # Can be cancelled here when it's its own paid subscription (not included
+            # in a plan, not a free Founding membership - that one simply ends).
+            "can_cancel": bool(
+                company.registry_active
+                and not membership.included_in_plan
+                and not (company.founding_member_since and not company.registry_stripe_subscription_id)
+            ),
         },
     }
 
@@ -303,6 +309,65 @@ async def create_registry_checkout(
     )
     await link_checkout(user.id, session.id, db)
     return {"success": True, "data": {"checkout_url": session.url}}
+
+
+# --- Founding Manufacturers Program (free, no card, no automatic charge) ---
+
+async def _founding_taken(db: AsyncSession) -> int:
+    result = await db.execute(
+        select(func.count()).select_from(Company).where(Company.founding_member_since.is_not(None))
+    )
+    return int(result.scalar() or 0)
+
+
+@router.get("/founding")
+async def founding_status(db: AsyncSession = Depends(get_db)):
+    """Public: is the Founding Manufacturers Program still open, and how many spots are left."""
+    taken = await _founding_taken(db)
+    left = max(settings.founding_limit - taken, 0)
+    return {"success": True, "data": {
+        "open": left > 0,
+        "spots_left": left,
+        "limit": settings.founding_limit,
+        "free_days": settings.founding_free_days,
+    }}
+
+
+@router.post("/registry/founding")
+async def join_founding(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Activate a free Registry Membership for a Founding Manufacturer.
+
+    No payment details are collected and nothing renews: when the free period
+    ends the membership simply lapses (the Manufacturer ID stays, the profile
+    is shown as Inactive) unless the company chooses to pay.
+    """
+    await require_agreement(user.id, db)
+    company = await _own_company(user, db)
+    if company.founding_member_since is not None:
+        raise ValidationError("Your company has already used the Founding Manufacturers Program.")
+    if (await get_membership(company, db)).active:
+        raise ValidationError("Your Registry Membership is already active.")
+    if await _founding_taken(db) >= settings.founding_limit:
+        raise ValidationError("The Founding Manufacturers Program is full.")
+
+    today = date.today()
+    company.founding_member_since = today
+    company.registry_active = True
+    company.registry_paid_until = today + timedelta(days=settings.founding_free_days)
+    company.registry_cancel_at_period_end = True  # nothing renews automatically
+    await ensure_manufacturer_id(company, db)
+    await audit.record(db, request, user.id, "billing.registry.founding", "company", company.id,
+                       new={"free_until": str(company.registry_paid_until)})
+    await db.flush()
+    return {"success": True, "data": {
+        "active": True,
+        "manufacturer_id": company.manufacturer_id,
+        "free_until": company.registry_paid_until.isoformat(),
+    }}
 
 
 # --- Cancel / resume (takes effect at the end of the paid period, no refund) ---

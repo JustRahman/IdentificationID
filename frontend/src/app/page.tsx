@@ -90,7 +90,7 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto text-center pt-20 pb-10 px-6">
           <div className="inline-flex items-center gap-2 text-xs font-medium bg-white text-accent px-3.5 py-1.5 rounded-full mb-8 border border-blue-100 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Global Product Registry · Live
+            Global encyclopedia of manufacturers & products · Live
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-semibold leading-[1.05] tracking-tight mb-6">
@@ -98,10 +98,11 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-2xl sm:text-3xl text-foreground mb-3 leading-snug max-w-2xl mx-auto font-semibold tracking-tight">
-            The Digital Identity Platform for Physical Products
+            A Global Encyclopedia of Manufacturers and Products
           </p>
           <p className="text-base text-muted mb-4 leading-relaxed max-w-xl mx-auto">
-            Public registry, QR passports, and a developer API - a unique, verifiable ID for every product.
+            Think of it as a Wikipedia-style directory for manufacturers and products - with information
+            provided directly by manufacturers. Company profiles, product pages, QR codes and a developer API.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-10">
@@ -414,8 +415,8 @@ export default function LandingPage() {
               },
               {
                 icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
-                title: "Integrates with marketplaces",
-                desc: "Direct integration with major marketplaces to keep product data in sync.",
+                title: "Marketplace-ready product data",
+                desc: "Structured product information and API capabilities designed to support future integrations with e-commerce platforms and distributors.",
               },
               {
                 icon: "M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129",
@@ -448,6 +449,23 @@ export default function LandingPage() {
               Consumers always look up and verify products for free.
             </p>
           </div>
+
+          {/* Founding Manufacturers Program */}
+          <Link
+            href="/founding-manufacturers"
+            className="block mb-6 rounded-2xl p-5 bg-green-50 border-2 border-green-300 hover:border-green-500 transition-colors"
+          >
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Founding Manufacturers Program</p>
+                <p className="text-base font-semibold text-green-950">
+                  First 100 manufacturers: Registry Membership free for 6 months
+                </p>
+                <p className="text-sm text-green-900/70">No card needed, no automatic charge. Your Manufacturer ID stays yours.</p>
+              </div>
+              <span className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg shrink-0">See details</span>
+            </div>
+          </Link>
 
           {/* Manufacturer Registry Membership - required (highlighted) */}
           <div className="relative mb-12 rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md">

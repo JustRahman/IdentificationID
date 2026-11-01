@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Identification ID - Digital Passport for Every Product",
   description:
-    "One Identification ID and QR code for each product: manuals, safety info and manufacturer contacts online. Manufacturers register products, consumers look them up instantly.",
+    "A global encyclopedia of manufacturers and products. Manufacturers publish company profiles and product pages with manuals, safety info and QR codes; anyone can look them up.",
 };
 
 export default function RootLayout({

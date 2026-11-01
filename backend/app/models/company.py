@@ -44,6 +44,9 @@ class Company(Base, UUIDMixin, TimestampMixin):
         String(255), nullable=True, index=True
     )
     # Cancelled by the manufacturer: stays active until registry_paid_until, then ends.
+    # Founding Manufacturers Program: free membership for the first companies,
+    # no card and no automatic charge. Set once; never reset.
+    founding_member_since: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     registry_cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     legal_name: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)

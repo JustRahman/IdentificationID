@@ -19,6 +19,23 @@ export default function PricingPage() {
         Consumers always look up and verify products for free.
       </p>
 
+      {/* Founding Manufacturers Program */}
+      <Link
+        href="/founding-manufacturers"
+        className="block mb-6 rounded-2xl p-5 bg-green-50 border-2 border-green-300 hover:border-green-500 transition-colors"
+      >
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Founding Manufacturers Program</p>
+            <p className="text-base font-semibold text-green-950">
+              First 100 manufacturers: Registry Membership free for 6 months
+            </p>
+            <p className="text-sm text-green-900/70">No card needed, no automatic charge. Your Manufacturer ID stays yours.</p>
+          </div>
+          <span className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg shrink-0">See details</span>
+        </div>
+      </Link>
+
       {/* Manufacturer Registry Membership - required */}
       <div className="relative rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-300 ring-1 ring-indigo-200 shadow-md mb-12">
         <div className="absolute -top-3 left-6 text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-full shadow">

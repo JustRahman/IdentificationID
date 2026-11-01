@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     admin_totp_reset: bool = False
     # Show the seeded demo manufacturers publicly (local development only).
     show_demo_content: bool = False
+    # Founding Manufacturers Program (free membership, no card, no auto-charge)
+    founding_limit: int = 100
+    founding_free_days: int = 183
 
     # CORS
     frontend_url: str = "http://localhost:3000"

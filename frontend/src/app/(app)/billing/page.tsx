@@ -25,6 +25,7 @@ interface RegistryData {
   paid_until: string | null;
   cancel_at_period_end: boolean;
   can_cancel: boolean;
+  founding_member?: boolean;
 }
 
 function fmtDate(iso: string | null | undefined): string {
@@ -147,7 +148,13 @@ export default function BillingPage() {
           {registry.manufacturer_id && (
             <p className="text-xs text-muted font-mono mb-3">{registry.manufacturer_id}</p>
           )}
-          {registry.cancel_at_period_end ? (
+          {registry.founding_member && !registry.can_cancel ? (
+            <p className="text-sm mb-3">
+              <span className="text-green-700 font-medium">Founding Manufacturer.</span> Free until{" "}
+              <strong>{fmtDate(registry.paid_until)}</strong>. No card is on file and nothing will be
+              charged. After that you can choose to continue with a paid membership.
+            </p>
+          ) : registry.cancel_at_period_end ? (
             <>
               <p className="text-sm mb-3">
                 <span className="text-amber-700 font-medium">Cancelled.</span> Active until{" "}

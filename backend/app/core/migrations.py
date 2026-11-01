@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 MIGRATIONS = (
     "ALTER TABLE products ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500)",
+    "ALTER TABLE companies ADD COLUMN IF NOT EXISTS founding_member_since DATE",
     "ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT",
     "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS plan VARCHAR(32) NOT NULL DEFAULT 'free'",
     "ALTER TABLE companies ADD COLUMN IF NOT EXISTS manufacturer_id VARCHAR(13)",

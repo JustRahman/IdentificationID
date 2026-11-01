@@ -11,7 +11,8 @@ import { AgreementCheckbox, acceptAgreement } from "@/components/AgreementCheckb
 import type { Company, ManufacturerProfile } from "@/types";
 
 type Step = "profile" | "preview" | "activate";
-type Billing = "annual" | "monthly";
+type Billing = "annual" | "monthly" | "founding";
+type Founding = { open: boolean; spots_left: number; limit: number; free_days: number };
 
 const STEPS: { key: Step; label: string }[] = [
   { key: "profile", label: "Company profile" },
@@ -33,6 +34,18 @@ function OnboardingInner() {
   const [agreed, setAgreed] = useState(false);
   const [personName, setPersonName] = useState("");
   const [error, setError] = useState("");
+  const [founding, setFounding] = useState<Founding | null>(null);
+
+  // Founding Manufacturers Program: offer it first while spots are left.
+  useEffect(() => {
+    api
+      .get<{ success: boolean; data: Founding }>("/billing/founding")
+      .then((res) => {
+        setFounding(res.data);
+        if (res.data.open) setBilling("founding");
+      })
+      .catch(() => setFounding(null));
+  }, []);
 
   // Already an active member - nothing to onboard.
   useEffect(() => {
@@ -69,6 +82,13 @@ function OnboardingInner() {
     setPaying(true);
     setError("");
     try {
+      if (billing === "founding") {
+        await acceptAgreement({ authorizedPersonName: personName, billingPeriod: null });
+        await api.post("/billing/registry/founding", {});
+        await refresh();
+        router.push("/dashboard?registry=active");
+        return;
+      }
       await acceptAgreement({ authorizedPersonName: personName, billingPeriod: billing });
       const res = await api.post<{
         success: boolean;
@@ -189,6 +209,31 @@ function OnboardingInner() {
             IDs are included at no additional cost.
           </p>
 
+          {founding?.open && (
+            <button
+              type="button"
+              onClick={() => setBilling("founding")}
+              className={`w-full text-left rounded-xl p-5 border-2 mb-4 transition-colors ${
+                billing === "founding" ? "border-green-600 bg-green-50" : "border-border bg-background hover:border-muted"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                <span className="text-sm font-semibold">Founding Manufacturers Program</span>
+                <span className="text-[11px] font-semibold bg-green-600 text-white px-2 py-0.5 rounded">
+                  {founding.spots_left} of {founding.limit} spots left
+                </span>
+              </div>
+              <p>
+                <span className="text-3xl font-semibold">$0</span>
+                <span className="text-sm text-muted ml-1">for 6 months</span>
+              </p>
+              <p className="text-xs text-green-800 mt-1">
+                No card needed and no automatic charge. After 6 months you decide whether to continue.{" "}
+                <a href="/founding-manufacturers" target="_blank" className="underline">Details</a>
+              </p>
+            </button>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {(
               [
@@ -244,7 +289,7 @@ function OnboardingInner() {
               checked={agreed}
               onChange={setAgreed}
               companyName={company?.legal_name || company?.display_name || ""}
-              billingPeriod={billing}
+              billingPeriod={billing === "founding" ? null : billing}
               personName={personName}
               onPersonNameChange={setPersonName}
             />
@@ -264,10 +309,13 @@ function OnboardingInner() {
             >
               {paying
                 ? "Processing..."
+                : billing === "founding"
+                ? "Activate free Founding membership"
                 : `Continue to payment - ${billing === "annual" ? `$${annual}/year` : `$${monthly}/month`}`}
             </button>
           </div>
           <p className="text-xs text-muted mt-3">
+            {billing === "founding" ? "Free for 6 months, no payment details collected. " : ""}
             Secure payment by Stripe. See our{" "}
             <a href="/legal/refund" target="_blank" className="text-accent hover:underline">Refund & Cancellation Policy</a>.
           </p>
