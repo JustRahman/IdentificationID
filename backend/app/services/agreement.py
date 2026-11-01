@@ -17,14 +17,14 @@ from app.core.exceptions import AppException
 from app.models.agreement_acceptance import AgreementAcceptance
 
 AGREEMENT_TYPE = "terms_of_service_and_manufacturer_agreement"
-AGREEMENT_VERSION = "1.0"
-# SHA-256 of frontend/src/content/legal/terms/1.0.md
-AGREEMENT_HASH = "ec7b3cf083c6dc52cc30b3c44819528e81d26a59b528d722a477dfd348f6adec"
+AGREEMENT_VERSION = "1.1"
+# SHA-256 of frontend/src/content/legal/terms/1.1.md
+AGREEMENT_HASH = "b4838d41cb56f09d7ca7528d1121ab5d874062e93f15f9b3b9a7a5e804921cac"
 TERMS_URL = f"https://identificationid.com/legal/terms/{AGREEMENT_VERSION}"
 
-PRIVACY_VERSION = "1.0"
-# SHA-256 of frontend/src/content/legal/privacy/1.0.md
-PRIVACY_HASH = "34e402d26853954bf1415972a1391f3d1a060c9f656cb1bc97fb487832054643"
+PRIVACY_VERSION = "1.1"
+# SHA-256 of frontend/src/content/legal/privacy/1.1.md
+PRIVACY_HASH = "d421fa07d336025ff982109ee860f93db0d5dee20470671d65dda7e098b748d4"
 
 CHECKBOX_TEXT_VERSION = "2026-10-05"
 CURRENCY = "USD"

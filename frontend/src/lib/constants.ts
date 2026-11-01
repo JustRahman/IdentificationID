@@ -28,10 +28,10 @@ export const REGULATED_NOTICE =
 // Terms of Service and Manufacturer Agreement shown at checkout. Must match
 // backend/app/services/agreement.py; the build fails if a hash doesn't match
 // the published file (see src/lib/legal.ts).
-export const AGREEMENT_VERSION = "1.0";
-export const AGREEMENT_HASH = "ec7b3cf083c6dc52cc30b3c44819528e81d26a59b528d722a477dfd348f6adec";
-export const PRIVACY_VERSION = "1.0";
-export const PRIVACY_HASH = "34e402d26853954bf1415972a1391f3d1a060c9f656cb1bc97fb487832054643";
+export const AGREEMENT_VERSION = "1.1";
+export const AGREEMENT_HASH = "b4838d41cb56f09d7ca7528d1121ab5d874062e93f15f9b3b9a7a5e804921cac";
+export const PRIVACY_VERSION = "1.1";
+export const PRIVACY_HASH = "d421fa07d336025ff982109ee860f93db0d5dee20470671d65dda7e098b748d4";
 export const CHECKBOX_TEXT_VERSION = "2026-10-05";
 export const PRODUCT_DISCLAIMER =
   "Product information is provided and maintained by the manufacturer. Identification ID provides product identity and registry infrastructure and does not manufacture, sell, certify or warrant this product.";

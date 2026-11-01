@@ -105,7 +105,7 @@ def test_payment_blocked_until_agreement_accepted():
             assert (row.company_id, row.version, row.ip_address) == (company.id, AGREEMENT_VERSION, CLIENT_IP)
             assert row.accepted_at is not None
             assert row.document_hash == AGREEMENT_HASH and row.privacy_document_hash == PRIVACY_HASH
-            assert row.terms_url.endswith("/legal/terms/1.0")
+            assert row.terms_url.endswith("/legal/terms/" + AGREEMENT_VERSION)
             assert row.authorized_person_name == "Jane Maker" and row.authorized_person_email == user.email
             assert (row.billing_period, row.price_presented_cents, row.currency) == ("monthly", 500, "USD")
             assert row.auto_renewal_disclosed is True and row.user_agent == "TestBrowser/1.0"

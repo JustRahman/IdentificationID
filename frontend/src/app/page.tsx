@@ -102,7 +102,8 @@ export default function LandingPage() {
           </p>
           <p className="text-base text-muted mb-4 leading-relaxed max-w-xl mx-auto">
             Think of it as a Wikipedia-style directory for manufacturers and products - with information
-            provided directly by manufacturers. Company profiles, product pages, QR codes and a developer API.
+            provided directly by manufacturers. Company profiles, Identification IDs for companies,
+            Identification IDs for products, product pages, QR codes and a developer API.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-10">
