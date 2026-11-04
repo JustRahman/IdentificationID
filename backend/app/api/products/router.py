@@ -23,7 +23,7 @@ from app.models.product_translation import ProductTranslation
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
 from app.services.id_generator import generate_identification_id
-from app.services import audit
+from app.services import audit, indexnow
 from app.services.membership import require_membership
 from app.services.registry_review import require_not_under_review
 from app.services.regulated import is_regulated
@@ -224,6 +224,8 @@ async def publish_product(
     await db.flush()
     await audit.record(db, request, user.id, "product.publish", "product", product.id,
                        before, audit.snapshot(product, ("status",)))
+    company_row = await db.get(Company, product.company_id)
+    indexnow.notify_product(product.identification_id, company_row.manufacturer_id if company_row else None)
     await dispatch_event(db, product.company_id, "product.published", {
         "identification_id": product.identification_id,
         "name": product.name,

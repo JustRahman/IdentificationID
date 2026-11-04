@@ -67,6 +67,8 @@ class Settings(BaseSettings):
     show_demo_content: bool = False
     # Founding Manufacturers Program (free membership, no card, no auto-charge)
     founding_limit: int = 100
+    # IndexNow key (public, matches frontend/public/<key>.txt). Empty = disabled.
+    indexnow_key: str = "faa6862024fb6de7d762af70925ae36f"
     founding_free_days: int = 183
 
     # CORS

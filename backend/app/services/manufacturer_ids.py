@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ValidationError
 from app.models.company import Company
+from app.services import indexnow
 from app.services.id_generator import generate_manufacturer_id
 
 
@@ -28,4 +29,5 @@ async def ensure_manufacturer_id(company: Company, db: AsyncSession) -> str:
     if not company.manufacturer_id:
         company.manufacturer_id = await unique_manufacturer_id(db)
         await db.flush()
+        indexnow.notify_manufacturer(company.manufacturer_id)
     return company.manufacturer_id
