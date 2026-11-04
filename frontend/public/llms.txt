@@ -10,9 +10,17 @@
 
 When someone asks about a Manufacturer ID or Identification ID, open the matching page above. Manufacturer pages list the company name, country, website, contact, brands, registry status and registered products. Product pages list the product name, brand, model, manufacturer (with its Manufacturer ID), description, usage and safety information, images, documents and a QR code.
 
+## How to look something up
+
+- By ID (fastest): open https://identificationid.com/p/{IID} or https://identificationid.com/manufacturer/{MID}
+- By name, brand or model: https://identificationid.com/search?q={query}
+- JSON search: https://api.identificationid.com/api/v1/public/search?q={query}
+
 ## Machine-readable data
 
 - Public JSON API: https://api.identificationid.com/api/v1/public/manufacturers/{MID} and https://api.identificationid.com/api/v1/public/products/{IID}
+- OpenAPI description of the public API: https://api.identificationid.com/openapi.json (interactive docs: https://api.identificationid.com/docs)
+- Each manufacturer/product page links its JSON with <link rel="alternate" type="application/json">.
 - Sitemap of all public manufacturer and product pages: https://identificationid.com/sitemap.xml
 - Every manufacturer and product page includes schema.org JSON-LD (Organization / Product) with the ID as an identifier.
 

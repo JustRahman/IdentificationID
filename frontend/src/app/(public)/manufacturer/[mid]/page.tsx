@@ -18,7 +18,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      types: { "application/json": `https://api.identificationid.com/api/v1/public/manufacturers/${m.manufacturer_id}` },
+    },
     openGraph: { title, description, url, type: "website", siteName: "Identification ID", ...(m.logo_url ? { images: [m.logo_url] } : {}) },
   };
 }

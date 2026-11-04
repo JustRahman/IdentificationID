@@ -27,7 +27,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      types: { "application/json": `https://api.identificationid.com/api/v1/public/products/${p.identification_id}` },
+    },
     robots: getPreview(id) ? { index: false, follow: false } : undefined,
     openGraph: { title, description, url, type: "website", siteName: "Identification ID", ...(image ? { images: [image] } : {}) },
   };
