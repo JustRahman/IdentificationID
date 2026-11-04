@@ -210,10 +210,10 @@ export default function PublicProductPage({
           <div className="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
             <p className="font-semibold mb-1">样例页面 / Sample preview for {preview.preparedFor}</p>
             <p className="text-amber-900/80">
-              本页面根据贵司官网公开信息制作，仅供预览，未在注册表中发布。
+              本页面根据贵司官网公开信息制作，仅供预览，未在注册表中发布。页面上的产品识别号和制造商识别号为样例，正式加入后会分配正式ID。
               This private sample was built from information published on{" "}
               <a href={preview.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">the manufacturer&apos;s website</a>.
-              It is not published in the registry and the ID shown is a sample.
+              It is not published in the registry. The Identification ID (IID-SMPL-B760) and Manufacturer ID shown are sample IDs; real ones are issued when the manufacturer joins.
             </p>
           </div>
         </>
@@ -332,12 +332,16 @@ export default function PublicProductPage({
             {product.company.manufacturer_id && (
               <div className="mb-3">
                 <p className="text-xs text-muted">Manufacturer ID</p>
-                <Link
-                  href={`/manufacturer/${product.company.manufacturer_id}`}
-                  className="text-sm font-mono text-accent hover:underline"
-                >
-                  {product.company.manufacturer_id} →
-                </Link>
+                {preview ? (
+                  <p className="text-sm font-mono">{product.company.manufacturer_id} (sample)</p>
+                ) : (
+                  <Link
+                    href={`/manufacturer/${product.company.manufacturer_id}`}
+                    className="text-sm font-mono text-accent hover:underline"
+                  >
+                    {product.company.manufacturer_id} →
+                  </Link>
+                )}
               </div>
             )}
             {product.company.registry_status === "inactive" && (

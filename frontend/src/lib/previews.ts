@@ -65,12 +65,12 @@ const B760_ZH = {
 };
 
 export const PREVIEWS: Record<string, PreviewProduct> = {
-  "SAMPLE-CHOETECH-B760": {
+  "IID-SMPL-B760": {
     preparedFor: "CHOETECH",
     sourceUrl:
       "https://choetech.com/products/choetech-b760-magleap-qi2-2-10000mah-wireless-charger-pd45w-charging",
     data: {
-      identification_id: "SAMPLE-CHOETECH-B760",
+      identification_id: "IID-SMPL-B760",
       name: "CHOETECH B760 MagLeap Qi2.2 10000mAh Wireless Power Bank, PD45W (Sample)",
       category: "electronics",
       brand: "CHOETECH",
@@ -78,7 +78,7 @@ export const PREVIEWS: Record<string, PreviewProduct> = {
       country_of_origin: null,
       published_at: null,
       company: {
-        manufacturer_id: null,
+        manufacturer_id: "MID-SMPL-0001",
         registry_status: "active",
         last_active: null,
         verification_level: "registered",
@@ -102,6 +102,12 @@ export const PREVIEWS: Record<string, PreviewProduct> = {
   },
 };
 
+// Older links that were already shared keep working.
+const ALIASES: Record<string, string> = { "SAMPLE-CHOETECH-B760": "IID-SMPL-B760" };
+
+// Sample IDs use digits 0/1 in the code part, which real IDs never contain,
+// so they can never collide with a real Identification ID.
 export function getPreview(id: string): PreviewProduct | undefined {
-  return PREVIEWS[id.toUpperCase()];
+  const key = id.toUpperCase();
+  return PREVIEWS[ALIASES[key] ?? key];
 }
