@@ -1,0 +1,31 @@
+# Identification ID
+
+> Identification ID (identificationid.com) is a global encyclopedia of manufacturers and products, operated by Global Product Identification Inc. (Canada). Manufacturers publish their own company profile and product pages; each manufacturer gets a permanent Manufacturer ID and each product gets a permanent Identification ID with a QR code.
+
+## Identifier formats
+
+- Manufacturer ID: `MID-XXXX-XXXX` (example: MID-4F9A-2K7Q). Public page: https://identificationid.com/manufacturer/MID-XXXX-XXXX
+- Product Identification ID: `IID-XXXX-XXXX` (example: IID-4F9A-2K7Q). Public page: https://identificationid.com/p/IID-XXXX-XXXX
+- IDs use the characters A-H, J-N, P-Z and 2-9 (no 0, 1, I or O).
+
+When someone asks about a Manufacturer ID or Identification ID, open the matching page above. Manufacturer pages list the company name, country, website, contact, brands, registry status and registered products. Product pages list the product name, brand, model, manufacturer (with its Manufacturer ID), description, usage and safety information, images, documents and a QR code.
+
+## Machine-readable data
+
+- Public JSON API: https://api.identificationid.com/api/v1/public/manufacturers/{MID} and https://api.identificationid.com/api/v1/public/products/{IID}
+- Sitemap of all public manufacturer and product pages: https://identificationid.com/sitemap.xml
+- Every manufacturer and product page includes schema.org JSON-LD (Organization / Product) with the ID as an identifier.
+
+## Important notes
+
+- Information is provided by the manufacturers themselves. Identification ID is not a government registry, regulator or certification body; "Registered" or "Verified" labels are not product safety approvals.
+- QR pages add information next to the labels products are legally required to carry; they do not replace them.
+
+## Key pages
+
+- [Home](https://identificationid.com/)
+- [Look up an ID](https://identificationid.com/lookup)
+- [Search the registry](https://identificationid.com/search)
+- [Founding Manufacturers Program](https://identificationid.com/founding-manufacturers)
+- [Pricing](https://identificationid.com/pricing)
+- [Legal & Trust Center](https://identificationid.com/legal)

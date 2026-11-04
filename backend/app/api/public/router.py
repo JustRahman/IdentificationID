@@ -342,3 +342,45 @@ def manufacturer_profile(company: Company, membership: Membership, products: lis
             for p in products
         ],
     }
+
+
+@router.get("/sitemap")
+async def sitemap_entries(db: AsyncSession = Depends(get_db)):
+    """IDs of every public product and manufacturer page, for sitemap.xml.
+
+    Same visibility rules as the public pages: published products of non-demo
+    companies, and manufacturers whose Manufacturer ID has gone public.
+    """
+    prod_rows = (await db.execute(
+        select(Product.identification_id, Product.updated_at, Product.published_at)
+        .join(Company, Company.id == Product.company_id)
+        .where(Product.status == ProductStatus.published, public_company_filter())
+    )).all()
+
+    companies = (await db.execute(
+        select(Company).where(Company.manufacturer_id.is_not(None), public_company_filter())
+    )).scalars().all()
+    subs = await db.execute(
+        select(Subscription).where(Subscription.company_id.in_([c.id for c in companies]))
+    )
+    sub_by_company = {s.company_id: s for s in subs.scalars().all()}
+
+    def _ts(*values):
+        for v in values:
+            if v:
+                return v.isoformat()
+        return None
+
+    return {
+        "success": True,
+        "data": {
+            "products": [
+                {"id": iid, "updated": _ts(upd, pub)} for iid, upd, pub in prod_rows if iid
+            ],
+            "manufacturers": [
+                {"id": c.manufacturer_id, "updated": _ts(getattr(c, "updated_at", None), c.created_at)}
+                for c in companies
+                if membership_for(c, sub_by_company.get(c.id)).ever_active
+            ],
+        },
+    }

@@ -1,73 +1,38 @@
-"use client";
+import type { Metadata } from "next";
+import ManufacturerPageClient from "@/components/ManufacturerPageClient";
+import { SITE_URL, clip, fetchManufacturer, manufacturerJsonLd } from "@/lib/seo";
 
-import { useEffect, useState, use } from "react";
-import Link from "next/link";
-import { ManufacturerProfileView } from "@/components/ManufacturerProfileView";
-import type { ManufacturerProfile } from "@/types";
+type Params = { params: Promise<{ mid: string }> };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { mid } = await params;
+  const m = await fetchManufacturer(mid);
+  if (!m || !m.manufacturer_id) return { title: "Manufacturer not found | Identification ID", robots: { index: false } };
+  const title = `${m.manufacturer_id} - ${m.display_name} | Identification ID`;
+  const description = clip(
+    `Manufacturer ID ${m.manufacturer_id}: ${m.display_name}` +
+      (m.legal_name && m.legal_name !== m.display_name ? ` (${m.legal_name})` : "") +
+      `, ${m.country_code}. ${m.product_count} registered product${m.product_count === 1 ? "" : "s"}. ${m.description || ""}`,
+  );
+  const url = `${SITE_URL}/manufacturer/${m.manufacturer_id}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: "website", siteName: "Identification ID", ...(m.logo_url ? { images: [m.logo_url] } : {}) },
+  };
+}
 
-export default function ManufacturerPage({
-  params,
-}: {
-  params: Promise<{ mid: string }>;
-}) {
-  const { mid } = use(params);
-  const [data, setData] = useState<ManufacturerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(
-          `${API_BASE}/public/manufacturers/${encodeURIComponent(mid)}`
-        );
-        if (!res.ok) {
-          setError("Manufacturer not found");
-          return;
-        }
-        const json = await res.json();
-        setData(json.data);
-      } catch {
-        setError("Failed to load manufacturer");
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [mid]);
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto py-12 px-6">
-        <p className="text-sm text-muted">Loading…</p>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="max-w-4xl mx-auto py-12 px-6 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Manufacturer Not Found</h1>
-        <p className="text-muted mb-6">{error || "No manufacturer with this ID."}</p>
-        <Link href="/search" className="text-accent hover:underline text-sm">
-          Browse the registry
-        </Link>
-      </div>
-    );
-  }
-
+export default async function ManufacturerPage({ params }: Params) {
+  const { mid } = await params;
+  const data = await fetchManufacturer(mid);
+  const jsonLd = data?.manufacturer_id ? manufacturerJsonLd(data) : null;
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6">
-      <p className="text-sm text-muted mb-6">
-        <Link href="/" className="hover:underline">Home</Link>
-        {" / "}
-        <Link href="/search" className="hover:underline">Registry</Link>
-        {" / "}
-        {data.display_name}
-      </p>
-      <ManufacturerProfileView data={data} />
-    </div>
+    <>
+      {jsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      )}
+      <ManufacturerPageClient mid={mid} initialData={data} />
+    </>
   );
 }

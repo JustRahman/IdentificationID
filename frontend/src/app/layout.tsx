@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Identification ID - Digital Passport for Every Product",
+  metadataBase: new URL("https://identificationid.com"),
+  title: "Identification ID - Global Encyclopedia of Manufacturers and Products",
   description:
     "A global encyclopedia of manufacturers and products. Manufacturers publish company profiles and product pages with manuals, safety info and QR codes; anyone can look them up.",
 };
