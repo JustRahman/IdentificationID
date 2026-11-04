@@ -6,6 +6,7 @@ import { LANGUAGES, VERIFICATION_DISCLAIMER } from "@/lib/constants";
 import { PublicPageNotice } from "@/components/PublicPageNotice";
 import { translateText } from "@/lib/translate";
 import { monthYear } from "@/components/ManufacturerProfileView";
+import { getPreview } from "@/lib/previews";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -109,13 +110,19 @@ export default function PublicProductPage({
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API_BASE}/public/products/${encodeURIComponent(id)}`);
-        if (!res.ok) {
-          setError("Product not found");
-          return;
+        const preview = getPreview(id);
+        let data: ProductData;
+        if (preview) {
+          data = preview.data as ProductData;
+        } else {
+          const res = await fetch(`${API_BASE}/public/products/${encodeURIComponent(id)}`);
+          if (!res.ok) {
+            setError("Product not found");
+            return;
+          }
+          const json = await res.json();
+          data = json.data;
         }
-        const json = await res.json();
-        const data: ProductData = json.data;
         setProduct(data);
 
         // Seed the cache with all stored translations that have content.
@@ -193,8 +200,24 @@ export default function PublicProductPage({
   const isMachine = machineLangs.has(activeLang);
   const hasAnyDesc = hasContent(desc);
 
+  const preview = getPreview(id);
+
   return (
     <div className="max-w-3xl mx-auto py-12 px-6">
+      {preview && (
+        <>
+          <meta name="robots" content="noindex, nofollow" />
+          <div className="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+            <p className="font-semibold mb-1">样例页面 / Sample preview for {preview.preparedFor}</p>
+            <p className="text-amber-900/80">
+              本页面根据贵司官网公开信息制作，仅供预览，未在注册表中发布。
+              This private sample was built from information published on{" "}
+              <a href={preview.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">the manufacturer&apos;s website</a>.
+              It is not published in the registry and the ID shown is a sample.
+            </p>
+          </div>
+        </>
+      )}
       <p className="text-sm text-muted mb-6">
         <Link href="/" className="hover:underline">Home</Link>
         {" / "}
@@ -439,7 +462,9 @@ export default function PublicProductPage({
         )}
       </div>
 
-      <PublicPageNotice targetType="product" targetId={product.identification_id} underReview={!!product.under_review} />
+      {!preview && (
+        <PublicPageNotice targetType="product" targetId={product.identification_id} underReview={!!product.under_review} />
+      )}
     </div>
   );
 }
