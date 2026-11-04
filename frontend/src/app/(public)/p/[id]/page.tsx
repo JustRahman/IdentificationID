@@ -281,6 +281,20 @@ export default function PublicProductPage({
           </Link>
         </div>
 
+        {/* Identification ID - shown large so buyers, sellers and manufacturers notice it */}
+        <div className="mb-6 rounded-xl border-2 border-accent/30 bg-blue-50 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-lg sm:text-xl">
+            <span className="font-semibold text-foreground">Identification ID:</span>{" "}
+            <span className="font-mono font-bold text-accent tracking-wide">{product.identification_id}</span>
+          </p>
+          <button
+            onClick={copyId}
+            className="text-xs border border-border bg-white px-3 py-1.5 rounded-lg hover:bg-surface shrink-0"
+          >
+            {copied ? "Copied" : "Copy ID"}
+          </button>
+        </div>
+
         {desc.short && (
           <p className="text-sm text-muted mb-6">{desc.short}</p>
         )}
