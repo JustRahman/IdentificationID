@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://identificationid.com"),
+  verification: { other: { "msvalidate.01": "B2E5B426B34846FE07CFE7FEAA8D8E00" } },
   title: "Identification ID - Global Encyclopedia of Manufacturers and Products",
   description:
     "A global encyclopedia of manufacturers and products. Manufacturers publish company profiles and product pages with manuals, safety info and QR codes; anyone can look them up.",
