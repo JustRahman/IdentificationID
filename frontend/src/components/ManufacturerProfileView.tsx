@@ -101,15 +101,18 @@ export function ManufacturerProfileView({
 
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               {data.manufacturer_id ? (
-                <>
-                  <span className="text-sm font-mono font-semibold">{data.manufacturer_id}</span>
+                <div className="w-full rounded-xl border-2 border-accent/30 bg-blue-50 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+                  <p className="text-lg sm:text-xl">
+                    <span className="font-semibold text-foreground">Manufacturer ID:</span>{" "}
+                    <span className="font-mono font-bold text-accent tracking-wide">{data.manufacturer_id}</span>
+                  </p>
                   <button
                     onClick={copyId}
-                    className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+                    className="text-xs border border-border bg-white px-3 py-1.5 rounded-lg hover:bg-surface shrink-0"
                   >
-                    {copied ? "✓ Copied" : "Copy ID"}
+                    {copied ? "Copied" : "Copy ID"}
                   </button>
-                </>
+                </div>
               ) : (
                 <span className="text-sm text-muted">
                   <span className="font-mono">MID-XXXX-XXXX</span>{" "}- your permanent Manufacturer ID is issued

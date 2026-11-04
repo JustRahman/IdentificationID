@@ -347,11 +347,11 @@ export default function PublicProductPage({
               <div className="mb-3">
                 <p className="text-xs text-muted">Manufacturer ID</p>
                 {preview ? (
-                  <p className="text-sm font-mono">{product.company.manufacturer_id} (sample)</p>
+                  <p className="text-base font-mono font-bold text-accent">{product.company.manufacturer_id} (sample)</p>
                 ) : (
                   <Link
                     href={`/manufacturer/${product.company.manufacturer_id}`}
-                    className="text-sm font-mono text-accent hover:underline"
+                    className="text-base font-mono font-bold text-accent hover:underline"
                   >
                     {product.company.manufacturer_id} →
                   </Link>
