@@ -66,10 +66,12 @@ class Settings(BaseSettings):
     # Show the seeded demo manufacturers publicly (local development only).
     show_demo_content: bool = False
     # Founding Manufacturers Program (free membership, no card, no auto-charge)
-    founding_limit: int = 100
+    # 0 = no limit on the number of companies
+    founding_limit: int = 0
     # IndexNow key (public, matches frontend/public/<key>.txt). Empty = disabled.
     indexnow_key: str = "faa6862024fb6de7d762af70925ae36f"
-    founding_free_days: int = 183
+    # Free registration (Manufacturer ID + 3 products) for everyone who joins before this date
+    founding_free_until: str = "2027-07-01"
 
     # CORS
     frontend_url: str = "http://localhost:3000"

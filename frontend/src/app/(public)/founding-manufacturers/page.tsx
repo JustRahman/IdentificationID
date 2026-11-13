@@ -2,9 +2,9 @@ import Link from "next/link";
 import { REGISTRY_MEMBERSHIP } from "@/lib/constants";
 
 export const metadata = {
-  title: "Founding Manufacturers Program - Identification ID",
+  title: "Free registration until July 1, 2027 - Identification ID",
   description:
-    "The first 100 manufacturers get the Identification ID Registry Membership free for 6 months. No card needed, no automatic charge.",
+    "Free manufacturer registration on Identification ID: Manufacturer ID + 3 products free until July 1, 2027. No card needed, no automatic charge. Manufacturers registered before July 1, 2027 stay in the registry permanently.",
 };
 
 const INCLUDED = [
@@ -17,27 +17,29 @@ const INCLUDED = [
 ];
 
 const RULES: [string, string][] = [
-  ["Who can join", "The first 100 approved manufacturers"],
-  ["Free period", "6 months from activation"],
+  ["Who can join", "Any manufacturer that registers before July 1, 2027"],
+  ["Free until", "July 1, 2027"],
+  ["What's free", "Manufacturer ID, public company profile and 3 products with Identification IDs, pages and QR codes"],
   ["Payment at signup", "$0 - no card needed"],
-  ["After 6 months", `Optional: continue for $${REGISTRY_MEMBERSHIP.priceCents / 100}/month or $${REGISTRY_MEMBERSHIP.annualPriceCents / 100}/year`],
+  ["Stay in the registry", "Manufacturers registered before July 1, 2027 always stay in the registry: the Manufacturer ID, product pages and QR codes are permanent"],
+  ["After July 1, 2027", `You decide whether to keep an active membership: $${REGISTRY_MEMBERSHIP.priceCents / 100}/month or $${REGISTRY_MEMBERSHIP.annualPriceCents / 100}/year. We will contact you with the options before then`],
   ["Automatic charge", "None. Nothing renews unless you choose to pay"],
   ["If you don't continue", "Your Manufacturer ID, product pages and QR codes keep working; your profile is marked Inactive and editing pauses until you renew"],
-  ["Limit", "One free Founding membership per company (legal entity)"],
+  ["Limit", "One free registration per company (legal entity)"],
 ];
 
 export default function FoundingManufacturersPage() {
   return (
     <div className="max-w-3xl mx-auto py-16 px-6">
-      <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2">Founding Manufacturers Program</p>
-      <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">Become a Founding Manufacturer</h1>
+      <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2">Free registration offer</p>
+      <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">Register your company free until July 1, 2027</h1>
       <p className="text-lg text-muted leading-relaxed mb-8">
-        Join the first 100 manufacturers building a global encyclopedia of manufacturers and products -
+        Join the manufacturers building a global encyclopedia of manufacturers and products -
         a Wikipedia-style directory where product information comes directly from the manufacturer.
       </p>
 
       <div className="rounded-2xl p-6 bg-green-50 border-2 border-green-300 mb-10">
-        <p className="text-4xl font-bold text-green-950 mb-1">6 months free</p>
+        <p className="text-4xl font-bold text-green-950 mb-1">Free until July 1, 2027</p>
         <p className="text-sm text-green-900/80 mb-5">No card needed. No automatic charges after the free period.</p>
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 mb-6">
           {INCLUDED.map((f) => (
@@ -51,7 +53,7 @@ export default function FoundingManufacturersPage() {
           href="/register"
           className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-green-700"
         >
-          Join the Founding Manufacturers Program
+          Register for free
         </Link>
       </div>
 
@@ -67,7 +69,7 @@ export default function FoundingManufacturersPage() {
 
       <div className="text-xs text-muted space-y-2 leading-relaxed">
         <p>
-          This is a limited, temporary program, not a permanent free plan. Identification ID is an independent
+          This is a limited-time offer, not a permanent free plan. Identification ID is an independent
           directory operated by Global Product Identification Inc. It is not affiliated with Wikipedia and is not a
           government registry, regulator or certification body.
         </p>

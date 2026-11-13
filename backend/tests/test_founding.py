@@ -33,7 +33,7 @@ def test_founding_activates_free_without_card(monkeypatch):
             data = r.json()["data"]
             assert data["active"] is True
             assert data["manufacturer_id"]
-            assert data["free_until"] == (date.today() + timedelta(days=settings.founding_free_days)).isoformat()
+            assert data["free_until"] == settings.founding_free_until
 
             status = (await c.get("/billing/registry")).json()["data"]
             assert status["active"] is True
@@ -63,12 +63,28 @@ def test_founding_closes_at_limit(monkeypatch):
         user, _ = await new_maker(db)
         async with client_for(db) as anon:
             before = (await anon.get("/billing/founding")).json()["data"]
-        monkeypatch.setattr(settings, "founding_limit", settings.founding_limit - before["spots_left"])
+        assert before["open"] is True and before["spots_left"] is None  # no limit by default
+        monkeypatch.setattr(settings, "founding_limit", 1)
+        other, _ = await new_maker(db)
+        async with client_for(db, other) as c:
+            await c.post("/billing/registry/founding")
         async with client_for(db) as anon:
             closed = (await anon.get("/billing/founding")).json()["data"]
-        assert closed["open"] is False and closed["spots_left"] == 0
+        assert closed["open"] is False
         async with client_for(db, user) as c:
             r = await c.post("/billing/registry/founding")
         assert r.status_code == 422
+
+    run(scenario)
+
+
+def test_founding_closed_after_date(monkeypatch):
+    monkeypatch.setattr(settings, "founding_free_until", "2020-01-01")
+
+    async def scenario(db):
+        user, _ = await new_maker(db)
+        async with client_for(db, user) as c:
+            assert (await c.get("/billing/founding")).json()["data"]["open"] is False
+            assert (await c.post("/billing/registry/founding")).status_code == 422
 
     run(scenario)

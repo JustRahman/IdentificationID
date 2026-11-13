@@ -322,14 +322,16 @@ async def _founding_taken(db: AsyncSession) -> int:
 
 @router.get("/founding")
 async def founding_status(db: AsyncSession = Depends(get_db)):
-    """Public: is the Founding Manufacturers Program still open, and how many spots are left."""
+    """Public: free registration offer (Manufacturer ID + 3 products free until a fixed date)."""
+    free_until = date.fromisoformat(settings.founding_free_until)
+    limit = settings.founding_limit
     taken = await _founding_taken(db)
-    left = max(settings.founding_limit - taken, 0)
+    left = max(limit - taken, 0) if limit else None
     return {"success": True, "data": {
-        "open": left > 0,
+        "open": date.today() < free_until and (left is None or left > 0),
+        "free_until": free_until.isoformat(),
         "spots_left": left,
-        "limit": settings.founding_limit,
-        "free_days": settings.founding_free_days,
+        "limit": limit or None,
     }}
 
 
@@ -339,7 +341,7 @@ async def join_founding(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Activate a free Registry Membership for a Founding Manufacturer.
+    """Activate free registration (Manufacturer ID + 3 products) until the offer date.
 
     No payment details are collected and nothing renews: when the free period
     ends the membership simply lapses (the Manufacturer ID stays, the profile
@@ -351,13 +353,16 @@ async def join_founding(
         raise ValidationError("Your company has already used the Founding Manufacturers Program.")
     if (await get_membership(company, db)).active:
         raise ValidationError("Your Registry Membership is already active.")
-    if await _founding_taken(db) >= settings.founding_limit:
-        raise ValidationError("The Founding Manufacturers Program is full.")
+    free_until = date.fromisoformat(settings.founding_free_until)
+    if date.today() >= free_until:
+        raise ValidationError("The free registration offer has ended.")
+    if settings.founding_limit and await _founding_taken(db) >= settings.founding_limit:
+        raise ValidationError("The free registration offer is full.")
 
     today = date.today()
     company.founding_member_since = today
     company.registry_active = True
-    company.registry_paid_until = today + timedelta(days=settings.founding_free_days)
+    company.registry_paid_until = free_until
     company.registry_cancel_at_period_end = True  # nothing renews automatically
     await ensure_manufacturer_id(company, db)
     await audit.record(db, request, user.id, "billing.registry.founding", "company", company.id,

@@ -12,7 +12,7 @@ import type { Company, ManufacturerProfile } from "@/types";
 
 type Step = "profile" | "preview" | "activate";
 type Billing = "annual" | "monthly" | "founding";
-type Founding = { open: boolean; spots_left: number; limit: number; free_days: number };
+type Founding = { open: boolean; free_until: string; spots_left: number | null; limit: number | null };
 
 const STEPS: { key: Step; label: string }[] = [
   { key: "profile", label: "Company profile" },
@@ -218,17 +218,17 @@ function OnboardingInner() {
               }`}
             >
               <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                <span className="text-sm font-semibold">Founding Manufacturers Program</span>
+                <span className="text-sm font-semibold">Free registration</span>
                 <span className="text-[11px] font-semibold bg-green-600 text-white px-2 py-0.5 rounded">
-                  {founding.spots_left} of {founding.limit} spots left
+                  {founding.spots_left != null ? `${founding.spots_left} spots left` : "Until July 1, 2027"}
                 </span>
               </div>
               <p>
                 <span className="text-3xl font-semibold">$0</span>
-                <span className="text-sm text-muted ml-1">for 6 months</span>
+                <span className="text-sm text-muted ml-1">until July 1, 2027</span>
               </p>
               <p className="text-xs text-green-800 mt-1">
-                No card needed and no automatic charge. After 6 months you decide whether to continue.{" "}
+                Manufacturer ID + 3 products. No card needed and no automatic charge. You stay in the registry permanently; after July 1, 2027 you decide whether to keep an active membership.{" "}
                 <a href="/founding-manufacturers" target="_blank" className="underline">Details</a>
               </p>
             </button>
@@ -310,12 +310,12 @@ function OnboardingInner() {
               {paying
                 ? "Processing..."
                 : billing === "founding"
-                ? "Activate free Founding membership"
+                ? "Activate free registration"
                 : `Continue to payment - ${billing === "annual" ? `$${annual}/year` : `$${monthly}/month`}`}
             </button>
           </div>
           <p className="text-xs text-muted mt-3">
-            {billing === "founding" ? "Free for 6 months, no payment details collected. " : ""}
+            {billing === "founding" ? "Free until July 1, 2027, no payment details collected. " : ""}
             Secure payment by Stripe. See our{" "}
             <a href="/legal/refund" target="_blank" className="text-accent hover:underline">Refund & Cancellation Policy</a>.
           </p>

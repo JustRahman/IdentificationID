@@ -26,11 +26,11 @@ export default function PricingPage() {
       >
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Founding Manufacturers Program</p>
+            <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">Free registration offer</p>
             <p className="text-base font-semibold text-green-950">
-              First 100 manufacturers: Registry Membership free for 6 months
+              Free registration: Manufacturer ID + 3 products free until July 1, 2027
             </p>
-            <p className="text-sm text-green-900/70">No card needed, no automatic charge. Your Manufacturer ID stays yours.</p>
+            <p className="text-sm text-green-900/70">No card needed, no automatic charge. Manufacturers registered before July 1, 2027 stay in the registry permanently.</p>
           </div>
           <span className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg shrink-0">See details</span>
         </div>

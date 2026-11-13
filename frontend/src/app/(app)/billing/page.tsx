@@ -150,9 +150,9 @@ export default function BillingPage() {
           )}
           {registry.founding_member && !registry.can_cancel ? (
             <p className="text-sm mb-3">
-              <span className="text-green-700 font-medium">Founding Manufacturer.</span> Free until{" "}
+              <span className="text-green-700 font-medium">Free registration.</span> Free until{" "}
               <strong>{fmtDate(registry.paid_until)}</strong>. No card is on file and nothing will be
-              charged. After that you can choose to continue with a paid membership.
+              charged. Your company stays in the registry permanently; after that you can choose to keep an active membership.
             </p>
           ) : registry.cancel_at_period_end ? (
             <>
