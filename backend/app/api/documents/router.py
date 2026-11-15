@@ -65,9 +65,7 @@ async def upload_document(
     file_key = f"documents/{product.id}/{uuid.uuid4()}.pdf"
 
     # Upload to Supabase Storage if configured
-    file_url = None
-    if storage.is_configured():
-        file_url = storage.upload_file(file_key, content, "application/pdf")
+    file_url = await storage.save_file(db, file_key, content, "application/pdf")
 
     # Create document
     document = ProductDocument(
@@ -205,8 +203,7 @@ async def upload_new_version(
     sha256 = hashlib.sha256(content).hexdigest()
     file_key = f"documents/{document.product_id}/{uuid.uuid4()}.pdf"
 
-    if storage.is_configured():
-        storage.upload_file(file_key, content, "application/pdf")
+    await storage.save_file(db, file_key, content, "application/pdf")
 
     version = ProductDocumentVersion(
         document_id=document.id,

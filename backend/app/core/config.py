@@ -75,6 +75,8 @@ class Settings(BaseSettings):
 
     # CORS
     frontend_url: str = "http://localhost:3000"
+    # Public base URL of this API (used for links to files stored in the database)
+    public_api_url: str = "https://api.identificationid.com"
 
 
 settings = Settings()

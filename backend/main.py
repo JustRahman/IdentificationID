@@ -17,6 +17,7 @@ from app.api.outreach.router import router as outreach_router
 from app.api.public.router import router as public_router
 from app.api.admin.router import router as admin_router
 from app.api.images.router import router as images_router
+from app.api.files.router import router as files_router
 from app.api.translate.router import router as translate_router
 from app.api.apikeys.router import router as apikeys_router
 from app.api.partner.router import router as partner_router
@@ -76,6 +77,7 @@ app.include_router(billing_router, prefix=API_V1)
 app.include_router(public_router, prefix=API_V1)
 app.include_router(admin_router, prefix=API_V1)
 app.include_router(images_router, prefix=API_V1)
+app.include_router(files_router, prefix=API_V1)
 app.include_router(translate_router, prefix=API_V1)
 app.include_router(apikeys_router, prefix=API_V1)
 app.include_router(webhooks_router, prefix=API_V1)

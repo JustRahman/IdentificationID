@@ -66,10 +66,7 @@ async def upload_image(
     ext = file.filename.rsplit(".", 1)[-1] if file.filename and "." in file.filename else "jpg"
     file_key = f"images/{product.id}/{uuid.uuid4()}.{ext}"
 
-    if not storage.is_configured():
-        raise ValidationError("Storage is not configured")
-
-    url = storage.upload_file(file_key, content, file.content_type or "image/jpeg")
+    url = await storage.save_file(db, file_key, content, file.content_type or "image/jpeg")
 
     image = ProductImage(
         product_id=product.id,

@@ -79,7 +79,7 @@ const faqs = [
       },
       {
         q: "Is my data safe?",
-        a: "Yes. All data is encrypted in transit (HTTPS) and at rest. File storage uses signed URLs that expire - files are not publicly accessible without a valid link.",
+        a: "Yes. All data is encrypted in transit (HTTPS). Uploaded files are served only through long, random links that cannot be guessed, and admin access is protected with two-step verification.",
       },
     ],
   },

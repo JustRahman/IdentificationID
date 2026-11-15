@@ -15,6 +15,7 @@ from app.models.webhook_endpoint import WebhookEndpoint
 from app.models.agreement_acceptance import AgreementAcceptance
 from app.models.content_report import ContentReport, ReportReason, ReportStatus
 from app.models.email_suppression import EmailSuppression
+from app.models.stored_file import StoredFile
 
 __all__ = [
     "Base",
@@ -40,6 +41,7 @@ __all__ = [
     "AgreementAcceptance",
     "ContentReport",
     "EmailSuppression",
+    "StoredFile",
     "ReportReason",
     "ReportStatus",
 ]
