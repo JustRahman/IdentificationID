@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/services/api";
 import { CompanyProfileForm } from "@/components/CompanyProfileForm";
 import { ManufacturerProfileView } from "@/components/ManufacturerProfileView";
-import { REGISTRY_MEMBERSHIP } from "@/lib/constants";
+import { PLANS, REGISTRY_MEMBERSHIP } from "@/lib/constants";
+import { PLAN_THEME, MEMBERSHIP_THEME } from "@/components/ui/planTheme";
 import { useMembership } from "@/lib/membership";
 import { AgreementCheckbox, acceptAgreement } from "@/components/AgreementCheckbox";
 import type { Company, ManufacturerProfile } from "@/types";
@@ -268,21 +269,23 @@ function OnboardingInner() {
                 type="button"
                 onClick={() => setBilling(o.key)}
                 aria-pressed={billing === o.key}
-                className={`text-left rounded-2xl p-5 border bg-white transition-colors ${
-                  billing === o.key ? "border-accent ring-1 ring-accent" : "border-slate-200 hover:border-slate-300"
+                className={`text-left rounded-2xl p-5 border-2 bg-linear-to-br from-indigo-50 to-violet-50 transition-colors ${
+                  billing === o.key ? MEMBERSHIP_THEME.selected : MEMBERSHIP_THEME.idle
                 }`}
               >
                 <div className="flex items-center justify-between mb-2 gap-2">
-                  <span className="flex items-center gap-2.5 text-sm font-medium text-slate-900">
-                    <Radio on={billing === o.key} /> {o.key === "annual" ? "Yearly" : "Monthly"}
+                  <span className="flex items-center gap-2.5 text-sm font-semibold text-indigo-950">
+                    <Radio on={billing === o.key} tone="indigo" /> {o.key === "annual" ? "Yearly" : "Monthly"}
                   </span>
-                  {o.badge && <Badge tone="neutral" size="xs">{o.badge}</Badge>}
+                  {o.badge && (
+                    <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[11px] font-semibold text-white">{o.badge}</span>
+                  )}
                 </div>
                 <p className="mt-2">
-                  <span className="text-2xl font-semibold tracking-tight text-slate-900">{o.price}</span>
-                  <span className="text-sm text-slate-500 ml-1">{o.period}</span>
+                  <span className="text-2xl font-bold tracking-tight text-indigo-950">{o.price}</span>
+                  <span className="text-sm text-indigo-900/70 ml-1">{o.period}</span>
                 </p>
-                <p className={`text-xs mt-1 ${o.key === "annual" ? "text-slate-700 font-medium" : "text-slate-500"}`}>
+                <p className={`text-xs mt-1 ${o.key === "annual" ? "text-indigo-700 font-semibold" : "text-indigo-900/70"}`}>
                   {o.note}
                 </p>
               </button>
@@ -303,6 +306,17 @@ function OnboardingInner() {
               Need more products? Popular, Best Value and Enterprise plans include this
               membership. The Standard plan ($3 per product) is billed in addition to it.
             </p>
+            <ul className="mt-3 flex flex-wrap gap-2" aria-label="Product plans">
+              {PLANS.map((p) => {
+                const t = PLAN_THEME[p.key];
+                return (
+                  <li key={p.key} className={`rounded-lg border px-2.5 py-1 text-xs font-semibold tabular-nums ${t.card}`}>
+                    {p.en.name} ${p.priceCents / 100}
+                    <span className={`font-medium ${t.muted}`}>{p.perProduct ? "/product" : "/mo"}</span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 mb-5">
@@ -346,11 +360,13 @@ function OnboardingInner() {
   );
 }
 
-function Radio({ on }: { on: boolean }) {
+function Radio({ on, tone = "accent" }: { on: boolean; tone?: "accent" | "indigo" }) {
+  const onRing = tone === "indigo" ? "ring-indigo-600" : "ring-accent";
+  const offRing = tone === "indigo" ? "ring-indigo-300" : "ring-slate-300";
   return (
     <span
       aria-hidden="true"
-      className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${on ? "ring-[5px] ring-inset ring-accent bg-white" : "ring-1 ring-inset ring-slate-300 bg-white"}`}
+      className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${on ? `ring-[5px] ring-inset ${onRing} bg-white` : `ring-1 ring-inset ${offRing} bg-white`}`}
     />
   );
 }

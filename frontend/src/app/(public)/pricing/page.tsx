@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PLANS, REGISTRY_MEMBERSHIP } from "@/lib/constants";
+import { REGISTRY_MEMBERSHIP } from "@/lib/constants";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink, ArrowRight } from "@/components/ui/Button";
 import { FactList } from "@/components/ui/FactList";
@@ -7,9 +7,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { PageHeader } from "@/components/marketing/PageHeader";
 import { CheckList } from "@/components/marketing/CheckList";
 import { Accordion } from "@/components/marketing/Accordion";
-import { cn } from "@/lib/utils";
-
-const usd = (cents: number) => `$${cents / 100}`;
+import { MembershipCard, PlanCardGrid } from "@/components/marketing/PlanCards";
 
 const FREE_INCLUDES = [
   "Permanent Manufacturer ID and public company page",
@@ -123,7 +121,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* 2. Paid plans - calm, secondary */}
+      {/* 2. Paid plans - colored membership + plan cards */}
       <section className="py-16 sm:py-20 bg-surface border-y border-slate-200">
         <div className="mx-auto max-w-6xl px-5 sm:px-6">
           <SectionHeader
@@ -133,67 +131,18 @@ export default function PricingPage() {
             description="For more than 3 products, or to keep an active membership after the free period."
           />
 
-          {/* Registry Membership */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
-              <div>
-                <h3 className="text-lg font-semibold tracking-tight text-slate-900">{REGISTRY_MEMBERSHIP.en.name}</h3>
-                <p className="mt-1 text-sm text-slate-600 leading-relaxed max-w-2xl">{REGISTRY_MEMBERSHIP.en.desc}</p>
-                <CheckList items={REGISTRY_MEMBERSHIP.en.features} columns={2} size="sm" className="mt-5" />
-              </div>
-              <div className="lg:border-l lg:border-slate-200 lg:pl-8">
-                <p>
-                  <span className="text-3xl font-semibold tracking-tight text-slate-900 tabular-nums">${monthly}</span>
-                  <span className="text-sm text-slate-500"> / month</span>
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  or <span className="font-semibold tabular-nums">${annual} / year</span>
-                </p>
-                <p className="mt-1 text-xs text-slate-500">Yearly recommended - save ${monthly * 12 - annual}</p>
-                <ButtonLink href="/register" variant="secondary" className="mt-5 w-full">
-                  Join the registry
-                </ButtonLink>
-              </div>
-            </div>
-            <p className="mt-6 pt-5 border-t border-slate-200 text-sm text-slate-500 leading-relaxed">
-              Your Manufacturer ID is permanent. If your membership lapses, the ID, product pages and QR codes keep
-              working - your profile is marked Inactive and adding or editing products pauses until you renew.
-            </p>
-          </div>
+          {/* Registry Membership - indigo / violet */}
+          <MembershipCard className="mt-2" />
 
-          {/* Product plans */}
-          <div className="mt-12 mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          {/* Product plans - per-plan colors */}
+          <div className="mt-14 mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <h3 className="text-lg font-semibold tracking-tight text-slate-900">Product plans</h3>
             <p className="text-sm text-slate-500 max-w-xl sm:text-right">
               Popular, Best Value and Enterprise include the Registry Membership. Standard is billed in addition to it.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {PLANS.map((p) => (
-              <div
-                key={p.key}
-                className={cn(
-                  "flex flex-col rounded-2xl border bg-white p-6",
-                  p.popular ? "border-accent ring-1 ring-accent" : "border-slate-200",
-                )}
-              >
-                <div className="flex items-center justify-between gap-2 min-h-6">
-                  <h4 className="text-base font-semibold text-slate-900">{p.en.name}</h4>
-                  {p.popular && <Badge tone="info" size="xs">Most popular</Badge>}
-                </div>
-                <p className="mt-1 text-sm text-slate-500">{p.en.desc}</p>
-                <p className="mt-5">
-                  <span className="text-3xl font-semibold tracking-tight text-slate-900 tabular-nums">{usd(p.priceCents)}</span>
-                  <span className="block mt-1 text-xs text-slate-500">{p.en.period}</span>
-                </p>
-                <CheckList items={p.en.features} size="sm" className="mt-5 mb-6 flex-1 content-start" />
-                <ButtonLink href="/register" variant={p.popular ? "primary" : "secondary"} className="w-full">
-                  Get Started
-                </ButtonLink>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-sm text-slate-500">
+          <PlanCardGrid />
+          <p className="mt-8 text-sm text-slate-500">
             Prices in USD. Product plans are annual subscriptions. API access is included with Best Value and Enterprise -{" "}
             <Link href="/api" className="text-accent hover:underline underline-offset-4">see the API</Link>.
           </p>

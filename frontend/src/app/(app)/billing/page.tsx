@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
 import { PLANS } from "@/lib/constants";
+import { PLAN_THEME } from "@/components/ui/planTheme";
 import { Badge, EmptyState, buttonClasses } from "@/components/ui";
 import { Notice, PageHeader, Panel, StatusPill, tableClass, tableWrap, tbodyClass, tdClass, thClass, theadClass } from "@/components/app";
 
@@ -282,20 +283,30 @@ export default function BillingPage() {
         {(!plan || plan.plan === "membership") && (
           <div className="border-t border-slate-100 pt-4">
             <p className="text-xs font-medium text-slate-500 mb-3">Paid plans (optional)</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {PLANS.map((p) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {PLANS.map((p) => {
+                const t = PLAN_THEME[p.key];
+                return (
                 <button
                   key={p.key}
                   onClick={() => handleUpgrade(p.key)}
                   disabled={upgrading}
-                  className={`h-10 px-4 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors bg-white border text-slate-900 shadow-xs hover:bg-slate-50 ${
-                    p.popular ? "border-accent/60" : "border-slate-300"
-                  }`}
+                  className={`relative text-left rounded-xl border px-4 py-3 disabled:opacity-50 transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${t.card}`}
                 >
-                  {p.en.name} (${p.priceCents / 100}
-                  {p.perProduct ? "/product" : "/mo"})
+                  {t.badge && (
+                    <span className={`absolute -top-2.5 right-3 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider shadow-sm ${t.badge.className}`}>
+                      {t.badge.label}
+                    </span>
+                  )}
+                  <span className="block text-sm font-semibold">{p.en.name}</span>
+                  <span className="mt-0.5 block tabular-nums">
+                    <span className="text-lg font-bold">${p.priceCents / 100}</span>
+                    <span className={`text-xs font-medium ${t.muted}`}>{p.perProduct ? "/product" : "/mo"}</span>
+                  </span>
+                  <span className={`block text-xs ${t.muted}`}>{p.en.desc}</span>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

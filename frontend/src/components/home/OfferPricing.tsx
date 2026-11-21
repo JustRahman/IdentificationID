@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PLANS, REGISTRY_MEMBERSHIP } from "@/lib/constants";
+import { PlanMiniGrid } from "@/components/marketing/PlanCards";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink, ArrowRight } from "@/components/ui/Button";
@@ -15,9 +15,7 @@ const FREE_INCLUDES = [
 
 const CHECK_COLORS = ["bg-blue-600", "bg-violet-600", "bg-emerald-600", "bg-amber-500"];
 
-const usd = (cents: number) => `$${cents / 100}`;
-
-/** Section 4 - the free offer first, paid plans muted beside it. Prices come from constants. */
+/** Section 4 - the free offer first, colored paid plans beside it. Prices come from constants. */
 export function OfferPricing() {
   return (
     <section id="pricing" className="relative py-20 sm:py-24 scroll-mt-16 overflow-hidden isolate bg-linear-to-b from-violet-50/70 via-white to-blue-50/60 border-y border-violet-100">
@@ -74,32 +72,13 @@ export function OfferPricing() {
           </div>
           </div>
 
-          {/* Paid plans - muted */}
-          <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-7">
+          {/* Paid plans - colored mini-grid (same per-plan colors as /pricing) */}
+          <div className="rounded-2xl border border-slate-200 bg-white/85 backdrop-blur-sm p-5 sm:p-6 shadow-[0_12px_32px_-20px_rgba(15,23,42,0.25)]">
             <h3 className="text-sm font-semibold text-slate-900">Paid plans</h3>
             <p className="mt-1 text-sm text-slate-500">For more than 3 products, or to keep an active membership after the free period.</p>
-            <dl className="mt-5 divide-y divide-slate-200 border-y border-slate-200">
-              <div className="py-3 flex items-baseline justify-between gap-4">
-                <dt className="text-sm text-slate-700">Registry Membership</dt>
-                <dd className="text-sm text-slate-900 font-medium tabular-nums text-right">
-                  {usd(REGISTRY_MEMBERSHIP.priceCents)}/mo <span className="text-slate-500 font-normal">or {usd(REGISTRY_MEMBERSHIP.annualPriceCents)}/yr</span>
-                </dd>
-              </div>
-              {PLANS.map((p) => (
-                <div key={p.key} className="py-3 flex items-baseline justify-between gap-4">
-                  <dt className="text-sm text-slate-700">
-                    {p.en.name}
-                    <span className="block text-xs text-slate-500">{p.en.desc}</span>
-                  </dt>
-                  <dd className="text-sm text-slate-900 font-medium tabular-nums text-right whitespace-nowrap">
-                    {usd(p.priceCents)}
-                    <span className="text-slate-500 font-normal">{p.perProduct ? " / product / mo" : " / mo"}</span>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-3 text-xs text-slate-500">Product plans are billed annually.</p>
-            <Link href="/pricing" className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline underline-offset-4">
+            <PlanMiniGrid className="mt-5" />
+            <p className="mt-4 text-xs text-slate-500">Product plans are billed annually.</p>
+            <Link href="/pricing" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline underline-offset-4">
               Compare all plans <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
