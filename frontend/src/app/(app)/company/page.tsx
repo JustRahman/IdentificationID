@@ -8,6 +8,8 @@ import { monthYear } from "@/components/ManufacturerProfileView";
 import { useMembership } from "@/lib/membership";
 import { VERIFICATION_DISCLAIMER } from "@/lib/constants";
 import type { Company } from "@/types";
+import { Badge, buttonClasses } from "@/components/ui";
+import { AppIcon, Notice, PageHeader, StatusPill } from "@/components/app";
 
 export default function CompanyPage() {
   const [company, setCompany] = useState<Company | null>(null);
@@ -50,75 +52,83 @@ export default function CompanyPage() {
   }, []);
 
   if (loading) {
-    return <p className="text-sm text-muted">Loading...</p>;
+    return <p className="text-sm text-slate-500">Loading...</p>;
   }
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">Company Profile</h1>
+      <PageHeader
+        title="Company Profile"
+        description="This information appears on your public manufacturer page."
+        meta={
+          company ? (
+            <>
+              <StatusPill status={company.status} />
+              {company.admin_note && (
+                <span className="text-xs text-slate-500">Note: {company.admin_note}</span>
+              )}
+            </>
+          ) : undefined
+        }
+        actions={
+          company?.manufacturer_id ? (
+            <a
+              href={`/manufacturer/${company.manufacturer_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonClasses("secondary", "md")}
+            >
+              View public profile <AppIcon name="external" />
+            </a>
+          ) : undefined
+        }
+      />
 
-      {company && (
-        <div className="mb-4 flex items-center gap-3">
-          <span
-            className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
-              company.status === "verified"
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : company.status === "rejected"
-                ? "bg-red-50 text-red-700 border border-red-200"
-                : "bg-amber-50 text-amber-700 border border-amber-200"
-            }`}
-          >
-            {company.status.charAt(0).toUpperCase() + company.status.slice(1)}
-          </span>
-          {company.admin_note && (
-            <span className="text-xs text-muted">Note: {company.admin_note}</span>
-          )}
-        </div>
-      )}
+      {message && <Notice tone="success" className="mb-4">{message}</Notice>}
+      {error && <Notice tone="error" className="mb-4">{error}</Notice>}
 
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 min-w-0 order-2 lg:order-1">
+        <CompanyProfileForm
+          company={company}
+          onSaved={(c) => {
+            setCompany(c);
+            setError("");
+            setMessage("Company profile updated.");
+          }}
+        />
+      </div>
+
+      <div className="space-y-6 order-1 lg:order-2">
       {/* Manufacturer registry ID + membership */}
       {company?.manufacturer_id && (
-        <div className="bg-background border border-border rounded-xl p-5 mb-6 max-w-lg">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
           <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
-            <p className="text-sm font-medium">Your Manufacturer ID</p>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-lg font-medium ${
-                registry?.active
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-gray-50 text-gray-600 border border-gray-200"
-              }`}
-            >
+            <p className="text-sm font-semibold text-slate-900">Your Manufacturer ID</p>
+            <Badge tone={registry?.active ? "verified" : "neutral"} dot size="xs">
               Registry: {registry?.active ? "Active" : "Inactive"}
-            </span>
+            </Badge>
           </div>
-          <p className="text-xs text-muted mb-3">
+          <p className="text-xs text-slate-500 mb-4 leading-relaxed">
             A permanent identifier for your company in the Identification ID registry.
             It never changes and links to all of your products.
           </p>
-          <div className="flex items-center gap-2 flex-wrap mb-4">
-            <span className="text-lg font-mono font-semibold">{company.manufacturer_id}</span>
+          <div className="flex items-center justify-between gap-2 mb-4 rounded-lg border border-slate-200 bg-slate-50 pl-3 pr-1 h-11">
+            <span className="text-base font-mono tabular-nums font-semibold text-slate-900" data-no-i18n>{company.manufacturer_id}</span>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(company.manufacturer_id || "").catch(() => {});
                 setCopiedMid(true);
                 setTimeout(() => setCopiedMid(false), 2000);
               }}
-              className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
+              className="text-xs h-8 px-2.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors"
             >
-              {copiedMid ? "✓ Copied" : "Copy"}
+              {copiedMid ? "Copied" : "Copy"}
             </button>
-            <a
-              href={`/manufacturer/${company.manufacturer_id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
-            >
-              View public profile ↗
-            </a>
           </div>
 
           {registry?.active ? (
-            <p className="text-xs text-muted border-t border-border pt-3">
+            <p className="text-xs text-slate-500 border-t border-slate-100 pt-3 leading-relaxed">
               Registry membership active
               {registry.included_in_plan
                 ? " (included in your plan)"
@@ -128,15 +138,15 @@ export default function CompanyPage() {
               . Your public manufacturer profile is live.
             </p>
           ) : (
-            <div className="border-t border-border pt-3">
-              <p className="text-xs text-muted mb-3">
+            <div className="border-t border-slate-100 pt-3">
+              <p className="text-xs text-slate-500 mb-3 leading-relaxed">
                 {registry?.last_active ? `Last active: ${monthYear(registry.last_active)}. ` : ""}
                 Your Manufacturer ID is permanent and existing links keep working. Renew your
                 membership ($5/month or $49/year) to reactivate your public profile and edit products.
               </p>
               <Link
                 href="/onboarding?step=activate"
-                className="inline-block bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover"
+                className={buttonClasses("primary", "sm")}
               >
                 Renew membership
               </Link>
@@ -147,50 +157,44 @@ export default function CompanyPage() {
 
       {/* Automated verification */}
       {company && (
-        <div className="bg-background border border-border rounded-xl p-5 mb-6 max-w-lg">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
           <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
-            <p className="text-sm font-medium">Verification</p>
+            <p className="text-sm font-semibold text-slate-900">Verification</p>
             {company.trust_score !== null && company.trust_score !== undefined && (
-              <span
-                className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
-                  company.trust_score >= 70
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : company.trust_score >= 40
-                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                    : "bg-gray-50 text-gray-600 border border-gray-200"
-                }`}
+              <Badge
+                tone={company.trust_score >= 70 ? "verified" : company.trust_score >= 40 ? "pending" : "neutral"}
+                icon={company.trust_score >= 70 ? "check" : undefined}
+                size="xs"
               >
                 {company.trust_score >= 70
-                  ? "✓ Verified Manufacturer"
+                  ? "Verified Manufacturer"
                   : company.trust_score >= 40
                   ? "Partially verified"
                   : "Not verified"}{" "}
                 · {company.trust_score}/100
-              </span>
+              </Badge>
             )}
           </div>
-          <p className="text-xs text-muted mb-4">
+          <p className="text-xs text-slate-500 mb-4 leading-relaxed">
             These checks run automatically from your website and email - nothing for you to do.
             Add a company website and use a work email address to score higher.
           </p>
 
           {company.trust_checks ? (
-            <ul className="space-y-1.5 mb-4">
+            <ul className="divide-y divide-slate-100 mb-4 border-y border-slate-100">
               {Object.entries(CHECK_LABELS).map(([key, label]) => {
                 const ok = company.trust_checks?.[key] === true;
                 return (
-                  <li key={key} className="flex items-center gap-2 text-sm">
-                    <span className={ok ? "text-green-600" : "text-muted/50"}>
-                      {ok ? "✓" : "○"}
-                    </span>
-                    <span className={ok ? "" : "text-muted"}>{label}</span>
+                  <li key={key} className="flex items-center gap-2.5 text-sm py-2">
+                    <CheckDot ok={ok} />
+                    <span className={ok ? "text-slate-800" : "text-slate-500"}>{label}</span>
                   </li>
                 );
               })}
               {typeof company.trust_checks.domain_age_days === "number" && (
-                <li className="flex items-center gap-2 text-sm">
-                  <span className="text-green-600">✓</span>
-                  <span>
+                <li className="flex items-center gap-2.5 text-sm py-2">
+                  <CheckDot ok />
+                  <span className="text-slate-800">
                     Domain age:{" "}
                     {Math.floor((company.trust_checks.domain_age_days as number) / 365)} year(s)
                   </span>
@@ -198,25 +202,25 @@ export default function CompanyPage() {
               )}
             </ul>
           ) : (
-            <p className="text-sm text-muted mb-4">No checks run yet.</p>
+            <p className="text-sm text-slate-500 mb-4">No checks run yet.</p>
           )}
 
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={recheckVerification}
               disabled={rechecking}
-              className="text-sm border border-border px-4 py-2 rounded-lg hover:bg-surface disabled:opacity-50"
+              className={buttonClasses("secondary", "sm")}
             >
               {rechecking ? "Checking…" : "Re-run checks"}
             </button>
             {company.trust_checked_at && (
-              <span className="text-xs text-muted">
+              <span className="text-xs text-slate-500">
                 Last checked {new Date(company.trust_checked_at).toLocaleString()}
               </span>
             )}
           </div>
 
-          <p className="text-[11px] text-muted mt-4 pt-3 border-t border-border leading-relaxed">
+          <p className="text-[11px] text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">
             {VERIFICATION_DISCLAIMER}{" "}
             <a href="/verification" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
               How verification works
@@ -224,28 +228,21 @@ export default function CompanyPage() {
           </p>
         </div>
       )}
-
-      {message && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg p-3 mb-4">
-          {message}
-        </div>
-      )}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
-          {error}
-        </div>
-      )}
-
-      <div className="bg-background border border-border rounded-xl p-6 max-w-lg">
-        <CompanyProfileForm
-          company={company}
-          onSaved={(c) => {
-            setCompany(c);
-            setError("");
-            setMessage("Company profile updated.");
-          }}
-        />
+      </div>
       </div>
     </div>
+  );
+}
+
+function CheckDot({ ok }: { ok: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+        ok ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200" : "ring-1 ring-slate-200 text-transparent"
+      }`}
+    >
+      <AppIcon name="check" className="w-3 h-3" />
+    </span>
   );
 }

@@ -50,7 +50,7 @@ function VerifyContent() {
     return (
       <div className="text-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-sm text-muted">Verifying your email…</p>
+        <p className="text-sm text-slate-500">Verifying your email…</p>
       </div>
     );
   }
@@ -58,14 +58,14 @@ function VerifyContent() {
   if (status === "success") {
     return (
       <div className="text-center">
-        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
-          <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="w-12 h-12 rounded-full bg-emerald-50 ring-1 ring-emerald-100 flex items-center justify-center mx-auto mb-5">
+          <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-xl font-semibold mb-2">Email verified</h1>
-        <p className="text-sm text-muted mb-6">Your account is now fully activated.</p>
-        <Link href="/dashboard" className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">Email verified</h1>
+        <p className="text-sm text-slate-500 mb-6">Your account is now fully activated.</p>
+        <Link href="/dashboard" className="inline-flex items-center h-10 bg-accent text-white px-5 rounded-lg text-sm font-medium shadow-sm hover:bg-accent-hover transition-colors">
           Go to Dashboard
         </Link>
       </div>
@@ -75,16 +75,16 @@ function VerifyContent() {
   if (status === "error") {
     return (
       <div className="text-center">
-        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-5">
+        <div className="w-12 h-12 rounded-full bg-red-50 ring-1 ring-red-100 flex items-center justify-center mx-auto mb-5">
           <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
-        <h1 className="text-xl font-semibold mb-2">Verification failed</h1>
-        <p className="text-sm text-muted mb-6">{errorMsg}</p>
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">Verification failed</h1>
+        <p className="text-sm text-slate-500 mb-6">{errorMsg}</p>
         <button
           onClick={handleResend}
-          className="border border-border text-foreground px-5 py-2.5 rounded-lg text-sm hover:bg-surface transition-colors"
+          className="inline-flex items-center h-10 border border-slate-300 bg-white text-slate-900 px-5 rounded-lg text-sm font-medium shadow-xs hover:bg-slate-50 transition-colors"
         >
           Resend verification email
         </button>
@@ -96,7 +96,7 @@ function VerifyContent() {
     return (
       <div className="text-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-sm text-muted">Sending email…</p>
+        <p className="text-sm text-slate-500">Sending email…</p>
       </div>
     );
   }
@@ -104,13 +104,13 @@ function VerifyContent() {
   if (status === "resent") {
     return (
       <div className="text-center">
-        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-5">
+        <div className="w-12 h-12 rounded-full bg-blue-50 ring-1 ring-blue-100 flex items-center justify-center mx-auto mb-5">
           <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
           </svg>
         </div>
-        <h1 className="text-xl font-semibold mb-2">Email sent</h1>
-        <p className="text-sm text-muted">Check your inbox and click the verification link.</p>
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">Email sent</h1>
+        <p className="text-sm text-slate-500">Check your inbox and click the verification link.</p>
       </div>
     );
   }
@@ -118,20 +118,20 @@ function VerifyContent() {
   // status === "pending"
   return (
     <div className="text-center">
-      <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-5">
+      <div className="w-12 h-12 rounded-full bg-blue-50 ring-1 ring-blue-100 flex items-center justify-center mx-auto mb-5">
         <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
         </svg>
       </div>
-      <h1 className="text-xl font-semibold mb-2">Check your email</h1>
-      <p className="text-sm text-muted mb-6 leading-relaxed">
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">Check your email</h1>
+      <p className="text-sm text-slate-500 mb-6 leading-relaxed">
         We sent a verification link to your email.
         <br />
         Click it to activate your account.
       </p>
       <button
         onClick={handleResend}
-        className="border border-border text-foreground px-5 py-2.5 rounded-lg text-sm hover:bg-surface transition-colors"
+        className="inline-flex items-center h-10 border border-slate-300 bg-white text-slate-900 px-5 rounded-lg text-sm font-medium shadow-xs hover:bg-slate-50 transition-colors"
       >
         Resend email
       </button>

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { buttonClasses } from "@/components/ui";
+import { PageHeader, inputClass } from "@/components/app";
 import { api } from "@/services/api";
 
 interface ApiKeyItem {
@@ -182,14 +184,14 @@ export default function ApiKeysPage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-muted">Loading...</p>;
+  if (loading) return <p className="text-sm text-slate-500">Loading...</p>;
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">API Access</h1>
+      <PageHeader title="API Access" description="API keys and webhooks for connecting your systems to the registry." />
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-2xl">
+        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4 max-w-3xl">
           {error}
           {planRequired && (
             <>
@@ -202,8 +204,8 @@ export default function ApiKeysPage() {
         </div>
       )}
 
-      <div className="bg-background border border-border rounded-xl p-6 max-w-2xl mb-6">
-        <h2 className="text-base font-semibold mb-4">Create API Key</h2>
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-3xl mb-6">
+        <h2 className="text-[15px] font-semibold tracking-tight text-slate-900 mb-4">Create API Key</h2>
         <form onSubmit={handleCreate} className="flex gap-3">
           <input
             type="text"
@@ -211,29 +213,29 @@ export default function ApiKeysPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Key name (e.g. Production)"
             maxLength={100}
-            className="flex-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            className={`flex-1 ${inputClass}`}
           />
           <button
             type="submit"
             disabled={creating || !name.trim()}
-            className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover disabled:opacity-50"
+            className={buttonClasses("primary", "md")}
           >
             {creating ? "Creating..." : "Create"}
           </button>
         </form>
 
         {createdKey && (
-          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
             <p className="text-sm font-medium text-amber-800 mb-2">
               Save this key now - you won&apos;t see it again.
             </p>
             <div className="flex items-center gap-2">
-              <pre className="flex-1 bg-background border border-border rounded-lg p-3 text-xs overflow-x-auto">
+              <pre className="flex-1 bg-white border border-amber-200 rounded-lg p-3 text-xs font-mono overflow-x-auto" data-no-i18n>
                 {createdKey.key}
               </pre>
               <button
                 onClick={handleCopy}
-                className="px-4 py-2.5 rounded-lg text-sm font-medium border border-border hover:bg-surface shrink-0"
+                className={buttonClasses("secondary", "md", "shrink-0")}
               >
                 {copied ? "Copied!" : "Copy"}
               </button>
@@ -242,28 +244,28 @@ export default function ApiKeysPage() {
         )}
       </div>
 
-      <div className="bg-background border border-border rounded-xl p-6 max-w-2xl mb-6">
-        <h2 className="text-base font-semibold mb-4">Your Keys</h2>
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-3xl mb-6">
+        <h2 className="text-[15px] font-semibold tracking-tight text-slate-900 mb-4">Your Keys</h2>
         {keys.length === 0 ? (
-          <p className="text-sm text-muted">No API keys yet.</p>
+          <p className="text-sm text-slate-500">No API keys yet.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="divide-y divide-slate-100 border-y border-slate-100 -mx-6">
             {keys.map((k) => (
               <div
                 key={k.id}
-                className="flex items-center justify-between p-3 border border-border rounded-lg"
+                className="flex items-center justify-between gap-4 px-6 py-3.5"
               >
                 <div>
                   <p className="text-sm font-medium">
                     {k.name}
                     {!k.is_active && (
-                      <span className="ml-2 text-xs px-2 py-0.5 rounded-lg bg-gray-50 text-gray-600 border border-gray-200">
+                      <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
                         Revoked
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-muted font-mono">{k.key_prefix}</p>
-                  <p className="text-xs text-muted">
+                  <p className="text-xs text-slate-600 font-mono mt-0.5" data-no-i18n>{k.key_prefix}</p>
+                  <p className="text-xs text-slate-500">
                     Created {k.created_at ? new Date(k.created_at).toLocaleDateString() : "-"}
                     {" · "}
                     Last used{" "}
@@ -275,13 +277,13 @@ export default function ApiKeysPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleRevoke(k.id)}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                        className="h-8 px-3 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700"
                       >
                         Confirm
                       </button>
                       <button
                         onClick={() => setConfirmRevoke(null)}
-                        className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-surface"
+                        className={buttonClasses("secondary", "sm")}
                       >
                         Cancel
                       </button>
@@ -289,7 +291,7 @@ export default function ApiKeysPage() {
                   ) : (
                     <button
                       onClick={() => setConfirmRevoke(k.id)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                      className="h-8 px-3 text-sm rounded-lg border border-slate-300 bg-white text-red-600 hover:bg-red-50 hover:border-red-200"
                     >
                       Revoke
                     </button>
@@ -301,11 +303,11 @@ export default function ApiKeysPage() {
       </div>
 
       {/* Webhooks */}
-      <div className="bg-background border border-border rounded-xl p-6 max-w-2xl mb-6">
-        <h2 className="text-base font-semibold mb-1">Webhooks</h2>
-        <p className="text-xs text-muted mb-4">
-          Receive a signed <code className="bg-surface px-1 rounded">POST</code> to your URL when product events happen.
-          Verify the <code className="bg-surface px-1 rounded">X-IID-Signature</code> header (HMAC-SHA256 of the body) with your signing secret.
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-3xl mb-6">
+        <h2 className="text-[15px] font-semibold tracking-tight text-slate-900 mb-1">Webhooks</h2>
+        <p className="text-xs text-slate-500 mb-4">
+          Receive a signed <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono">POST</code> to your URL when product events happen.
+          Verify the <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono">X-IID-Signature</code> header (HMAC-SHA256 of the body) with your signing secret.
         </p>
 
         <form onSubmit={handleCreateWebhook} className="space-y-3 mb-4">
@@ -314,7 +316,7 @@ export default function ApiKeysPage() {
             value={whUrl}
             onChange={(e) => setWhUrl(e.target.value)}
             placeholder="https://your-app.com/webhooks/iid"
-            className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            className={inputClass}
           />
           <div className="flex flex-wrap gap-3">
             {WH_EVENTS.map((ev) => (
@@ -332,44 +334,44 @@ export default function ApiKeysPage() {
           <button
             type="submit"
             disabled={whCreating || !whUrl.trim() || whEvents.length === 0}
-            className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover disabled:opacity-50"
+            className={buttonClasses("primary", "md")}
           >
             {whCreating ? "Adding..." : "Add webhook"}
           </button>
         </form>
 
         {newWebhook?.secret && (
-          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
             <p className="text-sm font-medium text-amber-800 mb-2">
               Signing secret - save it to verify webhook signatures.
             </p>
-            <pre className="bg-background border border-border rounded-lg p-3 text-xs overflow-x-auto">
+            <pre className="bg-white border border-amber-200 rounded-lg p-3 text-xs font-mono overflow-x-auto" data-no-i18n>
               {newWebhook.secret}
             </pre>
           </div>
         )}
 
         {webhooks.length === 0 ? (
-          <p className="text-sm text-muted">No webhooks yet.</p>
+          <p className="text-sm text-slate-500">No webhooks yet.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="divide-y divide-slate-100 border-y border-slate-100 -mx-6">
             {webhooks.map((w) => (
-              <div key={w.id} className="p-3 border border-border rounded-lg">
+              <div key={w.id} className="px-6 py-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-mono truncate">{w.url}</p>
-                    <p className="text-xs text-muted mt-0.5">{(w.events || []).join(" · ")}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{(w.events || []).join(" · ")}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => handleTestWebhook(w.id)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-surface"
+                      className={buttonClasses("secondary", "sm")}
                     >
-                      {testedId === w.id ? "Sent ✓" : "Test"}
+                      {testedId === w.id ? "Sent" : "Test"}
                     </button>
                     <button
                       onClick={() => handleDeleteWebhook(w.id)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                      className="h-8 px-3 text-sm rounded-lg border border-slate-300 bg-white text-red-600 hover:bg-red-50 hover:border-red-200"
                     >
                       Delete
                     </button>
@@ -381,31 +383,31 @@ export default function ApiKeysPage() {
         )}
       </div>
 
-      <div className="bg-background border border-border rounded-xl p-6 max-w-2xl">
-        <h2 className="text-base font-semibold mb-4">Quick start</h2>
-        <p className="text-xs text-muted mb-1">Base URL</p>
-        <pre className="bg-surface border border-border rounded-lg p-3 text-xs overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-3xl">
+        <h2 className="text-[15px] font-semibold tracking-tight text-slate-900 mb-4">Quick start</h2>
+        <p className="text-xs text-slate-500 mb-1">Base URL</p>
+        <pre className="bg-slate-950 text-slate-100 rounded-xl p-4 text-xs font-mono leading-relaxed overflow-x-auto" data-no-i18n>
           {BASE_URL}
         </pre>
-        <p className="text-xs text-muted mt-4 mb-1">Endpoints</p>
-        <div className="space-y-2">
+        <p className="text-xs text-slate-500 mt-4 mb-1">Endpoints</p>
+        <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl">
           {ENDPOINTS.map((ep) => (
             <div
               key={ep.path}
-              className="flex items-start gap-3 p-3 border border-border rounded-lg"
+              className="flex items-start gap-3 px-4 py-3"
             >
-              <span className="text-xs font-mono font-semibold text-accent shrink-0">
+              <span className="text-[11px] font-mono font-semibold text-accent bg-blue-50 rounded px-1.5 py-0.5 shrink-0">
                 {ep.method}
               </span>
               <div className="min-w-0">
                 <p className="text-xs font-mono">{ep.path}</p>
-                <p className="text-xs text-muted">{ep.desc}</p>
+                <p className="text-xs text-slate-500">{ep.desc}</p>
               </div>
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted mt-4 mb-1">Example</p>
-        <pre className="bg-surface border border-border rounded-lg p-3 text-xs overflow-x-auto">
+        <p className="text-xs text-slate-500 mt-4 mb-1">Example</p>
+        <pre className="bg-slate-950 text-slate-100 rounded-xl p-4 text-xs font-mono leading-relaxed overflow-x-auto" data-no-i18n>
           {CURL_EXAMPLE}
         </pre>
       </div>

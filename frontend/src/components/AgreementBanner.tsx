@@ -43,9 +43,9 @@ export function AgreementBanner() {
   }
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-      <p className="text-sm font-semibold text-blue-900">Please review our updated Terms</p>
-      <p className="text-xs text-blue-800 mt-0.5 mb-3">
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6 border-l-4 border-l-accent">
+      <p className="text-sm font-semibold text-slate-900">Please review our updated Terms</p>
+      <p className="text-sm text-slate-600 mt-1 mb-4 leading-relaxed">
         We&apos;ve published a new version of the Terms of Service and Manufacturer Agreement. Please review and
         accept it. Payments are paused until you do; your products are not affected.
       </p>
@@ -60,12 +60,12 @@ export function AgreementBanner() {
         <button
           onClick={accept}
           disabled={!checked || saving || personName.trim().length < 2}
-          className="text-xs bg-accent text-white px-3 py-1.5 rounded-lg hover:bg-accent-hover font-medium disabled:opacity-50"
+          className="h-9 px-4 text-sm bg-accent text-white rounded-lg hover:bg-accent-hover font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? "Saving..." : "Accept"}
         </button>
       </div>
-      {error && <p className="text-xs text-red-700 mt-2">{error}</p>}
+      {error && <p className="text-sm text-red-700 mt-2">{error}</p>}
     </div>
   );
 }

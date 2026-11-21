@@ -1,7 +1,10 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
+import { PageHeader } from "@/components/marketing/PageHeader";
+import { Accordion } from "@/components/marketing/Accordion";
+import { SideNav } from "@/components/marketing/SideNav";
+
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 const faqs = [
   {
@@ -38,7 +41,7 @@ const faqs = [
     items: [
       {
         q: "How do I register my products?",
-        a: "Create an account, set up your company profile, then register your products - upload PDF manuals and photos, and each product gets its unique Identification ID. Choose a plan, complete the payment, and publish your product pages.",
+        a: "Create an account, set up your company profile, then register your products - upload PDF manuals and photos, and each product gets its unique Identification ID. Until July 1, 2027 your Manufacturer ID and first 3 products are free with no card needed; for more products choose a plan and complete the payment, then publish your product pages.",
       },
       {
         q: "What file formats are supported for documents?",
@@ -58,7 +61,7 @@ const faqs = [
       },
       {
         q: "How much does it cost?",
-        a: "Every manufacturer needs a Manufacturer Registry Membership: $5/month or $49/year. It includes your permanent Manufacturer ID, public profile, manufacturer QR code, API visibility, basic analytics, and your first 3 Product IDs at no additional cost. For more products: Standard $3 per product / mo (billed in addition to the membership), Popular $29/mo (up to 100 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual) - these three include the membership. Product plans are annual subscriptions - see the Pricing page. Looking up and verifying products is always free for consumers.",
+        a: "Registration is free until July 1, 2027: Manufacturer ID + 3 products, no card needed and no automatic charge. Manufacturers registered before July 1, 2027 stay in the registry permanently. After that, or for more products, the Manufacturer Registry Membership is $5/month or $49/year. It includes your permanent Manufacturer ID, public profile, manufacturer QR code, API visibility, basic analytics, and your first 3 Product IDs at no additional cost. For more products: Standard $3 per product / mo (billed in addition to the membership), Popular $29/mo (up to 100 products), Best Value $99/mo (up to 500), Enterprise $299/mo (individual) - these three include the membership. Product plans are annual subscriptions - see the Pricing page. Looking up and verifying products is always free for consumers.",
       },
       {
         q: "What happens if I don't renew my membership?",
@@ -85,67 +88,52 @@ const faqs = [
   },
 ];
 
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(true);
-  return (
-    <div className="border border-border rounded-xl overflow-hidden">
-      <button
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface transition-colors"
-        onClick={() => setOpen(!open)}
-      >
-        <span className="text-sm font-medium pr-4">{q}</span>
-        <svg
-          className={`w-4 h-4 text-muted shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {open && (
-        <div className="px-5 pb-4 pt-1 border-t border-border bg-surface">
-          <p className="text-sm text-muted leading-relaxed">{a}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function FAQPage() {
   return (
-    <div className="max-w-2xl mx-auto py-16 px-6">
-      <h1 className="text-3xl font-semibold mb-2 text-center">Frequently Asked Questions</h1>
-      <p className="text-muted text-center text-sm mb-12">
-        Can't find an answer?{" "}
-        <Link href="/lookup" className="text-accent hover:underline">Search for a product</Link>
-        {" "}or{" "}
-        <a href="mailto:support@identificationid.com" className="text-accent hover:underline">contact us</a>.
-      </p>
+    <>
+      <PageHeader
+        eyebrow="Help"
+        title="Frequently asked questions"
+        description={
+          <p>
+            Can&apos;t find an answer?{" "}
+            <Link href="/lookup" className="text-accent hover:underline underline-offset-4">Search for a product</Link>
+            {" "}or{" "}
+            <a href="mailto:support@identificationid.com" className="text-accent hover:underline underline-offset-4">contact us</a>.
+          </p>
+        }
+      />
 
-      <div className="space-y-10">
-        {faqs.map((section) => (
-          <div key={section.section}>
-            <h2 className="text-base font-semibold text-muted uppercase tracking-wide mb-4">
-              {section.section}
-            </h2>
-            <div className="space-y-2">
-              {section.items.map((item) => (
-                <FAQItem key={item.q} q={item.q} a={item.a} />
-              ))}
+      <section className="py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 grid gap-10 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-16">
+          <SideNav
+            title="Topics"
+            className="hidden lg:block"
+            items={faqs.map((s) => ({ href: `#${slug(s.section)}`, label: s.section }))}
+          />
+
+          <div className="min-w-0 max-w-3xl space-y-14">
+            {faqs.map((section) => (
+              <section key={section.section} id={slug(section.section)} aria-labelledby={`${slug(section.section)}-h`} className="scroll-mt-24">
+                <h2 id={`${slug(section.section)}-h`} className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900 mb-5">
+                  {section.section}
+                </h2>
+                <Accordion items={section.items} />
+              </section>
+            ))}
+
+            <div className="rounded-2xl border border-slate-200 bg-surface p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center gap-5 sm:justify-between">
+              <div>
+                <p className="font-semibold text-slate-900">Still have questions?</p>
+                <p className="mt-1 text-sm text-slate-600">We&apos;re happy to help manufacturers and consumers alike.</p>
+              </div>
+              <ButtonLink href="mailto:support@identificationid.com" variant="secondary">
+                Email us
+              </ButtonLink>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="mt-16 text-center p-6 bg-surface border border-border rounded-xl">
-        <p className="text-sm font-medium mb-1">Still have questions?</p>
-        <p className="text-sm text-muted mb-4">We're happy to help manufacturers and consumers alike.</p>
-        <a
-          href="mailto:support@identificationid.com"
-          className="inline-block bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover"
-        >
-          Email us
-        </a>
-      </div>
-    </div>
+        </div>
+      </section>
+    </>
   );
 }

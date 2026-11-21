@@ -59,7 +59,7 @@ export function AgreementCheckbox({
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-xs font-medium mb-1" htmlFor="authorized-person">
+        <label className="block text-sm font-medium text-slate-800 mb-1.5" htmlFor="authorized-person">
           Your full name (person accepting on behalf of the company)
         </label>
         <input
@@ -69,15 +69,15 @@ export function AgreementCheckbox({
           onChange={(e) => onPersonNameChange(e.target.value)}
           autoComplete="name"
           maxLength={255}
-          className="w-full max-w-sm border border-border rounded-lg px-3 py-2 text-sm bg-background"
+          className="w-full max-w-sm h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-xs hover:border-slate-400"
         />
       </div>
-      <label className="flex items-start gap-2.5 text-sm cursor-pointer select-none">
+      <label className="flex items-start gap-3 text-sm text-slate-700 leading-relaxed cursor-pointer select-none">
         <input
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 w-4 h-4 accent-blue-600 shrink-0"
+          className="mt-1 w-4 h-4 accent-blue-600 shrink-0"
         />
         <span>
           I confirm that I am authorized to act on behalf of <strong>{companyName || "my company"}</strong>{" "}and

@@ -2,11 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LANGUAGES, VERIFICATION_DISCLAIMER } from "@/lib/constants";
+import { CATEGORY_LABELS, LANGUAGES, VERIFICATION_DISCLAIMER } from "@/lib/constants";
 import { PublicPageNotice } from "@/components/PublicPageNotice";
 import { translateText } from "@/lib/translate";
-import { monthYear } from "@/components/ManufacturerProfileView";
 import { getPreview } from "@/lib/previews";
+import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
+import { IdChip } from "@/components/ui/IdChip";
+import { FactList } from "@/components/ui/FactList";
+import { Tabs } from "@/components/ui/Tabs";
+import { DisclaimerBar } from "@/components/ui/DisclaimerBar";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ProductImage as Photo } from "@/components/ui/ProductImage";
+import { Breadcrumb } from "@/components/registry/Breadcrumb";
+import { CompanyLogo } from "@/components/registry/CompanyLogo";
+import { QrCode } from "@/components/registry/QrCode";
+import { countryName, fullDate, monthYear, prettyUrl, safeHref } from "@/components/registry/format";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -112,14 +123,8 @@ export default function ProductPageClient({
   // Image gallery
   const [activeImage, setActiveImage] = useState(0);
 
-  // Copy-ID
-  const [copied, setCopied] = useState(false);
-  function copyId() {
-    if (!product) return;
-    navigator.clipboard.writeText(product.identification_id).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+  // Section tabs
+  const [tab, setTab] = useState("specs");
 
   // Language / translation
   const [activeLang, setActiveLang] = useState("en");
@@ -185,20 +190,22 @@ export default function ProductPageClient({
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto py-12 px-6">
-        <p className="text-sm text-muted">Loading...</p>
+      <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16">
+        <p className="text-sm text-slate-500">Loading...</p>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="max-w-3xl mx-auto py-12 px-6 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Product Not Found</h1>
-        <p className="text-muted mb-6">{error || "No product with this ID."}</p>
-        <Link href="/lookup" className="text-accent hover:underline text-sm">
-          Try another lookup
-        </Link>
+      <div className="mx-auto max-w-3xl px-5 sm:px-6 py-20">
+        <h1 className="sr-only">Product not found</h1>
+        <EmptyState
+          icon="search"
+          title="Product not found"
+          description={error && error !== "Product not found" ? error : "No product with this ID. Check the ID format: IID-XXXX-XXXX."}
+          action={<ButtonLink href="/lookup" variant="secondary">Try another lookup</ButtonLink>}
+        />
       </div>
     );
   }
@@ -209,285 +216,344 @@ export default function ProductPageClient({
   const hasAnyDesc = hasContent(desc);
 
   const preview = getPreview(id);
+  const company = product.company;
+  const mid = company.manufacturer_id;
+  const category = CATEGORY_LABELS[product.category] ?? product.category;
+  const websiteHref = safeHref(company.website);
+  const inactive = company.registry_status === "inactive";
+  const docCount = product.documents.length;
+  const current = images[activeImage] ?? images[0];
+
+  const langSelect = (where: string) => (
+    <div className="flex items-center gap-2">
+      {isMachine && <Badge tone="neutral" size="xs">Machine translated</Badge>}
+      <label className="sr-only" htmlFor={`lang-${where}`}>Description language</label>
+      <select
+        id={`lang-${where}`}
+        value={activeLang}
+        onChange={(e) => selectLang(e.target.value)}
+        disabled={translating}
+        className="text-sm border border-slate-200 rounded-lg pl-2.5 pr-7 h-8 bg-white text-slate-700 hover:border-slate-300 disabled:opacity-50"
+      >
+        {LANGUAGES.map((l) => (
+          <option key={l.code} value={l.code}>
+            {l.label}
+            {storedLangs.has(l.code) ? " ✓" : ""}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const midLink = mid ? (
+    preview ? (
+      <span className="inline-flex items-center gap-2">
+        <span data-no-i18n>{mid}</span>
+        <Badge tone="pending" size="xs">Sample</Badge>
+      </span>
+    ) : (
+      <Link href={`/manufacturer/${mid}`} className="text-accent hover:underline" data-no-i18n>{mid}</Link>
+    )
+  ) : null;
+
+  const specs = [
+    { label: "Identification ID", value: <span data-no-i18n>{product.identification_id}</span>, mono: true },
+    { label: "Product name", value: product.name },
+    { label: "Brand", value: product.brand },
+    { label: "Model", value: product.model, mono: true },
+    { label: "Category", value: category },
+    { label: "Country of origin", value: countryName(product.country_of_origin) },
+    { label: "Manufacturer", value: company.display_name },
+    { label: "Manufacturer ID", value: midLink, mono: true },
+    { label: "Published", value: product.published_at ? fullDate(product.published_at) : preview ? "Not published (sample)" : null },
+  ];
+
+  const tabs = [
+    { id: "specs", label: "Specifications" },
+    { id: "docs", label: "Manuals & documents", count: docCount },
+    { id: "safety", label: "Safety" },
+    { id: "maker", label: "Manufacturer" },
+  ];
 
   return (
-    <div className="max-w-3xl mx-auto py-12 px-6">
+    <div className="mx-auto max-w-6xl px-5 sm:px-6 pt-8 pb-20 sm:pt-10">
       {preview && (
-        <>
-          <div className="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
-            <p className="font-semibold mb-1">样例页面 / Sample preview for {preview.preparedFor}</p>
-            <p className="text-amber-900/80">
-              本页面根据贵司官网公开信息制作，仅供预览，未在注册表中发布。页面上的产品识别号和制造商识别号为样例，正式加入后会分配正式ID。
-              This private sample was built from information published on{" "}
-              <a href={preview.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">the manufacturer&apos;s website</a>.
-              It is not published in the registry. The Identification ID (IID-SMPL-B760) and Manufacturer ID shown are sample IDs; real ones are issued when the manufacturer joins.
-            </p>
+        <div role="note" className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <Badge tone="pending" dot>Sample page</Badge>
+            <p className="font-semibold">样例页面 / Sample preview for {preview.preparedFor}</p>
           </div>
-        </>
+          <p className="text-amber-900/85 leading-relaxed">
+            本页面根据贵司官网公开信息制作，仅供预览，未在注册表中发布。页面上的产品识别号和制造商识别号为样例，正式加入后会分配正式ID。
+            This private sample was built from information published on{" "}
+            <a href={preview.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">the manufacturer&apos;s website</a>.
+            It is not published in the registry. The Identification ID (IID-SMPL-B760) and Manufacturer ID shown are sample IDs; real ones are issued when the manufacturer joins.
+          </p>
+        </div>
       )}
-      <p className="text-sm text-muted mb-6">
-        <Link href="/" className="hover:underline">Home</Link>
-        {" / "}
-        <Link href="/lookup" className="hover:underline">Lookup</Link>
-        {" / "}
-        {product.name}
-      </p>
 
-      {/* Image gallery */}
-      {images.length > 0 && (
-        <div className="bg-background border border-border rounded-xl p-4 mb-6">
-          <div className="aspect-[4/3] bg-surface rounded-lg overflow-hidden mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={images[activeImage]?.url}
-              alt={images[activeImage]?.alt_text || product.name}
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Lookup", href: "/lookup" },
+          ...(mid && !preview ? [{ label: company.display_name, href: `/manufacturer/${mid}` }] : []),
+          { label: product.name },
+        ]}
+      />
+
+      {/* ── Hero: gallery + identity ── */}
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
+        {/* Gallery */}
+        <div className="lg:sticky lg:top-24">
+          <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+            <Photo
+              key={current?.url ?? "none"}
+              src={current?.url}
+              alt={current?.alt_text || product.name}
               className="w-full h-full object-cover"
             />
           </div>
           {images.length > 1 && (
-            <div className="flex gap-2 flex-wrap">
+            <div className="mt-3 flex gap-2 flex-wrap" role="group" aria-label="Product photos">
               {images.map((img, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => setActiveImage(i)}
-                  className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
-                    i === activeImage ? "border-accent" : "border-border hover:border-muted"
+                  aria-label={`Show photo ${i + 1}`}
+                  aria-pressed={i === activeImage}
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 bg-slate-50 transition-colors ${
+                    i === activeImage ? "border-accent" : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={img.url}
-                    alt={img.alt_text || `${product.name} ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+                  <Photo src={img.url} alt={img.alt_text || `${product.name} ${i + 1}`} className="w-full h-full object-cover" placeholderClassName="[&>span]:hidden" />
                 </button>
               ))}
             </div>
           )}
         </div>
-      )}
 
-      <div className="bg-background border border-border rounded-xl p-6 mb-6">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold mb-2">{product.name}</h1>
-            <span className="text-xs bg-surface text-muted px-2 py-1 rounded border border-border">
-              {product.category}
-            </span>
-          </div>
-          <Link
-            href="/verification"
-            title={VERIFICATION_DISCLAIMER}
-            className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors shrink-0 ${
-              product.company.verification_level === "verified"
-                ? "text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100"
-                : "text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100"
+        {/* Identity */}
+        <div className="min-w-0">
+          <p className="text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {product.brand && <span className="font-medium text-slate-700">{product.brand}</span>}
+            {product.brand && <span className="text-slate-300" aria-hidden="true">/</span>}
+            <span>{category}</span>
+          </p>
+          <h1
+            className={`mt-2 font-semibold tracking-tight text-slate-900 text-balance ${
+              product.name.length > 48 ? "text-2xl sm:text-3xl" : "text-3xl sm:text-4xl"
             }`}
           >
-            {product.company.verification_label || "Registered Manufacturer"}
-          </Link>
-        </div>
+            {product.name}
+          </h1>
 
-        {/* Identification ID - shown large so buyers, sellers and manufacturers notice it */}
-        <div className="mb-6 rounded-xl border-2 border-accent/30 bg-blue-50 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <p className="text-lg sm:text-xl">
-            <span className="font-semibold text-foreground">Identification ID:</span>{" "}
-            <span className="font-mono font-bold text-accent tracking-wide">{product.identification_id}</span>
-          </p>
-          <button
-            onClick={copyId}
-            className="text-xs border border-border bg-white px-3 py-1.5 rounded-lg hover:bg-surface shrink-0"
-          >
-            {copied ? "Copied" : "Copy ID"}
-          </button>
-        </div>
-
-        {desc.short && (
-          <p className="text-sm text-muted mb-6">{desc.short}</p>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-sm font-semibold text-muted mb-4">Product Details</h3>
-            {[
-              { label: "Identification ID", value: product.identification_id },
-              { label: "Brand", value: product.brand || "--" },
-              { label: "Model", value: product.model || "--" },
-              { label: "Country of Origin", value: product.country_of_origin || "--" },
-              { label: "Published", value: product.published_at ? new Date(product.published_at).toLocaleDateString() : "--" },
-            ].map((field) => (
-              <div key={field.label} className="mb-3">
-                <p className="text-xs text-muted">{field.label}</p>
-                <p className="text-sm">{field.value}</p>
-              </div>
-            ))}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Link href="/verification" title={VERIFICATION_DISCLAIMER} className="rounded-full">
+              <Badge
+                tone={preview ? "pending" : company.verification_level === "registered" ? "neutral" : "verified"}
+                icon={preview ? undefined : "check"}
+                dot={!!preview}
+              >
+                {company.verification_label || "Registered Manufacturer"}
+              </Badge>
+            </Link>
+            {inactive && <Badge tone="neutral" dot>Manufacturer inactive</Badge>}
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-muted mb-4">Manufacturer</h3>
-            {(product.company.logo_url || product.company.description) && (
-              <div className="flex items-start gap-3 mb-4">
-                {product.company.logo_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={product.company.logo_url}
-                    alt={`${product.company.display_name} logo`}
-                    className="w-12 h-12 rounded-lg object-contain border border-border bg-white shrink-0"
-                  />
-                )}
-                {product.company.description && (
-                  <p className="text-xs text-muted leading-relaxed">{product.company.description}</p>
-                )}
+
+          {desc.short && <p className="mt-5 text-base text-slate-600 leading-relaxed">{desc.short}</p>}
+
+          {/* Identification ID - shown large so buyers, sellers and manufacturers notice it */}
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.18)] p-5 flex items-center gap-5">
+            <QrCode path={`/p/${product.identification_id}`} size={96} alt={`QR code for ${product.identification_id}`} />
+            <div className="min-w-0">
+              <p className="text-sm text-slate-500">Identification ID</p>
+              <div className="-ml-0.5 mt-0.5">
+                <IdChip id={product.identification_id} size="lg" variant="plain" />
               </div>
-            )}
-            {[
-              { label: "Company", value: product.company.display_name },
-              { label: "Country", value: product.company.country_code },
-              { label: "Website", value: product.company.website || "--" },
-              { label: "Support Email", value: product.company.support_email || "--" },
-            ].map((field) => (
-              <div key={field.label} className="mb-3">
-                <p className="text-xs text-muted">{field.label}</p>
-                <p className="text-sm">{field.value}</p>
-              </div>
-            ))}
-            {product.company.manufacturer_id && (
-              <div className="mb-3">
-                <p className="text-xs text-muted">Manufacturer ID</p>
-                {preview ? (
-                  <p className="text-base font-mono font-bold text-accent">{product.company.manufacturer_id} (sample)</p>
-                ) : (
-                  <Link
-                    href={`/manufacturer/${product.company.manufacturer_id}`}
-                    className="text-base font-mono font-bold text-accent hover:underline"
-                  >
-                    {product.company.manufacturer_id} →
+              <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+                {preview
+                  ? "Sample ID for this preview. A real Identification ID is issued when the manufacturer joins."
+                  : "Scan to open this product page. Data provided by the manufacturer."}
+              </p>
+            </div>
+          </div>
+
+          {/* Manufacturer card */}
+          <div className="mt-4 rounded-2xl border border-slate-200 p-5">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Manufacturer</p>
+            <div className="flex items-start gap-3.5">
+              <CompanyLogo name={company.display_name} src={company.logo_url} size="md" />
+              <div className="min-w-0 flex-1">
+                {mid && !preview ? (
+                  <Link href={`/manufacturer/${mid}`} className="text-base font-semibold text-slate-900 hover:text-accent">
+                    {company.display_name}
                   </Link>
+                ) : (
+                  <p className="text-base font-semibold text-slate-900">{company.display_name}</p>
+                )}
+                <p className="text-sm text-slate-500 mt-0.5">
+                  {[countryName(company.country_code), company.website ? prettyUrl(company.website) : null].filter(Boolean).join(" - ")}
+                </p>
+                {mid && (
+                  <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-xs text-slate-500 w-full sm:w-auto">Manufacturer ID</span>
+                    <IdChip id={mid} size="sm" href={preview ? undefined : `/manufacturer/${mid}`} />
+                    {preview && <Badge tone="pending" size="xs">Sample ID</Badge>}
+                  </div>
+                )}
+                {inactive && (
+                  <p className="mt-2 text-sm text-slate-500">
+                    Registry status: Inactive
+                    {company.last_active && ` - Last active: ${monthYear(company.last_active)}`}
+                  </p>
                 )}
               </div>
-            )}
-            {product.company.registry_status === "inactive" && (
-              <div className="mb-3">
-                <p className="text-xs text-muted">Registry status</p>
-                <p className="text-sm">
-                  Inactive
-                  {product.company.last_active && ` · Last active: ${monthYear(product.company.last_active)}`}
-                </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Tabs ── */}
+      <Tabs items={tabs} value={tab} onChange={setTab} idPrefix="product-tab" ariaLabel="Product sections" className="mt-14" />
+
+      <div className="mt-8">
+        {/* All panels stay in the HTML (hidden) so crawlers see the full record. */}
+        <section role="tabpanel" id="product-tabpanel-specs" aria-labelledby="product-tab-specs" hidden={tab !== "specs"}>
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold tracking-tight text-slate-900 mb-2">Specifications</h2>
+              <FactList layout="grid" items={specs} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+                <h2 className="text-lg font-semibold tracking-tight text-slate-900">Description</h2>
+                {hasAnyDesc && langSelect("description")}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* QR Code */}
-        <div className="mt-6 pt-6 border-t border-border flex items-center gap-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-              typeof window !== "undefined"
-                ? `${window.location.origin}/p/${product.identification_id}`
-                : `https://identificationid.com/p/${product.identification_id}`
-            )}`}
-            alt="QR Code"
-            width={120}
-            height={120}
-            className="border border-border rounded-lg p-1.5 bg-white shrink-0"
-          />
-          <div>
-            <p className="text-sm font-medium mb-1">Scan to share</p>
-            <p className="text-xs text-muted mb-2">Point your phone camera at this code to open this product page instantly.</p>
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-mono text-muted">{product.identification_id}</p>
-              <button
-                onClick={copyId}
-                className="text-xs px-2 py-0.5 border border-border rounded hover:bg-surface text-muted transition-colors"
-              >
-                {copied ? "✓ Copied" : "Copy ID"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Language selector + description */}
-      {hasAnyDesc && (
-        <div className="bg-background border border-border rounded-xl p-6 mb-6">
-          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-            <h3 className="text-sm font-semibold text-muted">Description</h3>
-            <div className="flex items-center gap-2">
-              {isMachine && (
-                <span className="text-xs text-muted bg-surface border border-border px-2 py-0.5 rounded">
-                  machine translated
-                </span>
+              {!hasAnyDesc ? (
+                <p className="text-sm text-slate-400">No description provided.</p>
+              ) : translating ? (
+                <p className="text-sm text-slate-500">Translating...</p>
+              ) : desc.full ? (
+                <p className="text-[15px] text-slate-700 leading-relaxed whitespace-pre-line">{desc.full}</p>
+              ) : (
+                <p className="text-sm text-slate-400">No full description provided.</p>
               )}
-              <select
-                value={activeLang}
-                onChange={(e) => selectLang(e.target.value)}
-                disabled={translating}
-                className="text-xs border border-border rounded-lg px-2 py-1 bg-background disabled:opacity-50"
-              >
-                {LANGUAGES.map((l) => (
-                  <option key={l.code} value={l.code}>
-                    {l.label}
-                    {storedLangs.has(l.code) ? " ✓" : ""}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
+        </section>
 
-          {translating ? (
-            <p className="text-sm text-muted">Translating…</p>
+        <section role="tabpanel" id="product-tabpanel-docs" aria-labelledby="product-tab-docs" hidden={tab !== "docs"}>
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900 mb-4">Manuals &amp; documents</h2>
+          {docCount === 0 ? (
+            <EmptyState icon="document" compact title="No documents available" description="Manuals, certificates and safety sheets appear here when the manufacturer publishes them." />
           ) : (
-            <>
-              {desc.full && <p className="text-sm whitespace-pre-line mb-6">{desc.full}</p>}
-              {desc.usage && (
-                <>
-                  <h4 className="text-sm font-semibold text-muted mb-2">Usage Instructions</h4>
-                  <p className="text-sm whitespace-pre-line">{desc.usage}</p>
-                </>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      <div className="bg-background border border-border rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-muted mb-4">Documents</h3>
-        {product.documents.length === 0 ? (
-          <p className="text-sm text-muted">No documents available.</p>
-        ) : (
-          <div className="space-y-3">
-            {product.documents.map((doc) => {
-              const latest = doc.versions[0];
-              return (
-                <div key={doc.id} className="p-3 border border-border rounded-lg flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium">{doc.title || doc.doc_type}</p>
-                    <p className="text-xs text-muted">
-                      Type: {doc.doc_type} · {doc.versions.length} version(s)
-                      {latest && ` · ${(latest.size_bytes / 1024).toFixed(0)} KB`}
-                    </p>
-                  </div>
-                  {latest?.file_url && (
-                    <a
-                      href={latest.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs bg-accent text-white px-3 py-1.5 rounded-lg hover:bg-accent-hover transition-colors flex items-center gap-1 shrink-0"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            <ul className="divide-y divide-slate-200 border border-slate-200 rounded-2xl overflow-hidden">
+              {product.documents.map((doc) => {
+                const latest = doc.versions[0];
+                return (
+                  <li key={doc.id} className="flex items-center gap-4 px-4 sm:px-5 py-4 bg-white">
+                    <span className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0" aria-hidden="true">
+                      <svg className="w-5 h-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6a1 1 0 01.7.3l5.4 5.4a1 1 0 01.3.7V19a2 2 0 01-2 2z" />
                       </svg>
-                      Open
-                    </a>
-                  )}
-                </div>
-              );
-            })}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-900 truncate">{doc.title || doc.doc_type}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Type: {doc.doc_type} - {doc.versions.length} version(s)
+                        {latest && ` - ${(latest.size_bytes / 1024).toFixed(0)} KB`}
+                      </p>
+                    </div>
+                    {latest?.file_url && (
+                      <a
+                        href={latest.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:border-slate-300 rounded-lg px-3 h-8 shrink-0"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Open
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        <section role="tabpanel" id="product-tabpanel-safety" aria-labelledby="product-tab-safety" hidden={tab !== "safety"}>
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Usage &amp; safety instructions</h2>
+            {desc.usage && langSelect("safety")}
           </div>
-        )}
+          {translating ? (
+            <p className="text-sm text-slate-500">Translating...</p>
+          ) : desc.usage ? (
+            <div className="max-w-3xl rounded-2xl border border-slate-200 p-5 sm:p-6">
+              <p className="text-[15px] text-slate-700 leading-relaxed whitespace-pre-line">{desc.usage}</p>
+            </div>
+          ) : (
+            <EmptyState icon="document" compact title="No safety information provided" description="The manufacturer has not published usage or safety instructions for this product yet." />
+          )}
+        </section>
+
+        <section role="tabpanel" id="product-tabpanel-maker" aria-labelledby="product-tab-maker" hidden={tab !== "maker"}>
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3.5 mb-4">
+                <CompanyLogo name={company.display_name} src={company.logo_url} size="md" />
+                <h2 className="text-lg font-semibold tracking-tight text-slate-900">{company.display_name}</h2>
+              </div>
+              {company.description ? (
+                <p className="text-[15px] text-slate-700 leading-relaxed whitespace-pre-line">{company.description}</p>
+              ) : (
+                <p className="text-sm text-slate-400">No company description provided.</p>
+              )}
+              {mid && !preview && (
+                <div className="mt-6">
+                  <ButtonLink href={`/manufacturer/${mid}`} variant="secondary" size="sm">View manufacturer profile</ButtonLink>
+                </div>
+              )}
+            </div>
+            <FactList
+              layout="grid"
+              items={[
+                { label: "Company", value: company.display_name },
+                { label: "Manufacturer ID", value: midLink, mono: true },
+                { label: "Country", value: countryName(company.country_code) },
+                {
+                  label: "Website",
+                  value: company.website ? (
+                    websiteHref ? (
+                      <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline break-all">
+                        {prettyUrl(company.website)}
+                      </a>
+                    ) : (
+                      company.website
+                    )
+                  ) : null,
+                },
+                {
+                  label: "Support email",
+                  value: company.support_email ? (
+                    <a href={`mailto:${company.support_email}`} className="text-accent hover:underline break-all">{company.support_email}</a>
+                  ) : null,
+                },
+                { label: "Registry status", value: inactive ? "Inactive" : preview ? "Sample - not registered" : "Active" },
+                ...(inactive && company.last_active ? [{ label: "Last active", value: monthYear(company.last_active) }] : []),
+              ]}
+            />
+          </div>
+        </section>
       </div>
 
-      {!preview && (
+      {preview ? (
+        <DisclaimerBar className="mt-12" />
+      ) : (
         <PublicPageNotice targetType="product" targetId={product.identification_id} underReview={!!product.under_review} />
       )}
     </div>

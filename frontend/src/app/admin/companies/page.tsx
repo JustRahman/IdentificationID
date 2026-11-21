@@ -67,16 +67,14 @@ export default function AdminCompaniesPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">Companies</h1>
-      <div className="flex gap-2 mb-4">
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-6">Companies</h1>
+      <div className="inline-flex flex-wrap gap-1 p-1 mb-5 rounded-lg bg-slate-100 border border-slate-200">
         {statusTabs.map((tab) => (
           <button
             key={tab}
             onClick={() => { setActiveTab(tab); setExpanded(null); }}
-            className={`px-3 py-1.5 rounded-lg text-sm ${
-              activeTab === tab
-                ? "bg-accent text-white"
-                : "text-muted border border-border hover:bg-surface"
+            className={`h-8 px-3 rounded-md text-sm transition-colors ${
+              activeTab === tab ? "bg-white text-slate-900 font-medium shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
             {tab}
@@ -85,40 +83,40 @@ export default function AdminCompaniesPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted">Loading...</p>
+        <p className="text-sm text-slate-500">Loading...</p>
       ) : companies.length === 0 ? (
-        <div className="bg-background border border-border rounded-xl p-8 text-center">
-          <p className="text-sm text-muted">No companies to review.</p>
+        <div className="bg-white border border-slate-200 rounded-2xl px-8 py-14 text-center">
+          <p className="text-sm text-slate-500">No companies to review.</p>
         </div>
       ) : (
-        <div className="bg-background border border-border rounded-xl divide-y divide-border">
+        <div className="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100 overflow-hidden">
           {companies.map((c) => (
             <div key={c.id}>
               {/* Row */}
               <div
-                className="p-4 flex items-center justify-between cursor-pointer hover:bg-surface transition-colors"
+                className="px-5 py-3.5 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 transition-colors"
                 onClick={() => toggle(c.id)}
               >
                 <div>
                   <p className="text-sm font-medium">{c.display_name}</p>
-                  <p className="text-xs text-muted">
+                  <p className="text-xs text-slate-500">
                     {c.legal_name} · {c.country_code} · {c.owner_email}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-xs px-2 py-1 rounded-lg ${
+                    className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ring-1 ring-inset capitalize ${
                       c.status === "verified"
-                        ? "bg-green-50 text-green-700 border border-green-200"
+                        ? "bg-emerald-50 text-emerald-800 ring-emerald-200"
                         : c.status === "rejected"
-                        ? "bg-red-50 text-red-700 border border-red-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                        ? "bg-red-50 text-red-700 ring-red-200"
+                        : "bg-amber-50 text-amber-800 ring-amber-200"
                     }`}
                   >
                     {c.status}
                   </span>
                   <svg
-                    className={`w-4 h-4 text-muted transition-transform ${expanded === c.id ? "rotate-180" : ""}`}
+                    className={`w-4 h-4 text-slate-500 transition-transform ${expanded === c.id ? "rotate-180" : ""}`}
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -128,43 +126,43 @@ export default function AdminCompaniesPage() {
 
               {/* Expanded details */}
               {expanded === c.id && (
-                <div className="px-4 pb-4 bg-surface border-t border-border">
+                <div className="px-5 pb-5 bg-slate-50/70 border-t border-slate-100">
                   <div className="pt-4 grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Legal Name</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Legal Name</p>
                       <p>{c.legal_name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Display Name</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Display Name</p>
                       <p>{c.display_name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Country</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Country</p>
                       <p>{c.country_code}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Owner</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Owner</p>
                       <p>{c.owner_email || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Website</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Website</p>
                       <p>{c.website || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Support Email</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Support Email</p>
                       <p>{c.support_email || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Registered</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Registered</p>
                       <p>{c.created_at ? new Date(c.created_at).toLocaleDateString() : "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted mb-0.5">Verified At</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Verified At</p>
                       <p>{c.verified_at ? new Date(c.verified_at).toLocaleDateString() : "-"}</p>
                     </div>
                     {c.admin_note && (
                       <div className="col-span-2">
-                        <p className="text-xs text-muted mb-0.5">Admin Note</p>
+                        <p className="text-xs text-slate-500 mb-0.5">Admin Note</p>
                         <p>{c.admin_note}</p>
                       </div>
                     )}
@@ -177,20 +175,20 @@ export default function AdminCompaniesPage() {
                         placeholder="Rejection note (optional)"
                         value={rejectNote}
                         onChange={(e) => setRejectNote(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background w-full"
+                        className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm shadow-xs w-full"
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => reviewCompany(c.id, "approve")}
                           disabled={actionLoading === c.id}
-                          className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                          className="h-9 text-sm font-medium bg-emerald-600 text-white px-4 rounded-lg shadow-sm hover:bg-emerald-700 disabled:opacity-50"
                         >
                           {actionLoading === c.id ? "Processing..." : "Approve"}
                         </button>
                         <button
                           onClick={() => reviewCompany(c.id, "reject")}
                           disabled={actionLoading === c.id}
-                          className="text-sm bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                          className="h-9 text-sm font-medium bg-red-600 text-white px-4 rounded-lg shadow-sm hover:bg-red-700 disabled:opacity-50"
                         >
                           {actionLoading === c.id ? "Processing..." : "Reject"}
                         </button>

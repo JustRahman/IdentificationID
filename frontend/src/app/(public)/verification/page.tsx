@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { COMPANY, VERIFICATION_DISCLAIMER } from "@/lib/constants";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
+import { PageHeader } from "@/components/marketing/PageHeader";
+import { CheckList } from "@/components/marketing/CheckList";
 
 export const metadata = {
   title: "How Manufacturer Verification Works - Identification ID",
@@ -7,18 +11,27 @@ export const metadata = {
     "What Identification ID checks, what each verification level means, and what it does not certify.",
 };
 
-const LEVELS = [
+const LEVELS: {
+  name: string;
+  price: string;
+  tone: BadgeTone;
+  icon?: "check" | "shield";
+  means: string;
+  checked: string[];
+}[] = [
   {
     name: "Registered Manufacturer",
     price: "Included with membership",
-    tone: "gray",
+    tone: "neutral",
+    icon: "check",
     means: "The company created an account and received a permanent Manufacturer ID.",
     checked: ["Account created", "Manufacturer ID issued"],
   },
   {
     name: "Verified Manufacturer",
     price: "Included with membership",
-    tone: "blue",
+    tone: "verified",
+    icon: "shield",
     means:
       "Automated checks confirmed the company controls a corporate email on the same domain as its website.",
     checked: [
@@ -31,7 +44,7 @@ const LEVELS = [
   {
     name: "Business Verified",
     price: "Coming later",
-    tone: "emerald",
+    tone: "neutral",
     means:
       "Confirms the legal entity exists and that the account holder is connected to that company.",
     checked: [
@@ -41,116 +54,118 @@ const LEVELS = [
   },
 ];
 
-const toneClasses: Record<string, string> = {
-  gray: "border-border bg-surface",
-  blue: "border-blue-200 bg-blue-50",
-  emerald: "border-emerald-200 bg-emerald-50",
-};
+const NOT_MEANT = [
+  "It is not a government, tax, or regulatory certification.",
+  "It is not a product safety, quality, or compliance certification.",
+  "It does not guarantee that any individual physical item is authentic.",
+  "It does not constitute an endorsement of the company or its products.",
+];
 
 export default function VerificationPage() {
   return (
-    <div className="max-w-3xl mx-auto py-16 px-6">
-      <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-3">Trust</p>
-      <h1 className="text-3xl font-semibold tracking-tight mb-4">
-        How Manufacturer Verification Works
-      </h1>
-      <p className="text-lg text-muted leading-relaxed mb-10">
-        Verification is included with every Manufacturer Registry Membership at no extra cost.
-        This page explains exactly what we check at each level - and what we do not.
-      </p>
+    <>
+      <PageHeader
+        eyebrow="Trust"
+        title="How Manufacturer Verification Works"
+        description="Verification is included with every Manufacturer Registry Membership at no extra cost. This page explains exactly what we check at each level - and what we do not."
+      />
 
-      {/* Levels */}
-      <div className="space-y-4 mb-12">
-        {LEVELS.map((l) => (
-          <div key={l.name} className={`border rounded-xl p-6 ${toneClasses[l.tone]}`}>
-            <div className="flex items-start justify-between gap-3 flex-wrap mb-2">
-              <h2 className="text-lg font-semibold">
-                {l.tone !== "gray" && <span className="text-green-600 mr-1">✓</span>}
-                {l.name}
-              </h2>
-              <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-white border border-border shrink-0">
-                {l.price}
-              </span>
-            </div>
-            <p className="text-sm text-muted mb-4">{l.means}</p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted mb-2">
-              What is checked
+      <section className="py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6">
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Verification levels</h2>
+          <ol className="mt-8 grid gap-4 lg:grid-cols-3">
+            {LEVELS.map((l, i) => (
+              <li key={l.name} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-medium text-slate-500 tabular-nums">Level {i + 1}</span>
+                  <span className="text-xs text-slate-500">{l.price}</span>
+                </div>
+                <h3 className="mt-4">
+                  <Badge tone={l.tone} icon={l.icon} className="text-sm">
+                    {l.name}
+                  </Badge>
+                </h3>
+                <p className="mt-4 text-sm text-slate-700 leading-relaxed">{l.means}</p>
+                <div className="mt-5 pt-5 border-t border-slate-200 flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">What is checked</p>
+                  <CheckList items={l.checked} size="sm" />
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-20 bg-surface border-y border-slate-200">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 grid gap-12 lg:grid-cols-2">
+          <div className="max-w-prose">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900">How the checks run</h2>
+            <p className="mt-4 text-base text-slate-700 leading-relaxed">
+              Verification is automatic. When a manufacturer saves their company profile, we check
+              the website and email address they provided - there is nothing to install, no DNS
+              records to add, and no documents to upload. Results are stored on the profile and can
+              be re-run at any time from the dashboard.
             </p>
-            <ul className="space-y-1.5">
-              {l.checked.map((c) => (
-                <li key={c} className="text-sm flex items-start gap-2">
-                  <svg className="w-4 h-4 text-green-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {c}
+            <p className="mt-4 text-base text-slate-700 leading-relaxed">
+              Each public manufacturer profile lists exactly which attributes were confirmed, so
+              anyone can see what a badge is based on rather than relying on a checkmark alone.
+            </p>
+          </div>
+
+          {/* The disclaimer - deliberately prominent */}
+          <div className="rounded-2xl border border-slate-300 bg-white p-6 sm:p-8">
+            <div className="flex items-center gap-2.5">
+              <svg className="w-5 h-5 shrink-0 text-slate-500" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" aria-hidden="true">
+                <circle cx="8" cy="8" r="6.25" />
+                <path d="M8 7.25v4M8 4.9v.1" />
+              </svg>
+              <h2 className="text-lg font-semibold text-slate-900">What verification does not mean</h2>
+            </div>
+            <p className="mt-4 text-sm text-slate-700 leading-relaxed">{VERIFICATION_DISCLAIMER}</p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-700">
+              {NOT_MEANT.map((t) => (
+                <li key={t} className="flex items-start gap-2.5">
+                  <span aria-hidden="true" className="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
+                  {t}
                 </li>
               ))}
             </ul>
           </div>
-        ))}
-      </div>
-
-      {/* How it runs */}
-      <section className="mb-12">
-        <h2 className="text-xl font-semibold mb-3">How the checks run</h2>
-        <p className="text-sm text-muted leading-relaxed mb-3">
-          Verification is automatic. When a manufacturer saves their company profile, we check
-          the website and email address they provided - there is nothing to install, no DNS
-          records to add, and no documents to upload. Results are stored on the profile and can
-          be re-run at any time from the dashboard.
-        </p>
-        <p className="text-sm text-muted leading-relaxed">
-          Each public manufacturer profile lists exactly which attributes were confirmed, so
-          anyone can see what a badge is based on rather than relying on a checkmark alone.
-        </p>
+        </div>
       </section>
 
-      {/* The disclaimer - deliberately prominent */}
-      <section className="border-2 border-amber-200 bg-amber-50 rounded-xl p-6 mb-10">
-        <h2 className="text-base font-semibold mb-2">What verification does not mean</h2>
-        <p className="text-sm text-amber-900 leading-relaxed mb-3">
-          {VERIFICATION_DISCLAIMER}
-        </p>
-        <ul className="space-y-1.5 text-sm text-amber-900">
-          {[
-            "It is not a government, tax, or regulatory certification.",
-            "It is not a product safety, quality, or compliance certification.",
-            "It does not guarantee that any individual physical item is authentic.",
-            "It does not constitute an endorsement of the company or its products.",
-          ].map((t) => (
-            <li key={t} className="flex items-start gap-2">
-              <span className="mt-0.5">•</span>
-              {t}
-            </li>
-          ))}
-        </ul>
+      <section className="py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6">
+          <div className="max-w-prose">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Reporting a problem</h2>
+            <p className="mt-4 text-base text-slate-700 leading-relaxed">
+              If you believe a manufacturer profile is inaccurate or misrepresents a company,
+              contact us at{" "}
+              <a href={`mailto:${COMPANY.supportEmail}`} className="text-accent hover:underline underline-offset-4">
+                {COMPANY.supportEmail}
+              </a>
+              . We review reports and can suspend a profile from the public registry.
+            </p>
+            <p className="mt-4 text-sm text-slate-500">
+              Full rules:{" "}
+              <Link href="/legal/verification-policy" className="text-accent hover:underline underline-offset-4">
+                Manufacturer Verification Policy
+              </Link>
+              .
+            </p>
+          </div>
+
+          <div className="mt-10 flex flex-col sm:flex-row gap-3">
+            <ButtonLink href="/register" size="lg">Get verified</ButtonLink>
+            <ButtonLink href="/pricing" variant="secondary" size="lg">View plans</ButtonLink>
+          </div>
+
+          <p className="text-xs text-slate-500 mt-12 pt-6 border-t border-slate-200 leading-relaxed">
+            Verification is operated by {COMPANY.legalName} as part of the Identification ID
+            registry. Levels and checks may be updated as the registry evolves.
+          </p>
+        </div>
       </section>
-
-      <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-3">Reporting a problem</h2>
-        <p className="text-sm text-muted leading-relaxed">
-          If you believe a manufacturer profile is inaccurate or misrepresents a company,
-          contact us at{" "}
-          <a href={`mailto:${COMPANY.supportEmail}`} className="text-accent hover:underline">
-            {COMPANY.supportEmail}
-          </a>
-          . We review reports and can suspend a profile from the public registry.
-        </p>
-      </section>
-
-      <div className="flex flex-wrap gap-3">
-        <Link href="/register" className="bg-accent text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-accent-hover">
-          Get verified
-        </Link>
-        <Link href="/pricing" className="border border-border px-6 py-3 rounded-xl text-sm font-medium hover:bg-surface">
-          View plans
-        </Link>
-      </div>
-
-      <p className="text-xs text-muted mt-10 pt-6 border-t border-border leading-relaxed">
-        Verification is operated by {COMPANY.legalName} as part of the Identification ID
-        registry. Levels and checks may be updated as the registry evolves.
-      </p>
-    </div>
+    </>
   );
 }

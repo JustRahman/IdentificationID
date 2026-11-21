@@ -4,69 +4,35 @@ import { useEffect, useState, type FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CATEGORIES as ALL_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
+import { ButtonLink } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { IID_PATTERN, MID_PATTERN } from "@/components/ui/SearchBar";
+import { CompanyCard, ProductCard, type CompanyCardData, type ProductCardData } from "@/components/registry/RegistryCards";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-const ID_PATTERN = /^IID-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
 
-interface SearchResult {
-  identification_id: string;
-  name: string;
-  category: string;
-  brand: string | null;
-  manufacturer: string | null;
-  cover_image: string | null;
-}
-
-interface CompanyResult {
-  display_name: string;
-  country_code: string;
-  website: string | null;
-  product_count: number;
-}
+type SearchResult = ProductCardData;
+type CompanyResult = CompanyCardData;
 
 // Browse chips - derived from the shared category list.
 const CATEGORIES = ALL_CATEGORIES.map((c) => ({ label: c.label, q: c.value }));
 
-function ProductCard({ r }: { r: SearchResult }) {
+function CardSkeletons({ n, h = "h-72" }: { n: number; h?: string }) {
   return (
-    <Link
-      href={`/p/${encodeURIComponent(r.identification_id)}`}
-      className="border border-border rounded-xl overflow-hidden hover:border-accent hover:shadow-md transition-all bg-background group block"
-    >
-      {/* Cover image */}
-      <div className="aspect-[4/3] bg-surface overflow-hidden">
-        {r.cover_image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={r.cover_image}
-            alt={r.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-10 h-10 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5M21 12V6.75A2.25 2.25 0 0018.75 4.5H5.25A2.25 2.25 0 003 6.75V15" />
-            </svg>
-          </div>
-        )}
-      </div>
+    <>
+      {Array.from({ length: n }).map((_, i) => (
+        <div key={i} className={`rounded-2xl border border-slate-200 bg-slate-50 animate-pulse ${h}`} />
+      ))}
+    </>
+  );
+}
 
-      {/* Info */}
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-1.5">
-          <h3 className="text-sm font-semibold group-hover:text-accent transition-colors leading-snug line-clamp-2">
-            {r.name}
-          </h3>
-          <span className="text-xs bg-surface border border-border text-muted px-2 py-0.5 rounded shrink-0">
-            {CATEGORY_LABELS[r.category] ?? r.category}
-          </span>
-        </div>
-        <p className="text-xs text-muted mb-2">
-          {[r.brand, r.manufacturer].filter(Boolean).join(" · ")}
-        </p>
-        <p className="text-xs font-mono text-muted/70">{r.identification_id}</p>
-      </div>
-    </Link>
+function SectionTitle({ children, count }: { children: string; count?: number }) {
+  return (
+    <h2 className="text-lg font-semibold tracking-tight text-slate-900 mb-4">
+      {children}
+      {typeof count === "number" && <span className="ml-1.5 text-slate-400 font-normal tabular-nums">({count})</span>}
+    </h2>
   );
 }
 
@@ -78,6 +44,7 @@ function SearchPageContent() {
   const [query, setQuery] = useState(initialQ);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
+  const [matchedCompanies, setMatchedCompanies] = useState<CompanyResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -92,8 +59,12 @@ function SearchPageContent() {
       loadRecommendations();
       return;
     }
-    if (ID_PATTERN.test(initialQ)) {
+    if (IID_PATTERN.test(initialQ)) {
       router.replace(`/p/${encodeURIComponent(initialQ.toUpperCase())}`);
+      return;
+    }
+    if (MID_PATTERN.test(initialQ)) {
+      router.replace(`/manufacturer/${encodeURIComponent(initialQ.toUpperCase())}`);
       return;
     }
     doSearch(initialQ);
@@ -122,13 +93,23 @@ function SearchPageContent() {
     setLoading(true);
     setSearched(true);
     try {
-      const res = await fetch(`${API_BASE}/public/search?q=${encodeURIComponent(q)}&per_page=30`);
+      const [res, compRes] = await Promise.all([
+        fetch(`${API_BASE}/public/search?q=${encodeURIComponent(q)}&per_page=30`),
+        // Manufacturer matches come from the public company list (same API the browse view uses).
+        fetch(`${API_BASE}/public/companies`).catch(() => null),
+      ]);
       const json = await res.json();
       setResults(json.data ?? []);
       setTotal(json.meta?.total ?? 0);
+      const compJson = compRes && compRes.ok ? await compRes.json() : { data: [] };
+      const needle = q.trim().toLowerCase();
+      setMatchedCompanies(
+        ((compJson.data ?? []) as CompanyResult[]).filter((c) => c.display_name.toLowerCase().includes(needle)),
+      );
     } catch {
       setResults([]);
       setTotal(0);
+      setMatchedCompanies([]);
     } finally {
       setLoading(false);
     }
@@ -138,8 +119,12 @@ function SearchPageContent() {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
-    if (ID_PATTERN.test(q)) {
+    if (IID_PATTERN.test(q)) {
       router.push(`/p/${encodeURIComponent(q.toUpperCase())}`);
+      return;
+    }
+    if (MID_PATTERN.test(q)) {
+      router.push(`/manufacturer/${encodeURIComponent(q.toUpperCase())}`);
       return;
     }
     router.push(`/search?q=${encodeURIComponent(q)}`);
@@ -147,92 +132,133 @@ function SearchPageContent() {
   }
 
   const showRecommendations = !initialQ;
+  const queryLabel = CATEGORY_LABELS[initialQ] ?? initialQ;
+  const exampleIds = featured.slice(0, 2).map((f) => f.identification_id);
+  const nothingFound = !loading && searched && results.length === 0 && matchedCompanies.length === 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-6 py-8">
-
-        {/* Header (only on the browse / empty view) */}
-        {showRecommendations && (
-          <div className="text-center max-w-2xl mx-auto mb-8 pt-4">
-            <h1 className="text-3xl font-semibold tracking-tight mb-3">Search the Product Registry</h1>
-            <p className="text-muted text-sm">
-              Find any product by name, brand, or manufacturer - or paste an
-              Identification ID like <span className="font-mono text-foreground">IID-4F9A-2K7Q</span> to
-              open its page directly.
-            </p>
+    <div className="bg-white">
+      {/* ── Search header ── */}
+      <div className="border-b border-slate-200 bg-surface">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 py-12 sm:py-16">
+          <div className={showRecommendations ? "max-w-3xl mx-auto text-center" : "max-w-3xl"}>
+            {showRecommendations ? (
+              <>
+                <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight text-slate-900 text-balance">
+                  Search the registry. <span className="text-slate-400">Products, manufacturers and IDs.</span>
+                </h1>
+                <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed">
+                  Find any product by name, brand or manufacturer, or paste an Identification ID or Manufacturer ID to open its page directly.
+                </p>
+              </>
+            ) : (
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+                Search results <span className="text-slate-400">for &ldquo;{queryLabel}&rdquo;</span>
+              </h1>
+            )}
           </div>
-        )}
 
-        {/* Search bar */}
-        <div className={`mb-10 ${showRecommendations ? "max-w-2xl mx-auto" : "max-w-xl"}`}>
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by product name, brand, or manufacturer..."
-              className="flex-1 border border-border rounded-xl px-4 py-3.5 text-sm bg-background shadow-sm focus:border-accent focus:shadow-md transition-all"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="bg-accent text-white px-6 py-3.5 rounded-xl text-sm font-medium hover:bg-accent-hover shadow-sm"
-            >
-              Search
-            </button>
+          <form
+            onSubmit={handleSubmit}
+            role="search"
+            aria-label="Search the registry"
+            className={`mt-8 ${showRecommendations ? "max-w-3xl mx-auto" : "max-w-3xl"}`}
+          >
+            <div className="flex items-center bg-white border border-slate-300 rounded-xl shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow] focus-within:border-accent focus-within:shadow-[0_0_0_4px_rgba(37,99,235,0.12)]">
+              <svg className="w-5 h-5 ml-4 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
+                <path d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <label htmlFor="search-page-input" className="sr-only">Search by product name, brand, manufacturer or ID</label>
+              <input
+                id="search-page-input"
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Product, brand, manufacturer or ID"
+                autoComplete="off"
+                spellCheck={false}
+                className="flex-1 min-w-0 bg-transparent border-none focus:outline-none px-3 py-4 text-base text-slate-900 placeholder:text-slate-400"
+                style={{ boxShadow: "none" }}
+                autoFocus
+              />
+              <button type="submit" className="shrink-0 m-1.5 h-11 px-5 rounded-lg bg-accent text-white text-sm font-medium hover:bg-accent-hover transition-colors">
+                Search
+              </button>
+            </div>
+            <p className={`mt-3 text-sm text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-1.5 ${showRecommendations ? "justify-center" : ""}`}>
+              {exampleIds.length > 0 ? (
+                <>
+                  <span>Try</span>
+                  {exampleIds.map((ex) => (
+                    <Link
+                      key={ex}
+                      href={`/p/${ex}`}
+                      data-no-i18n
+                      className="font-mono tabular-nums text-[13px] text-slate-700 bg-white border border-slate-200 hover:border-blue-200 hover:text-accent rounded-md px-2 py-0.5 transition-colors"
+                    >
+                      {ex}
+                    </Link>
+                  ))}
+                </>
+              ) : (
+                <span>
+                  IDs look like <span className="font-mono tabular-nums text-slate-700" data-no-i18n>IID-XXXX-XXXX</span> (product) or{" "}
+                  <span className="font-mono tabular-nums text-slate-700" data-no-i18n>MID-XXXX-XXXX</span> (manufacturer).
+                </span>
+              )}
+            </p>
           </form>
-          <p className="text-xs text-muted mt-3">
-            Try:{" "}
-            <button type="button" onClick={() => setQuery("Air Fryer")} className="text-accent hover:underline">Air Fryer</button>
-            {" · "}
-            <button type="button" onClick={() => setQuery("Drill")} className="text-accent hover:underline">Drill</button>
-            {" · "}
-            <button type="button" onClick={() => setQuery("Yoga Mat")} className="text-accent hover:underline">Yoga Mat</button>
-            {" · or paste an ID like "}
-            <button type="button" onClick={() => setQuery("IID-4F9A-2K7Q")} className="font-mono text-foreground hover:text-accent hover:underline">IID-4F9A-2K7Q</button>
-          </p>
         </div>
+      </div>
 
+      <div className="mx-auto max-w-6xl px-5 sm:px-6 py-12 sm:py-16">
         {/* ── SEARCH RESULTS ── */}
         {!showRecommendations && (
           <>
-            {searched && !loading && (
-              <p className="text-sm text-muted mb-6">
-                {total === 0
-                  ? `No results for "${initialQ}"`
-                  : `${total} result${total === 1 ? "" : "s"} for "${initialQ}"`}
+            {searched && !loading && !nothingFound && (
+              <p className="text-sm text-slate-500 mb-8" aria-live="polite">
+                {total} product{total === 1 ? "" : "s"}
+                {matchedCompanies.length > 0 &&
+                  ` and ${matchedCompanies.length} manufacturer${matchedCompanies.length === 1 ? "" : "s"}`}{" "}
+                for &ldquo;{queryLabel}&rdquo;
               </p>
             )}
 
             {loading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="border border-border rounded-xl p-5 animate-pulse bg-surface h-28" />
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <CardSkeletons n={8} />
               </div>
+            )}
+
+            {!loading && matchedCompanies.length > 0 && (
+              <section className="mb-12">
+                <SectionTitle count={matchedCompanies.length}>Manufacturers</SectionTitle>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {matchedCompanies.map((c) => (
+                    <CompanyCard key={c.manufacturer_id || c.display_name} c={c} />
+                  ))}
+                </div>
+              </section>
             )}
 
             {!loading && results.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {results.map((r) => <ProductCard key={r.identification_id} r={r} />)}
-              </div>
+              <section>
+                <SectionTitle count={total}>Products</SectionTitle>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {results.map((r) => (
+                    <ProductCard key={r.identification_id} p={r} />
+                  ))}
+                </div>
+              </section>
             )}
 
-            {!loading && searched && results.length === 0 && (
-              <div className="text-center py-16">
-                <p className="text-4xl mb-4">🔍</p>
-                <h2 className="text-xl font-semibold mb-2">No products found</h2>
-                <p className="text-sm text-muted mb-6">
-                  Try a different name, or paste an Identification ID directly.
-                </p>
-                <button
-                  onClick={() => router.push("/search")}
-                  className="text-sm text-accent hover:underline"
-                >
-                  ← Browse all products
-                </button>
-              </div>
+            {nothingFound && (
+              <EmptyState
+                icon="search"
+                title={`No results for "${queryLabel}"`}
+                description="Try a different name or brand, or paste an Identification ID (IID-XXXX-XXXX) or Manufacturer ID (MID-XXXX-XXXX) directly."
+                action={<ButtonLink href="/search" variant="secondary">Browse the registry</ButtonLink>}
+              />
             )}
           </>
         )}
@@ -241,74 +267,62 @@ function SearchPageContent() {
         {showRecommendations && (
           <>
             {/* Categories */}
-            <div className="mb-10">
-              <h2 className="text-base font-semibold mb-4">Browse by category</h2>
+            <section className="mb-14">
+              <SectionTitle>Browse by category</SectionTitle>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(({ label, q }) => (
                   <Link
                     key={q}
                     href={`/search?q=${q}`}
-                    className="text-sm border border-border rounded-full px-4 py-1.5 hover:bg-surface hover:border-accent hover:text-accent transition-colors"
+                    className="text-sm text-slate-700 bg-white border border-slate-200 rounded-full px-4 py-1.5 hover:border-slate-300 hover:text-slate-900 transition-colors"
                   >
                     {label}
                   </Link>
                 ))}
               </div>
-            </div>
+            </section>
 
             {/* Recently added */}
-            <div className="mb-10">
-              <h2 className="text-base font-semibold mb-4">Recently added</h2>
+            <section className="mb-14">
+              <SectionTitle>Recently added</SectionTitle>
               {loadingRecs ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="border border-border rounded-xl p-5 animate-pulse bg-surface h-28" />
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <CardSkeletons n={4} />
                 </div>
               ) : featured.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {featured.map((r) => <ProductCard key={r.identification_id} r={r} />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {featured.map((r) => (
+                    <ProductCard key={r.identification_id} p={r} />
+                  ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted border border-dashed border-border rounded-xl p-6 text-center">
-                  No products published yet - be the first.{" "}
-                  <Link href="/register" className="text-accent hover:underline">Register a product</Link>
-                </p>
+                <EmptyState
+                  icon="box"
+                  compact
+                  title="No products published yet"
+                  description="Be the first manufacturer in the registry."
+                  action={<ButtonLink href="/register" variant="secondary" size="sm">Register a product</ButtonLink>}
+                />
               )}
-            </div>
+            </section>
 
             {/* Manufacturers */}
-            <div>
-              <h2 className="text-base font-semibold mb-4">Browse by manufacturer</h2>
+            <section>
+              <SectionTitle>Manufacturers</SectionTitle>
               {loadingRecs ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="border border-border rounded-xl p-4 animate-pulse bg-surface h-16" />
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <CardSkeletons n={3} h="h-24" />
                 </div>
               ) : companies.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {companies.map((c) => (
-                    <Link
-                      key={c.display_name}
-                      href={`/search?q=${encodeURIComponent(c.display_name)}`}
-                      className="border border-border rounded-xl p-4 hover:border-accent hover:shadow-sm transition-all bg-background group"
-                    >
-                      <p className="text-sm font-semibold group-hover:text-accent transition-colors">
-                        {c.display_name}
-                      </p>
-                      <p className="text-xs text-muted mt-1">
-                        {c.country_code} · {c.product_count} product{c.product_count === 1 ? "" : "s"}
-                      </p>
-                    </Link>
+                    <CompanyCard key={c.manufacturer_id || c.display_name} c={c} />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted border border-dashed border-border rounded-xl p-6 text-center">
-                  No verified manufacturers yet.
-                </p>
+                <EmptyState icon="building" compact title="No manufacturers listed yet" />
               )}
-            </div>
+            </section>
           </>
         )}
       </div>

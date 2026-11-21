@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
+import { AppSidebarShell, SidebarAccount, type SidebarItem } from "@/components/app/AppSidebar";
+import { AppIcon } from "@/components/app/icons";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-const adminNavItems = [
-  { href: "/admin/companies", label: "Companies" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/payments", label: "Payments" },
-  { href: "/admin/reports", label: "Reports" },
-  { href: "/admin/do-not-contact", label: "Do not contact" },
-  { href: "/admin/audit", label: "Audit trail" },
-  { href: "/admin/security", label: "Security" },
+const adminNavItems: SidebarItem[] = [
+  { href: "/admin/companies", label: "Companies", icon: "building" },
+  { href: "/admin/products", label: "Products", icon: "box" },
+  { href: "/admin/payments", label: "Payments", icon: "card" },
+  { href: "/admin/reports", label: "Reports", icon: "flag" },
+  { href: "/admin/do-not-contact", label: "Do not contact", icon: "ban" },
+  { href: "/admin/audit", label: "Audit trail", icon: "list" },
+  { href: "/admin/security", label: "Security", icon: "lock" },
 ];
 
 export default function AdminLayout({
@@ -33,7 +34,7 @@ export default function AdminLayout({
   if (loading) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
-        <p className="text-sm text-muted">Loading...</p>
+        <p className="text-sm text-slate-500">Loading...</p>
       </div>
     );
   }
@@ -41,31 +42,22 @@ export default function AdminLayout({
   if (!user || user.role !== "admin") return null;
 
   return (
-    <div className="min-h-screen bg-surface text-foreground flex">
-      <aside className="w-60 bg-background border-r border-border p-6 flex flex-col fixed h-full">
-        <Link href="/admin/companies" className="text-base font-semibold mb-1">
-          Admin Panel
-        </Link>
-        <p className="text-xs text-muted mb-8">Identification ID</p>
-        <nav className="flex flex-col gap-1">
-          {adminNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-surface"
-            >
-              {item.label}
+    <AppSidebarShell
+      items={adminNavItems}
+      sectionLabel="Admin Panel"
+      badge={<span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-100 ring-1 ring-slate-200 rounded px-1.5 py-0.5">Admin</span>}
+      footer={
+        <SidebarAccount
+          email={user.email}
+          extra={
+            <Link href="/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900">
+              <AppIcon name="back" /> Back to dashboard
             </Link>
-          ))}
-        </nav>
-        <div className="mt-auto pt-4 border-t border-border space-y-3">
-          <LanguageSwitcher />
-          <Link href="/dashboard" className="block text-sm text-muted hover:text-foreground">
-            Back to dashboard
-          </Link>
-        </div>
-      </aside>
-      <main className="flex-1 ml-60 p-8">{children}</main>
-    </div>
+          }
+        />
+      }
+    >
+      {children}
+    </AppSidebarShell>
   );
 }

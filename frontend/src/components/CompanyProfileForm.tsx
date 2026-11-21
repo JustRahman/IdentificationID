@@ -4,7 +4,8 @@ import { useState, type FormEvent } from "react";
 import { api } from "@/services/api";
 import type { Company } from "@/types";
 
-const inputClass = "w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background";
+const inputClass =
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-xs hover:border-slate-400";
 
 /** Create or update the company profile (used in onboarding and settings). */
 export function CompanyProfileForm({
@@ -59,27 +60,27 @@ export function CompanyProfileForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
+        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3.5 py-3">
           {error}
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Legal Name <span className="text-red-500">*</span>
+        <label className="block text-sm font-medium text-slate-800 mb-1.5">
+          Legal Name <span className="text-red-600">*</span>
         </label>
         <input type="text" value={legalName} onChange={(e) => setLegalName(e.target.value)} required className={inputClass} />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Display Name <span className="text-red-500">*</span>
+        <label className="block text-sm font-medium text-slate-800 mb-1.5">
+          Display Name <span className="text-red-600">*</span>
         </label>
         <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required className={inputClass} />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Country Code <span className="text-red-500">*</span>
+        <label className="block text-sm font-medium text-slate-800 mb-1.5">
+          Country Code <span className="text-red-600">*</span>
         </label>
         <input
           type="text"
@@ -92,21 +93,21 @@ export function CompanyProfileForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Website URL</label>
+        <label className="block text-sm font-medium text-slate-800 mb-1.5">Website URL</label>
         <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" className={inputClass} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Contact Email</label>
+          <label className="block text-sm font-medium text-slate-800 mb-1.5">Contact Email</label>
           <input type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Contact Phone</label>
+          <label className="block text-sm font-medium text-slate-800 mb-1.5">Contact Phone</label>
           <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} maxLength={50} className={inputClass} />
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Brands</label>
+        <label className="block text-sm font-medium text-slate-800 mb-1.5">Brands</label>
         <input
           type="text"
           value={brands}
@@ -114,14 +115,14 @@ export function CompanyProfileForm({
           placeholder="Brand One, Brand Two"
           className={inputClass}
         />
-        <p className="text-xs text-muted mt-1">Separate multiple brands with commas.</p>
+        <p className="text-xs text-slate-500 mt-1.5">Separate multiple brands with commas.</p>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Logo URL</label>
+        <label className="block text-sm font-medium text-slate-800 mb-1.5">Logo URL</label>
         <div className="flex items-center gap-3">
           {logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt="Logo preview" className="w-10 h-10 rounded-lg object-contain border border-border bg-white shrink-0" />
+            <img src={logoUrl} alt="Logo preview" className="w-10 h-10 rounded-lg object-contain border border-slate-200 bg-white shrink-0" />
           )}
           <input
             type="url"
@@ -131,10 +132,10 @@ export function CompanyProfileForm({
             className={inputClass}
           />
         </div>
-        <p className="text-xs text-muted mt-1">Shown on your public profile and product pages.</p>
+        <p className="text-xs text-slate-500 mt-1.5">Shown on your public profile and product pages.</p>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Manufacturer Description</label>
+        <label className="block text-sm font-medium text-slate-800 mb-1.5">Manufacturer Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -143,11 +144,11 @@ export function CompanyProfileForm({
           className={inputClass}
         />
       </div>
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-5 border-t border-slate-100">
         <button
           type="submit"
           disabled={saving}
-          className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
+          className="inline-flex items-center h-10 bg-accent text-white px-5 rounded-lg text-sm font-medium shadow-sm hover:bg-accent-hover disabled:opacity-60"
         >
           {saving ? "Saving..." : submitLabel || (company ? "Save Changes" : "Create Company")}
         </button>

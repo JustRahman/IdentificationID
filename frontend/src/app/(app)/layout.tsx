@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -8,13 +7,17 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { monthYear } from "@/components/ManufacturerProfileView";
 import { MembershipProvider, useMembership } from "@/lib/membership";
 import { AgreementBanner } from "@/components/AgreementBanner";
+import { Logo } from "@/components/layout/Logo";
+import { AppSidebarShell, SidebarAccount, type SidebarItem } from "@/components/app/AppSidebar";
+import { Notice } from "@/components/app/Notice";
+import { ButtonLink, ArrowRight } from "@/components/ui";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/company", label: "Company Profile" },
-  { href: "/products", label: "Products" },
-  { href: "/billing", label: "Billing" },
-  { href: "/api-keys", label: "API Access" },
+const navItems: SidebarItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: "home" },
+  { href: "/company", label: "Company Profile", icon: "building" },
+  { href: "/products", label: "Products", icon: "box" },
+  { href: "/billing", label: "Billing", icon: "card" },
+  { href: "/api-keys", label: "API Access", icon: "key" },
 ];
 
 export default function AppLayout({
@@ -44,7 +47,10 @@ export default function AppLayout({
 function FullScreenLoading() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center">
-      <p className="text-sm text-muted">Loading...</p>
+      <div className="flex items-center gap-3 text-sm text-slate-500">
+        <span className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+        Loading...
+      </div>
     </div>
   );
 }
@@ -67,78 +73,47 @@ function AppShell({ children }: { children: React.ReactNode }) {
   if (onboarding) {
     return (
       <div className="min-h-screen bg-surface text-foreground">
-        <header className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
-          <Link href="/" className="text-base font-semibold">Identification ID</Link>
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            <button onClick={logout} className="text-sm text-muted hover:text-foreground">
-              Log out
-            </button>
+        <header className="bg-white border-b border-slate-200">
+          <div className="flex items-center justify-between px-5 sm:px-6 h-16 max-w-4xl mx-auto">
+            <Logo />
+            <div className="flex items-center gap-4">
+              <LanguageSwitcher />
+              <button onClick={logout} className="text-sm text-slate-500 hover:text-slate-900">
+                Log out
+              </button>
+            </div>
           </div>
         </header>
-        <main className="max-w-4xl mx-auto px-6 pb-12">{children}</main>
+        <main className="max-w-4xl mx-auto px-5 sm:px-6 py-10 pb-16">{children}</main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-surface text-foreground flex">
-      <aside className="w-60 bg-background border-r border-border p-6 flex flex-col fixed h-full">
-        <Link href="/" className="text-base font-semibold mb-8">
-          Identification ID
-        </Link>
-        <nav className="flex flex-col gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-surface"
-            >
-              {item.label}
-            </Link>
-          ))}
-          {user.role === "admin" && (
-            <Link
-              href="/admin/companies"
-              className="px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-surface"
-            >
-              Admin Panel
-            </Link>
-          )}
-        </nav>
-        <div className="mt-auto pt-4 border-t border-border space-y-3">
-          <LanguageSwitcher />
-          <p className="text-xs text-muted truncate">{user.email}</p>
-          <button
-            onClick={logout}
-            className="text-sm text-muted hover:text-foreground"
-          >
-            Log out
-          </button>
-        </div>
-      </aside>
-      <main className="flex-1 ml-60 p-8">
-        {lapsed && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-sm font-semibold text-amber-800">Registry status: Inactive</p>
-              <p className="text-xs text-amber-700 mt-0.5">
-                {registry?.last_active ? `Last active: ${monthYear(registry.last_active)}. ` : ""}
-                Your Manufacturer ID, product pages and QR codes still work, but you can&apos;t
-                add or edit products until you renew your membership.
-              </p>
-            </div>
-            <Link
-              href="/onboarding?step=activate"
-              className="text-xs bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 font-medium shrink-0"
-            >
-              Renew membership →
-            </Link>
-          </div>
-        )}
-        {registry && <AgreementBanner />}
-        {children}
-      </main>
-    </div>
+    <AppSidebarShell
+      items={navItems}
+      sectionLabel="Manufacturer"
+      extraItems={user.role === "admin" ? [{ href: "/admin/companies", label: "Admin Panel", icon: "shield" }] : undefined}
+      footer={<SidebarAccount email={user.email} onLogout={logout} />}
+    >
+      {lapsed && (
+        <Notice
+          tone="warning"
+          title="Registry status: Inactive"
+          className="mb-6"
+          action={
+            <ButtonLink href="/onboarding?step=activate" size="sm">
+              Renew membership <ArrowRight />
+            </ButtonLink>
+          }
+        >
+          {registry?.last_active ? `Last active: ${monthYear(registry.last_active)}. ` : ""}
+          Your Manufacturer ID, product pages and QR codes still work, but you can&apos;t
+          add or edit products until you renew your membership.
+        </Notice>
+      )}
+      {registry && <AgreementBanner />}
+      {children}
+    </AppSidebarShell>
   );
 }

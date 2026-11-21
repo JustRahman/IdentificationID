@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Breadcrumb } from "@/components/registry/Breadcrumb";
 import { ManufacturerProfileView } from "@/components/ManufacturerProfileView";
 import type { ManufacturerProfile } from "@/types";
 
@@ -43,34 +45,38 @@ export default function ManufacturerPageClient({
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto py-12 px-6">
-        <p className="text-sm text-muted">Loading…</p>
+      <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16">
+        <p className="text-sm text-slate-500">Loading...</p>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="max-w-4xl mx-auto py-12 px-6 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Manufacturer Not Found</h1>
-        <p className="text-muted mb-6">{error || "No manufacturer with this ID."}</p>
-        <Link href="/search" className="text-accent hover:underline text-sm">
-          Browse the registry
-        </Link>
+      <div className="mx-auto max-w-3xl px-5 sm:px-6 py-20">
+        <h1 className="sr-only">Manufacturer not found</h1>
+        <EmptyState
+          icon="building"
+          title="Manufacturer not found"
+          description={error && error !== "Manufacturer not found" ? error : "No manufacturer with this ID. Check the ID format: MID-XXXX-XXXX."}
+          action={<ButtonLink href="/search" variant="secondary">Browse the registry</ButtonLink>}
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6">
-      <p className="text-sm text-muted mb-6">
-        <Link href="/" className="hover:underline">Home</Link>
-        {" / "}
-        <Link href="/search" className="hover:underline">Registry</Link>
-        {" / "}
-        {data.display_name}
-      </p>
-      <ManufacturerProfileView data={data} />
+    <div className="mx-auto max-w-6xl px-5 sm:px-6 pt-8 pb-20 sm:pt-10">
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Registry", href: "/search" },
+          { label: data.display_name },
+        ]}
+      />
+      <div className="mt-6 sm:mt-8">
+        <ManufacturerProfileView data={data} />
+      </div>
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 import type { Product } from "@/types";
 import { CATEGORIES, REGULATED_CATEGORIES, REGULATED_NOTICE } from "@/lib/constants";
+import { buttonClasses } from "@/components/ui";
+import { FormError, PageHeader, helpClass, inputClass, labelClass } from "@/components/app";
 
 export default function CreateProductPage() {
   const router = useRouter();
@@ -40,37 +42,37 @@ export default function CreateProductPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">New Product</h1>
+      <PageHeader
+        back={{ href: "/products", label: "Products" }}
+        title="New Product"
+        description="Start with the basics. You can add photos, specifications and documents on the next screen."
+      />
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-lg">
-          {error}
-        </div>
-      )}
+      {error && <FormError className="mb-4 max-w-xl">{error}</FormError>}
 
-      <div className="bg-background border border-border rounded-xl p-6 max-w-lg">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 max-w-xl">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Product Name <span className="text-red-500">*</span>
+            <label className={labelClass}>
+              Product Name <span className="text-red-600">*</span>
             </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+              className={inputClass}
               placeholder="e.g. Smart Thermostat X1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Category <span className="text-red-500">*</span>
+            <label className={labelClass}>
+              Category <span className="text-red-600">*</span>
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+              className={inputClass}
             >
               <option value="">Select category</option>
               {CATEGORIES.map((c) => (
@@ -83,39 +85,40 @@ export default function CreateProductPage() {
               </p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Brand</label>
+              <label className={labelClass}>Brand</label>
               <input
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+                className={inputClass}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Model</label>
+              <label className={labelClass}>Model</label>
               <input
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+                className={inputClass}
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Country of Origin</label>
+            <label className={labelClass}>Country of Origin</label>
             <input
               value={country}
               onChange={(e) => setCountry(e.target.value.toUpperCase().slice(0, 2))}
               maxLength={2}
               placeholder="US"
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
+              className={inputClass}
             />
+            <p className={helpClass}>Two-letter country code, for example US, CA or DE.</p>
           </div>
-          <div className="pt-2">
+          <div className="pt-4 mt-2 border-t border-slate-100 flex items-center gap-3">
             <button
               type="submit"
               disabled={loading}
-              className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
+              className={buttonClasses("primary", "md")}
             >
               {loading ? "Creating..." : "Create Product"}
             </button>

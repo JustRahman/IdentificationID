@@ -68,14 +68,14 @@ export default function AdminReportsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">Reports</h1>
-      <div className="flex gap-2 mb-4">
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-6">Reports</h1>
+      <div className="inline-flex flex-wrap gap-1 p-1 mb-5 rounded-lg bg-slate-100 border border-slate-200">
         {(["open", "under_review", "resolved"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-sm capitalize ${
-              status === s ? "bg-accent text-white" : "bg-background border border-border text-muted hover:text-foreground"
+            className={`h-8 px-3 rounded-md text-sm transition-colors capitalize ${
+              status === s ? "bg-white text-slate-900 font-medium shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
             {STATUS_LABELS[s]}
@@ -84,13 +84,13 @@ export default function AdminReportsPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted">Loading...</p>
+        <p className="text-sm text-slate-500">Loading...</p>
       ) : reports.length === 0 ? (
-        <p className="text-sm text-muted">No {STATUS_LABELS[status].toLowerCase()} reports.</p>
+        <p className="text-sm text-slate-500">No {STATUS_LABELS[status].toLowerCase()} reports.</p>
       ) : (
         <div className="space-y-3">
           {reports.map((r) => (
-            <div key={r.id} className="bg-background border border-border rounded-xl p-4">
+            <div key={r.id} className="bg-white border border-slate-200 rounded-2xl p-4">
               <div className="flex items-start justify-between gap-3 flex-wrap mb-2">
                 <div>
                   <p className="text-sm font-medium">{REASON_LABELS[r.reason] || r.reason}</p>
@@ -100,18 +100,18 @@ export default function AdminReportsPage() {
                     rel="noopener noreferrer"
                     className="text-xs font-mono text-accent hover:underline"
                   >
-                    {r.target_id} ({r.target_type}) ↗
+                    {r.target_id} ({r.target_type})
                   </a>
                 </div>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-slate-500">
                   {r.created_at ? new Date(r.created_at).toLocaleString() : ""}
                 </p>
               </div>
               <p className="text-sm whitespace-pre-wrap mb-2">{r.message}</p>
               {r.evidence && (
-                <p className="text-xs whitespace-pre-wrap mb-2"><span className="text-muted">Evidence:</span> {r.evidence}</p>
+                <p className="text-xs whitespace-pre-wrap mb-2"><span className="text-slate-500">Evidence:</span> {r.evidence}</p>
               )}
-              <p className="text-xs text-muted mb-3">
+              <p className="text-xs text-slate-500 mb-3">
                 Reporter: {r.reporter_name || "no name given"} · {r.reporter_email || "no email given"}
               </p>
               {r.status !== "resolved" ? (
@@ -120,14 +120,14 @@ export default function AdminReportsPage() {
                     value={notes[r.id] || ""}
                     onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })}
                     placeholder="Internal note (optional)"
-                    className="flex-1 min-w-[200px] border border-border rounded-lg px-3 py-1.5 text-sm bg-background"
+                    className="flex-1 min-w-[200px] h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm shadow-xs hover:border-slate-400"
                   />
                   {r.status === "open" && (
                     <button
                       onClick={() => act(r.id, "under-review")}
                       disabled={busy === r.id}
                       title="Shows 'Under registry review' on the public page and locks editing"
-                      className="text-sm border border-amber-300 text-amber-900 bg-amber-50 px-4 py-1.5 rounded-lg hover:bg-amber-100 disabled:opacity-50"
+                      className="h-8 text-sm font-medium border border-amber-300 text-amber-900 bg-amber-50 px-4 rounded-lg hover:bg-amber-100 disabled:opacity-50"
                     >
                       Mark under review
                     </button>
@@ -135,13 +135,13 @@ export default function AdminReportsPage() {
                   <button
                     onClick={() => act(r.id, "resolve")}
                     disabled={busy === r.id}
-                    className="text-sm bg-accent text-white px-4 py-1.5 rounded-lg hover:bg-accent-hover disabled:opacity-50"
+                    className="h-8 text-sm font-medium bg-accent text-white px-4 rounded-lg shadow-sm hover:bg-accent-hover disabled:opacity-50"
                   >
                     {busy === r.id ? "Saving..." : "Mark resolved"}
                   </button>
                 </div>
               ) : (
-                <p className="text-xs text-muted">
+                <p className="text-xs text-slate-500">
                   Resolved {r.resolved_at ? new Date(r.resolved_at).toLocaleString() : ""}
                   {r.admin_note ? ` · Note: ${r.admin_note}` : ""}
                 </p>

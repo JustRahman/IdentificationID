@@ -56,8 +56,8 @@ export default function AdminSecurityPage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold mb-1">Security</h1>
-      <p className="text-sm text-muted mb-6">Two-step login for the admin panel.</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-1.5">Security</h1>
+      <p className="text-sm text-slate-500 mb-6">Two-step login for the admin panel.</p>
 
       {enabled === true && (
         <div className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg p-4">
@@ -66,41 +66,41 @@ export default function AdminSecurityPage() {
       )}
 
       {enabled === false && !setup && (
-        <div className="bg-background border border-border rounded-xl p-5 space-y-3">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
           <p className="text-sm">
             Two-step login is <strong className="text-red-700">off</strong>. Anyone with the admin password can open
             this panel. Turn it on so a code from your phone is also needed.
           </p>
           <button onClick={start} disabled={busy}
-            className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50">
+            className="h-9 bg-accent text-white px-4 rounded-lg text-sm font-medium shadow-sm hover:bg-accent-hover disabled:opacity-50">
             Turn on two-step login
           </button>
         </div>
       )}
 
       {setup && (
-        <form onSubmit={confirm} className="bg-background border border-border rounded-xl p-5 space-y-4">
+        <form onSubmit={confirm} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
           <div className="text-sm space-y-2">
             <p className="font-medium">1. Add this key to your authenticator app</p>
-            <p className="text-muted text-xs">
+            <p className="text-slate-500 text-xs">
               iPhone Passwords: New entry, then Set Up Verification Code, then Enter Setup Key. Google or Microsoft
               Authenticator: +, then Enter a setup key. On an iPhone you can also open{" "}
               <a href={setup.otpauth_uri} className="text-accent underline">this link</a> directly.
             </p>
-            <p className="font-mono text-base bg-surface border border-border rounded-lg px-3 py-2 select-all break-all">
+            <p className="font-mono text-base bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 select-all break-all">
               {grouped}
             </p>
-            <p className="text-xs text-muted">Account name: Identification ID Admin. Keep this key private.</p>
+            <p className="text-xs text-slate-500">Account name: Identification ID Admin. Keep this key private.</p>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="totp-code">2. Enter the 6-digit code it shows</label>
             <input id="totp-code" inputMode="numeric" autoComplete="one-time-code" value={code}
               onChange={(e) => setCode(e.target.value)} required maxLength={8}
-              className="w-40 border border-border rounded-lg px-3 py-2 text-sm bg-background tracking-widest" />
+              className="w-40 h-10 rounded-lg border border-slate-300 bg-white px-3 text-base font-mono tabular-nums text-center shadow-xs tracking-[0.3em]" />
           </div>
           {error && <p className="text-xs text-red-700">{error}</p>}
           <button type="submit" disabled={busy}
-            className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50">
+            className="h-9 bg-accent text-white px-4 rounded-lg text-sm font-medium shadow-sm hover:bg-accent-hover disabled:opacity-50">
             {busy ? "Checking..." : "Confirm and turn on"}
           </button>
         </form>

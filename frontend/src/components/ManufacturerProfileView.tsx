@@ -4,18 +4,29 @@ import { useState } from "react";
 import Link from "next/link";
 import type { ManufacturerProfile } from "@/types";
 import { PublicPageNotice } from "@/components/PublicPageNotice";
+import { Badge } from "@/components/ui/Badge";
+import { ShareButton } from "@/components/registry/ShareButton";
+import { IdChip } from "@/components/ui/IdChip";
+import { FactBox } from "@/components/ui/FactBox";
+import { Tabs } from "@/components/ui/Tabs";
+import { DisclaimerBar } from "@/components/ui/DisclaimerBar";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { CompanyLogo } from "@/components/registry/CompanyLogo";
+import { QrCode } from "@/components/registry/QrCode";
+import { ProductCard } from "@/components/registry/RegistryCards";
+import { countryName, fullDate, monthYear, prettyUrl, safeHref, shortMonthYear } from "@/components/registry/format";
 
-/** "2026-09-30" → "September 2026" (parsed as a local date, not UTC). */
-export function monthYear(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-}
+/**
+ * "2026-09-30" -> "September 2026". Deterministic (same string on server and
+ * client), kept here because the dashboard imports it from this module.
+ */
+export { monthYear };
 
 /**
  * The public manufacturer registry profile. Rendered on /manufacturer/[mid]
  * and, with `preview`, during onboarding before the membership is paid.
+ * Layout: Companies House header + Wikipedia-style fact box + product grid.
+ * Uses container queries, so it lays out correctly in the narrower dashboard.
  */
 export function ManufacturerProfileView({
   data,
@@ -24,238 +35,225 @@ export function ManufacturerProfileView({
   data: ManufacturerProfile;
   preview?: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState("overview");
 
-  function copyId() {
-    navigator.clipboard.writeText(data.manufacturer_id || "").catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  const publicUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/manufacturer/${data.manufacturer_id}`
-      : `https://identificationid.com/manufacturer/${data.manufacturer_id}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(publicUrl)}`;
-  // Only ever link http(s) URLs.
-  const websiteHref =
-    data.website && /^https?:\/\//i.test(data.website) ? data.website : null;
+  const websiteHref = safeHref(data.website);
   const inactive = data.registry_status !== "active";
+  const since = data.registered_at ? shortMonthYear(data.registered_at) : "";
+  const country = countryName(data.country_code);
+  const verified = data.verification_level !== "registered";
+
+  const statusBadge = preview ? (
+    <Badge tone="pending" dot>Pending activation</Badge>
+  ) : inactive ? (
+    <Badge tone="neutral" dot>Inactive</Badge>
+  ) : (
+    <Badge tone="verified" dot>Active</Badge>
+  );
+
+  const levelLabel = data.verification_label || "Registered Manufacturer";
+  const levelText = !preview && since ? `${levelLabel} - since ${since}` : levelLabel;
+
+  const tabs = [
+    { id: "overview", label: "Overview" },
+    { id: "products", label: "Products", count: data.product_count },
+  ];
+
+  const productsBlock =
+    data.products.length === 0 ? (
+      <EmptyState
+        icon="box"
+        compact
+        title={inactive && data.product_count > 0 ? "Product list hidden" : "No published products yet"}
+        description={
+          inactive && data.product_count > 0
+            ? "Product list hidden while the registry membership is inactive. Individual product pages and QR codes still work."
+            : "Products this manufacturer publishes will appear here with their Identification ID."
+        }
+      />
+    ) : (
+      <div className="grid grid-cols-1 @md:grid-cols-2 @4xl:grid-cols-3 gap-4">
+        {data.products.map((p) => (
+          <ProductCard key={p.identification_id} p={{ ...p, brand: p.brand === data.display_name ? null : p.brand }} showMaker={false} />
+        ))}
+      </div>
+    );
+
+  const facts = [
+    {
+      label: "Manufacturer ID",
+      value: data.manufacturer_id ? <span data-no-i18n>{data.manufacturer_id}</span> : preview ? "Issued after payment" : null,
+      mono: !!data.manufacturer_id,
+    },
+    { label: "Registry status", value: preview ? "Pending activation" : inactive ? "Inactive" : "Active" },
+    ...(inactive && data.last_active ? [{ label: "Last active", value: monthYear(data.last_active) }] : []),
+    {
+      label: "In registry since",
+      value: preview ? "On activation" : data.registered_at ? fullDate(data.registered_at) : null,
+    },
+    { label: "Legal name", value: data.legal_name },
+    { label: "Country", value: country },
+    { label: "Brands", value: data.brands.length ? data.brands.join(", ") : null },
+    { label: "Products", value: String(data.product_count), mono: true },
+    {
+      label: "Website",
+      value: data.website ? (
+        websiteHref ? (
+          <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline break-all">
+            {prettyUrl(data.website)}
+          </a>
+        ) : (
+          data.website
+        )
+      ) : null,
+    },
+    {
+      label: "Email",
+      value: data.support_email ? (
+        <a href={`mailto:${data.support_email}`} className="text-accent hover:underline break-all">
+          {data.support_email}
+        </a>
+      ) : null,
+    },
+    ...(data.contact_phone ? [{ label: "Phone", value: data.contact_phone }] : []),
+  ];
 
   return (
-    <>
-      {/* Profile header */}
-      <div className="bg-background border border-border rounded-xl p-6 mb-6">
-        <div className="flex items-start gap-5 flex-wrap">
-          {data.logo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={data.logo_url}
-              alt={`${data.display_name} logo`}
-              className="w-20 h-20 rounded-xl object-contain border border-border bg-white shrink-0"
-            />
+    <div className="@container">
+      {/* ── Header ── */}
+      <header className="flex flex-col @2xl:flex-row @2xl:items-start gap-5">
+        <CompanyLogo name={data.display_name} src={data.logo_url} size="lg" />
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <Link href="/verification" title="See exactly what this status means" className="rounded-full">
+              <Badge tone={verified ? "verified" : "neutral"} icon="check">
+                {levelText}
+              </Badge>
+            </Link>
+            {statusBadge}
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 text-balance">{data.display_name}</h1>
+          {(data.legal_name || country) && (
+            <p className="mt-1.5 text-base text-slate-500">
+              {[data.legal_name && data.legal_name !== data.display_name ? data.legal_name : null, country]
+                .filter(Boolean)
+                .join(" - ")}
+            </p>
           )}
-          <div className="flex-1 min-w-[220px]">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div>
-                <h1 className="text-2xl font-semibold mb-1">{data.display_name}</h1>
-                <p className="text-sm text-muted">{data.legal_name}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                <Link
-                  href="/verification"
-                  title="See exactly what this status means"
-                  className={`text-xs font-medium px-3 py-1.5 rounded-lg border inline-flex items-center gap-1 transition-colors ${
-                    data.verification_level === "business"
-                      ? "text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
-                      : data.verification_level === "verified"
-                      ? "text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100"
-                      : "text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100"
-                  }`}
-                >
-                  {data.verification_level !== "registered" && (
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                  {data.verification_label}
-                </Link>
-                <span
-                  className={`text-xs font-medium px-3 py-1.5 rounded-lg border ${
-                    preview
-                      ? "text-amber-700 bg-amber-50 border-amber-200"
-                      : inactive
-                      ? "text-gray-600 bg-gray-50 border-gray-200"
-                      : "text-green-700 bg-green-50 border-green-200"
-                  }`}
-                >
-                  {/* Before payment the preview must not claim an active registry. */}
-                  Registry status: {preview ? "Pending activation" : inactive ? "Inactive" : "Active"}
-                </span>
-              </div>
-            </div>
-
-            {inactive && data.last_active && (
-              <p className="text-xs text-muted mt-2">Last active: {monthYear(data.last_active)}</p>
+          {inactive && data.last_active && !preview && (
+            <p className="text-sm text-slate-500 mt-1">Last active: {monthYear(data.last_active)}</p>
+          )}
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+            {data.manufacturer_id ? (
+              <IdChip label="Manufacturer ID" id={data.manufacturer_id} size="lg" />
+            ) : (
+              <p className="text-sm text-slate-500">
+                <span className="font-mono tabular-nums font-semibold text-slate-700" data-no-i18n>MID-XXXX-XXXX</span>{" "}
+                - your permanent Manufacturer ID is issued right after payment
+              </p>
             )}
+            {websiteHref && (
+              <a
+                href={websiteHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-accent"
+              >
+                <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+                </svg>
+                {prettyUrl(data.website || "")}
+              </a>
+            )}
+            {!preview && data.manufacturer_id && <ShareButton title={`${data.display_name} - Identification ID`} />}
+          </div>
+        </div>
+      </header>
 
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
-              {data.manufacturer_id ? (
-                <div className="w-full rounded-xl border-2 border-accent/30 bg-blue-50 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-                  <p className="text-lg sm:text-xl">
-                    <span className="font-semibold text-foreground">Manufacturer ID:</span>{" "}
-                    <span className="font-mono font-bold text-accent tracking-wide">{data.manufacturer_id}</span>
-                  </p>
-                  <button
-                    onClick={copyId}
-                    className="text-xs border border-border bg-white px-3 py-1.5 rounded-lg hover:bg-surface shrink-0"
-                  >
-                    {copied ? "Copied" : "Copy ID"}
-                  </button>
-                </div>
-              ) : (
-                <span className="text-sm text-muted">
-                  <span className="font-mono">MID-XXXX-XXXX</span>{" "}- your permanent Manufacturer ID is issued
-                  right after payment
-                </span>
-              )}
-            </div>
+      <DisclaimerBar className="mt-6" />
 
-            {data.description && (
-              <p className="text-sm text-muted mt-4 leading-relaxed">{data.description}</p>
+      {/* ── Tabs ── */}
+      <Tabs items={tabs} value={tab} onChange={setTab} idPrefix="mfr-tab" ariaLabel="Manufacturer sections" className="mt-8" />
+
+      <div className="mt-8 grid grid-cols-1 @3xl:grid-cols-[minmax(0,1fr)_300px] @5xl:grid-cols-[minmax(0,1fr)_340px] gap-8 @5xl:gap-10 items-start">
+        <div className="min-w-0">
+          {/* All panels stay in the HTML (hidden) so crawlers see the full profile. */}
+          <section role="tabpanel" id="mfr-tabpanel-overview" aria-labelledby="mfr-tab-overview" hidden={tab !== "overview"}>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900 mb-3">About</h2>
+            {data.description ? (
+              <p className="text-[15px] text-slate-700 leading-relaxed whitespace-pre-line">{data.description}</p>
+            ) : (
+              <p className="text-sm text-slate-400">No company description provided yet.</p>
             )}
 
             {data.brands.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {data.brands.map((b) => (
-                  <span key={b} className="text-xs px-2 py-0.5 rounded-md bg-surface border border-border">
-                    {b}
-                  </span>
-                ))}
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-slate-500 mb-2">Brands</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {data.brands.map((b) => (
+                    <span key={b} className="text-sm px-2.5 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-slate-700">
+                      {b}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 
             {/* What was actually verified - transparency over a bare checkmark */}
             {data.verified_attributes.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs text-muted mb-1.5">Verified by Identification ID:</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <div className="mt-6 rounded-2xl border border-slate-200 p-5">
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">Verified by Identification ID</h3>
+                <ul className="grid grid-cols-1 @md:grid-cols-2 gap-x-6 gap-y-2">
                   {data.verified_attributes.map((a) => (
-                    <span key={a} className="text-xs inline-flex items-center gap-1 text-foreground/80">
-                      <svg className="w-3 h-3 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    <li key={a} className="text-sm inline-flex items-center gap-2 text-slate-700">
+                      <svg className="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M3.5 8.5l3 3 6-7" />
                       </svg>
                       {a}
-                    </span>
+                    </li>
                   ))}
-                </div>
-                <Link href="/verification" className="text-xs text-accent hover:underline mt-1.5 inline-block">
+                </ul>
+                <Link href="/verification" className="text-sm text-accent hover:underline mt-3 inline-block">
                   What does this mean?
                 </Link>
               </div>
             )}
-          </div>
+
+            <h2 className="mt-10 mb-4 text-lg font-semibold tracking-tight text-slate-900">
+              Products in the registry{" "}
+              <span className="text-slate-400 font-normal tabular-nums">({data.product_count})</span>
+            </h2>
+            {productsBlock}
+          </section>
+
+          <section role="tabpanel" id="mfr-tabpanel-products" aria-labelledby="mfr-tab-products" hidden={tab !== "products"}>
+            <h2 className="sr-only">Products</h2>
+            {productsBlock}
+          </section>
         </div>
 
-        {/* Details + QR */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-border">
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { label: "Country", value: data.country_code },
-              { label: "Products", value: String(data.product_count) },
-              {
-                label: "In registry since",
-                value: preview
-                  ? "On activation"
-                  : data.registered_at
-                  ? new Date(data.registered_at).toLocaleDateString()
-                  : "--",
-              },
-              { label: "Website", value: data.website || "--" },
-              ...(data.support_email ? [{ label: "Email", value: data.support_email }] : []),
-              ...(data.contact_phone ? [{ label: "Phone", value: data.contact_phone }] : []),
-            ].map((f) => (
-              <div key={f.label}>
-                <p className="text-xs text-muted">{f.label}</p>
-                {f.label === "Website" && websiteHref ? (
-                  <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="text-sm text-accent hover:underline break-all">
-                    {data.website}
-                  </a>
-                ) : (
-                  <p className="text-sm break-all">{f.value}</p>
-                )}
+        {/* ── Fact box ── */}
+        <FactBox
+          title="Registry record"
+          subtitle="Identification ID registry"
+          sticky
+          items={facts}
+          footer={
+            data.manufacturer_id ? (
+              <div className="flex items-center gap-4">
+                <QrCode path={`/manufacturer/${data.manufacturer_id}`} size={88} alt="Manufacturer QR code" />
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Manufacturer QR</p>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">Scan to open this manufacturer&apos;s registry profile.</p>
+                </div>
               </div>
-            ))}
-          </div>
-          {data.manufacturer_id && (
-          <div className="flex items-center gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={qrUrl}
-              alt="Manufacturer QR code"
-              width={120}
-              height={120}
-              className="border border-border rounded-lg p-1.5 bg-white shrink-0"
-            />
-            <div>
-              <p className="text-sm font-medium mb-1">Manufacturer QR</p>
-              <p className="text-xs text-muted">
-                Scan to open this manufacturer&apos;s registry profile.
-              </p>
-            </div>
-          </div>
-          )}
-        </div>
+            ) : undefined
+          }
+        />
       </div>
 
-      {/* Products */}
-      <div className="bg-background border border-border rounded-xl p-6">
-        <h2 className="text-base font-semibold mb-4">
-          Products in the registry ({data.product_count})
-        </h2>
-        {data.products.length === 0 ? (
-          <p className="text-sm text-muted">
-            {inactive && data.product_count > 0
-              ? "Product list hidden while the registry membership is inactive. Individual product pages and QR codes still work."
-              : "No published products yet."}
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.products.map((p) => (
-              <Link
-                key={p.identification_id}
-                href={`/p/${encodeURIComponent(p.identification_id)}`}
-                className="border border-border rounded-xl overflow-hidden hover:border-accent hover:shadow-md transition-all bg-background group block"
-              >
-                <div className="aspect-[4/3] bg-surface overflow-hidden">
-                  {p.cover_image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={p.cover_image}
-                      alt={p.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg className="w-10 h-10 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5M21 12V6.75A2.25 2.25 0 0018.75 4.5H5.25A2.25 2.25 0 003 6.75V15" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-semibold group-hover:text-accent transition-colors leading-snug line-clamp-2 mb-1">
-                    {p.name}
-                  </h3>
-                  <p className="text-xs font-mono text-muted/70">{p.identification_id}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <p className="text-xs text-muted mt-6 leading-relaxed">
+      <p className="text-xs text-slate-500 mt-12 leading-relaxed">
         A Manufacturer ID is a unique identifier assigned to a manufacturer within the
         Identification ID global product registry. It is not a government, tax, or
         internationally recognized business identifier.
@@ -266,6 +264,6 @@ export function ManufacturerProfileView({
         showReport={!preview && !!data.manufacturer_id}
         underReview={!!data.under_review}
       />
-    </>
+    </div>
   );
 }

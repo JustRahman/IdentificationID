@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
 import { PLANS } from "@/lib/constants";
+import { Badge, EmptyState, buttonClasses } from "@/components/ui";
+import { Notice, PageHeader, Panel, StatusPill, tableClass, tableWrap, tbodyClass, tdClass, thClass, theadClass } from "@/components/app";
 
 interface PlanData {
   plan: string;
@@ -30,8 +32,9 @@ interface RegistryData {
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "";
+  // Date-only values ("2027-07-01") are UTC midnight; format in UTC so they don't shift a day back.
   const d = new Date(iso);
-  return isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  return isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
 }
 
 interface PaymentItem {
@@ -118,7 +121,7 @@ export default function BillingPage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-muted">Loading...</p>;
+  if (loading) return <p className="text-sm text-slate-500">Loading...</p>;
 
   const usagePercent = plan
     ? plan.product_limit > 0
@@ -126,55 +129,61 @@ export default function BillingPage() {
       : 0
     : 0;
 
+  const cancelBtn = "inline-flex items-center h-9 px-4 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50";
+  const keepBtn = buttonClasses("secondary", "sm", "h-9");
+
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">Billing</h1>
+      <PageHeader title="Billing" description="Your registry membership, plan and payment history." />
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4 max-w-lg">
-          {error}
-        </div>
-      )}
+      {error && <Notice tone="error" className="mb-4">{error}</Notice>}
 
-      {notice && (
-        <div className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg p-3 mb-4 max-w-lg">
-          {notice}
-        </div>
-      )}
+      {notice && <Notice tone="success" className="mb-4">{notice}</Notice>}
 
+      <div className="grid gap-6 lg:grid-cols-2 items-start mb-6">
       {registry && registry.active && !registry.included_in_plan && (
-        <div className="bg-background border border-border rounded-xl p-6 max-w-lg mb-6">
-          <h2 className="text-base font-semibold mb-1">Manufacturer Registry Membership</h2>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.18)]">
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <h2 className="text-[15px] font-semibold tracking-tight text-slate-900">Manufacturer Registry Membership</h2>
+            {registry.founding_member && !registry.can_cancel ? (
+              <Badge tone="verified" dot size="xs">Free registration</Badge>
+            ) : registry.cancel_at_period_end ? (
+              <Badge tone="pending" dot size="xs">Cancelled</Badge>
+            ) : (
+              <Badge tone="verified" dot size="xs">Active</Badge>
+            )}
+          </div>
           {registry.manufacturer_id && (
-            <p className="text-xs text-muted font-mono mb-3">{registry.manufacturer_id}</p>
+            <p className="text-sm text-slate-700 font-mono tabular-nums font-semibold mb-4" data-no-i18n>{registry.manufacturer_id}</p>
           )}
+          <div className="border-t border-slate-100 pt-4">
           {registry.founding_member && !registry.can_cancel ? (
-            <p className="text-sm mb-3">
-              <span className="text-green-700 font-medium">Free registration.</span> Free until{" "}
-              <strong>{fmtDate(registry.paid_until)}</strong>. No card is on file and nothing will be
+            <p className="text-sm text-slate-600 leading-relaxed">
+              <span className="text-emerald-700 font-medium">Free registration.</span> Free until{" "}
+              <strong className="text-slate-900">{fmtDate(registry.paid_until)}</strong>. No card is on file and nothing will be
               charged. Your company stays in the registry permanently; after that you can choose to keep an active membership.
             </p>
           ) : registry.cancel_at_period_end ? (
             <>
-              <p className="text-sm mb-3">
+              <p className="text-sm text-slate-600 leading-relaxed mb-4">
                 <span className="text-amber-700 font-medium">Cancelled.</span> Active until{" "}
-                <strong>{fmtDate(registry.paid_until)}</strong>. It will not renew and you won&apos;t be charged again.
+                <strong className="text-slate-900">{fmtDate(registry.paid_until)}</strong>. It will not renew and you won&apos;t be charged again.
               </p>
               <button
                 onClick={() => toggle("registry", "resume")}
                 disabled={busy}
-                className="text-sm border border-border px-4 py-2 rounded-lg hover:bg-surface disabled:opacity-50"
+                className={buttonClasses("secondary", "md")}
               >
                 Keep my membership
               </button>
             </>
           ) : (
             <>
-              <p className="text-sm text-muted mb-3">
-                Renews automatically on <strong className="text-foreground">{fmtDate(registry.paid_until)}</strong>.
+              <p className="text-sm text-slate-500 mb-4">
+                Renews automatically on <strong className="text-slate-900">{fmtDate(registry.paid_until)}</strong>.
               </p>
               {confirming === "registry" ? (
-                <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm space-y-2">
+                <div className="border border-amber-200 bg-amber-50 rounded-xl p-4 text-sm text-amber-900 leading-relaxed space-y-3">
                   <p>
                     Cancel automatic renewal? Your membership stays active until {fmtDate(registry.paid_until)}.
                     After that your profile shows as Inactive and you can&apos;t add or edit products. Your
@@ -185,13 +194,13 @@ export default function BillingPage() {
                     <button
                       onClick={() => toggle("registry", "cancel")}
                       disabled={busy}
-                      className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-red-700 disabled:opacity-50"
+                      className={cancelBtn}
                     >
                       {busy ? "Cancelling..." : "Yes, cancel"}
                     </button>
                     <button
                       onClick={() => setConfirming(null)}
-                      className="border border-border px-4 py-1.5 rounded-lg text-sm hover:bg-background"
+                      className={keepBtn}
                     >
                       Keep it
                     </button>
@@ -200,126 +209,127 @@ export default function BillingPage() {
               ) : (
                 <button
                   onClick={() => setConfirming("registry")}
-                  className="text-sm text-red-700 hover:underline"
+                  className="text-sm text-slate-500 hover:text-red-700 hover:underline"
                 >
                   Cancel membership
                 </button>
               )}
             </>
           )}
+          </div>
         </div>
       )}
 
-      <div className="bg-background border border-border rounded-xl p-6 max-w-lg mb-6">
-        <h2 className="text-base font-semibold mb-4">Current Plan</h2>
-        <div className="mb-4">
-          <span className="text-2xl font-semibold">{plan?.plan_name || "Registry Membership"}</span>
-          <span className="text-sm text-muted ml-2">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6">
+        <h2 className="text-[15px] font-semibold tracking-tight text-slate-900 mb-4">Current Plan</h2>
+        <div className="mb-3 flex items-baseline justify-between gap-3 flex-wrap">
+          <span className="text-2xl font-semibold tracking-tight text-slate-900">{plan?.plan_name || "Registry Membership"}</span>
+          <span className="text-sm text-slate-500 tabular-nums">
             {plan?.products_used || 0} / {plan?.product_limit === -1 ? "Unlimited" : plan?.product_limit || 3} products used
           </span>
         </div>
-        <div className="w-full bg-surface rounded-full h-2 mb-4">
+        <div className="w-full bg-slate-100 rounded-full h-1.5 mb-5">
           <div
-            className="bg-accent h-2 rounded-full"
+            className="bg-accent h-1.5 rounded-full"
             style={{ width: `${usagePercent}%` }}
           />
         </div>
         {plan?.subscription && (
-          <div className="grid grid-cols-2 gap-3 mb-4 border-t border-border pt-4">
+          <dl className="grid grid-cols-2 gap-3 mb-5 border-t border-slate-100 pt-4">
             <div>
-              <p className="text-xs text-muted">Status</p>
-              <p className="text-sm font-medium capitalize">{plan.subscription.status}</p>
+              <dt className="text-xs text-slate-500">Status</dt>
+              <dd className="text-sm font-medium text-slate-900 capitalize mt-0.5">{plan.subscription.status}</dd>
             </div>
             <div>
-              <p className="text-xs text-muted">{plan.subscription.cancel_at_period_end ? "Active until (cancelled)" : "Next billing / renews"}</p>
-              <p className="text-sm font-medium">
+              <dt className="text-xs text-slate-500">{plan.subscription.cancel_at_period_end ? "Active until (cancelled)" : "Next billing / renews"}</dt>
+              <dd className="text-sm font-medium text-slate-900 mt-0.5">
                 {(() => {
                   const d = new Date(plan.subscription.paid_until);
-                  return isNaN(d.getTime()) ? plan.subscription.paid_until : d.toLocaleDateString();
+                  return isNaN(d.getTime()) ? plan.subscription.paid_until : d.toLocaleDateString(undefined, { timeZone: "UTC" });
                 })()}
-              </p>
+              </dd>
             </div>
-          </div>
+          </dl>
         )}
         {plan?.subscription && plan.subscription.status === "active" && plan.plan !== "membership" && (
           <div className="mb-4">
             {plan.subscription.cancel_at_period_end ? (
               <button onClick={() => toggle("plan", "resume")} disabled={busy}
-                className="text-sm border border-border px-4 py-2 rounded-lg hover:bg-surface disabled:opacity-50">
+                className={buttonClasses("secondary", "md")}>
                 Keep my plan
               </button>
             ) : confirming === "plan" ? (
-              <div className="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm space-y-2">
+              <div className="border border-amber-200 bg-amber-50 rounded-xl p-4 text-sm text-amber-900 space-y-3">
                 <p>Cancel automatic renewal of this plan? It stays active until the date above and is not refunded.</p>
                 <div className="flex gap-2">
                   <button onClick={() => toggle("plan", "cancel")} disabled={busy}
-                    className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-red-700 disabled:opacity-50">
+                    className={cancelBtn}>
                     {busy ? "Cancelling..." : "Yes, cancel"}
                   </button>
                   <button onClick={() => setConfirming(null)}
-                    className="border border-border px-4 py-1.5 rounded-lg text-sm hover:bg-background">
+                    className={keepBtn}>
                     Keep it
                   </button>
                 </div>
               </div>
             ) : (
-              <button onClick={() => setConfirming("plan")} className="text-sm text-red-700 hover:underline">
+              <button onClick={() => setConfirming("plan")} className="text-sm text-slate-500 hover:text-red-700 hover:underline">
                 Cancel plan
               </button>
             )}
           </div>
         )}
         {(!plan || plan.plan === "membership") && (
-          <div className="grid grid-cols-2 gap-3">
-            {PLANS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => handleUpgrade(p.key)}
-                disabled={upgrading}
-                className={`px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 ${
-                  p.premium
-                    ? "bg-slate-900 text-white hover:bg-slate-800"
-                    : p.popular
-                    ? "bg-accent text-white hover:bg-accent-hover"
-                    : "border border-border text-foreground hover:bg-surface"
-                }`}
-              >
-                {p.en.name} (${p.priceCents / 100}
-                {p.perProduct ? "/product" : "/mo"})
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="bg-background border border-border rounded-xl p-6 max-w-lg">
-        <h2 className="text-base font-semibold mb-4">Payment History</h2>
-        {payments.length === 0 ? (
-          <p className="text-sm text-muted">No payments yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {payments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div>
-                  <p className="text-sm font-medium">
-                    ${(p.amount_cents / 100).toFixed(2)} {p.currency.toUpperCase()}
-                  </p>
-                  <p className="text-xs text-muted">{p.created_at ? new Date(p.created_at).toLocaleDateString() : ""}</p>
-                </div>
-                <span
-                  className={`text-xs px-2 py-1 rounded-lg ${
-                    p.status === "succeeded"
-                      ? "bg-green-50 text-green-700 border border-green-200"
-                      : "bg-gray-50 text-gray-600 border border-gray-200"
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-medium text-slate-500 mb-3">Paid plans (optional)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {PLANS.map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => handleUpgrade(p.key)}
+                  disabled={upgrading}
+                  className={`h-10 px-4 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors bg-white border text-slate-900 shadow-xs hover:bg-slate-50 ${
+                    p.popular ? "border-accent/60" : "border-slate-300"
                   }`}
                 >
-                  {p.status}
-                </span>
-              </div>
-            ))}
+                  {p.en.name} (${p.priceCents / 100}
+                  {p.perProduct ? "/product" : "/mo"})
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
+      </div>
+
+      <Panel title="Payment History" flush>
+        {payments.length === 0 ? (
+          <EmptyState icon="document" compact title="No payments yet." className="!border-0 !rounded-none !bg-transparent" />
+        ) : (
+          <div className={tableWrap}>
+            <table className={tableClass}>
+              <thead className={theadClass}>
+                <tr>
+                  <th className={thClass}>Date</th>
+                  <th className={thClass}>Amount</th>
+                  <th className={`${thClass} text-right`}>Status</th>
+                </tr>
+              </thead>
+              <tbody className={tbodyClass}>
+                {payments.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50/60">
+                    <td className={tdClass}>{p.created_at ? new Date(p.created_at).toLocaleDateString() : ""}</td>
+                    <td className={`${tdClass} font-medium text-slate-900 tabular-nums`}>
+                      ${(p.amount_cents / 100).toFixed(2)} {p.currency.toUpperCase()}
+                    </td>
+                    <td className={`${tdClass} text-right`}><StatusPill status={p.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }

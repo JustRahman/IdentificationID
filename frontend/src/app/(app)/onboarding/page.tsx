@@ -9,6 +9,8 @@ import { REGISTRY_MEMBERSHIP } from "@/lib/constants";
 import { useMembership } from "@/lib/membership";
 import { AgreementCheckbox, acceptAgreement } from "@/components/AgreementCheckbox";
 import type { Company, ManufacturerProfile } from "@/types";
+import { Badge, buttonClasses } from "@/components/ui";
+import { AppIcon, Notice } from "@/components/app";
 
 type Step = "profile" | "preview" | "activate";
 type Billing = "annual" | "monthly" | "founding";
@@ -107,51 +109,59 @@ function OnboardingInner() {
     }
   }
 
-  if (loading) return <p className="text-sm text-muted">Loading...</p>;
+  if (loading) return <p className="text-sm text-slate-500">Loading...</p>;
 
   const monthly = REGISTRY_MEMBERSHIP.priceCents / 100;
   const annual = REGISTRY_MEMBERSHIP.annualPriceCents / 100;
   const savings = monthly * 12 - annual;
 
+  const currentIdx = STEPS.findIndex((x) => x.key === step);
+
   return (
     <div>
       {/* Stepper */}
-      <ol className="flex items-center gap-2 text-sm mb-8 flex-wrap">
-        {STEPS.map((s, i) => {
-          const current = STEPS.findIndex((x) => x.key === step);
-          return (
-            <li key={s.key} className="flex items-center gap-2">
-              <span
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                  i < current
-                    ? "bg-green-600 text-white"
-                    : i === current
-                    ? "bg-accent text-white"
-                    : "bg-background border border-border text-muted"
-                }`}
-              >
-                {i < current ? "✓" : i + 1}
-              </span>
-              <span className={i === current ? "font-medium" : "text-muted"}>{s.label}</span>
-              {i < STEPS.length - 1 && <span className="text-border mx-1">-</span>}
-            </li>
-          );
-        })}
-      </ol>
+      <nav aria-label="Onboarding progress" className="mb-10">
+        <p className="text-xs font-medium text-slate-500 mb-3 sm:hidden">
+          Step {currentIdx + 1} of {STEPS.length}
+        </p>
+        <ol className="grid grid-cols-3 gap-2 sm:gap-3">
+          {STEPS.map((s, i) => {
+            const done = i < currentIdx;
+            const current = i === currentIdx;
+            return (
+              <li key={s.key} aria-current={current ? "step" : undefined}>
+                <div className={`h-1 rounded-full mb-3 ${done || current ? "bg-accent" : "bg-slate-200"}`} />
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
+                      done
+                        ? "bg-accent text-white"
+                        : current
+                        ? "bg-white text-accent ring-2 ring-accent"
+                        : "bg-white ring-1 ring-slate-300 text-slate-500"
+                    }`}
+                  >
+                    {done ? <AppIcon name="check" className="w-3.5 h-3.5" /> : i + 1}
+                  </span>
+                  <span className={`text-sm truncate ${current ? "font-medium text-slate-900" : done ? "text-slate-700" : "text-slate-500"}`}>
+                    {s.label}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
-          {error}
-        </div>
-      )}
+      {error && <Notice tone="error" className="mb-5">{error}</Notice>}
 
       {step === "profile" && (
-        <div className="max-w-lg">
-          <h1 className="text-xl font-semibold mb-1">Tell us about your company</h1>
-          <p className="text-sm text-muted mb-6">
+        <div className="max-w-2xl">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-1.5">Tell us about your company</h1>
+          <p className="text-sm text-slate-500 mb-7">
             This becomes your public manufacturer profile. You can change it later.
           </p>
-          <div className="bg-background border border-border rounded-xl p-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7">
             <CompanyProfileForm
               company={company}
               submitLabel="Continue to preview"
@@ -166,45 +176,48 @@ function OnboardingInner() {
 
       {step === "preview" && (
         <div>
-          <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
+          <div className="flex items-start justify-between gap-4 mb-7 flex-wrap">
             <div>
-              <h1 className="text-xl font-semibold mb-1">Preview your public profile</h1>
-              <p className="text-sm text-muted">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-1.5">Preview your public profile</h1>
+              <p className="text-sm text-slate-500">
                 This is how your manufacturer profile will look once your membership is active.
               </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setStep("profile")}
-                className="border border-border px-4 py-2 rounded-lg text-sm hover:bg-background"
+                className={buttonClasses("secondary", "md")}
               >
                 Edit profile
               </button>
               <button
                 onClick={() => setStep("activate")}
-                className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover"
+                className={buttonClasses("primary", "md")}
               >
                 Looks good - continue
               </button>
             </div>
           </div>
           {preview ? (
-            <div className="relative">
-              <span className="absolute -top-3 right-4 z-10 text-[11px] font-semibold uppercase tracking-wide bg-amber-500 text-white px-2 py-0.5 rounded">
-                Preview
-              </span>
-              <ManufacturerProfileView data={preview} preview />
+            <div className="relative rounded-2xl border border-slate-200 bg-white overflow-hidden">
+              <div className="flex items-center gap-2 px-4 h-10 border-b border-slate-200 bg-slate-50">
+                <Badge tone="pending" dot size="xs">Preview</Badge>
+                <span className="text-xs text-slate-500">Not public yet</span>
+              </div>
+              <div className="p-5 sm:p-8">
+                <ManufacturerProfileView data={preview} preview />
+              </div>
             </div>
           ) : (
-            <p className="text-sm text-muted">Loading preview...</p>
+            <p className="text-sm text-slate-500">Loading preview...</p>
           )}
         </div>
       )}
 
       {step === "activate" && (
         <div className="max-w-2xl">
-          <h1 className="text-xl font-semibold mb-1">{REGISTRY_MEMBERSHIP.en.name}</h1>
-          <p className="text-sm text-muted mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-1.5">{REGISTRY_MEMBERSHIP.en.name}</h1>
+          <p className="text-sm text-slate-500 mb-7 leading-relaxed">
             Activates your permanent Manufacturer ID and public profile. Your first 3 Product
             IDs are included at no additional cost.
           </p>
@@ -213,25 +226,34 @@ function OnboardingInner() {
             <button
               type="button"
               onClick={() => setBilling("founding")}
-              className={`w-full text-left rounded-xl p-5 border-2 mb-4 transition-colors ${
-                billing === "founding" ? "border-green-600 bg-green-50" : "border-border bg-background hover:border-muted"
+              aria-pressed={billing === "founding"}
+              className={`w-full text-left rounded-2xl p-6 border mb-4 transition-colors ${
+                billing === "founding"
+                  ? "border-accent ring-1 ring-accent bg-blue-50/40 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.18)]"
+                  : "border-slate-200 bg-white hover:border-slate-300"
               }`}
             >
               <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                <span className="text-sm font-semibold">Free registration</span>
-                <span className="text-[11px] font-semibold bg-green-600 text-white px-2 py-0.5 rounded">
-                  {founding.spots_left != null ? `${founding.spots_left} spots left` : "Until July 1, 2027"}
+                <span className="flex items-center gap-2.5 text-sm font-semibold text-slate-900">
+                  <Radio on={billing === "founding"} /> Free registration
                 </span>
+                <Badge tone="info" size="xs">
+                  {founding.spots_left != null ? `${founding.spots_left} spots left` : "Until July 1, 2027"}
+                </Badge>
               </div>
-              <p>
-                <span className="text-3xl font-semibold">$0</span>
-                <span className="text-sm text-muted ml-1">until July 1, 2027</span>
+              <p className="mt-3">
+                <span className="text-4xl font-semibold tracking-tight text-slate-900">$0</span>
+                <span className="text-sm text-slate-500 ml-1.5">until July 1, 2027</span>
               </p>
-              <p className="text-xs text-green-800 mt-1">
+              <p className="text-sm text-slate-600 mt-2 leading-relaxed">
                 Manufacturer ID + 3 products. No card needed and no automatic charge. You stay in the registry permanently; after July 1, 2027 you decide whether to keep an active membership.{" "}
-                <a href="/founding-manufacturers" target="_blank" className="underline">Details</a>
+                <a href="/founding-manufacturers" target="_blank" className="text-accent underline">Details</a>
               </p>
             </button>
+          )}
+
+          {founding?.open && (
+            <p className="text-xs font-medium text-slate-500 mb-3 mt-6">Or choose a paid membership</p>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -245,46 +267,45 @@ function OnboardingInner() {
                 key={o.key}
                 type="button"
                 onClick={() => setBilling(o.key)}
-                className={`text-left rounded-xl p-5 border-2 bg-background transition-colors ${
-                  billing === o.key ? "border-accent" : "border-border hover:border-muted"
+                aria-pressed={billing === o.key}
+                className={`text-left rounded-2xl p-5 border bg-white transition-colors ${
+                  billing === o.key ? "border-accent ring-1 ring-accent" : "border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2 gap-2">
-                  <span className="text-sm font-medium">{o.key === "annual" ? "Yearly" : "Monthly"}</span>
-                  {o.badge && (
-                    <span className="text-[11px] font-semibold bg-accent text-white px-2 py-0.5 rounded">
-                      {o.badge}
-                    </span>
-                  )}
+                  <span className="flex items-center gap-2.5 text-sm font-medium text-slate-900">
+                    <Radio on={billing === o.key} /> {o.key === "annual" ? "Yearly" : "Monthly"}
+                  </span>
+                  {o.badge && <Badge tone="neutral" size="xs">{o.badge}</Badge>}
                 </div>
-                <p>
-                  <span className="text-3xl font-semibold">{o.price}</span>
-                  <span className="text-sm text-muted ml-1">{o.period}</span>
+                <p className="mt-2">
+                  <span className="text-2xl font-semibold tracking-tight text-slate-900">{o.price}</span>
+                  <span className="text-sm text-slate-500 ml-1">{o.period}</span>
                 </p>
-                <p className={`text-xs mt-1 ${o.key === "annual" ? "text-green-700 font-medium" : "text-muted"}`}>
+                <p className={`text-xs mt-1 ${o.key === "annual" ? "text-slate-700 font-medium" : "text-slate-500"}`}>
                   {o.note}
                 </p>
               </button>
             ))}
           </div>
 
-          <div className="bg-background border border-border rounded-xl p-5 mb-6">
-            <p className="text-sm font-medium mb-3">Included</p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 mb-6">
+            <p className="text-sm font-semibold text-slate-900 mb-3">Included</p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
               {REGISTRY_MEMBERSHIP.en.features.map((f) => (
-                <li key={f} className="text-sm flex items-start gap-2">
-                  <span className="text-green-600">✓</span>
+                <li key={f} className="text-sm text-slate-700 flex items-start gap-2">
+                  <AppIcon name="check" className="w-4 h-4 mt-0.5 text-accent" />
                   {f}
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-muted mt-4 pt-3 border-t border-border">
+            <p className="text-xs text-slate-500 mt-4 pt-4 border-t border-slate-100 leading-relaxed">
               Need more products? Popular, Best Value and Enterprise plans include this
               membership. The Standard plan ($3 per product) is billed in addition to it.
             </p>
           </div>
 
-          <div className="mb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 mb-5">
             <AgreementCheckbox
               checked={agreed}
               onChange={setAgreed}
@@ -298,14 +319,14 @@ function OnboardingInner() {
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => setStep("preview")}
-              className="border border-border px-4 py-2.5 rounded-lg text-sm hover:bg-background"
+              className={buttonClasses("secondary", "lg")}
             >
               Back
             </button>
             <button
               onClick={activate}
               disabled={paying || !agreed || personName.trim().length < 2}
-              className="bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
+              className={buttonClasses("primary", "lg")}
             >
               {paying
                 ? "Processing..."
@@ -314,7 +335,7 @@ function OnboardingInner() {
                 : `Continue to payment - ${billing === "annual" ? `$${annual}/year` : `$${monthly}/month`}`}
             </button>
           </div>
-          <p className="text-xs text-muted mt-3">
+          <p className="text-xs text-slate-500 mt-3">
             {billing === "founding" ? "Free until July 1, 2027, no payment details collected. " : ""}
             Secure payment by Stripe. See our{" "}
             <a href="/legal/refund" target="_blank" className="text-accent hover:underline">Refund & Cancellation Policy</a>.
@@ -322,6 +343,15 @@ function OnboardingInner() {
         </div>
       )}
     </div>
+  );
+}
+
+function Radio({ on }: { on: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${on ? "ring-[5px] ring-inset ring-accent bg-white" : "ring-1 ring-inset ring-slate-300 bg-white"}`}
+    />
   );
 }
 
