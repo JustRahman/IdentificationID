@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ArrowRight } from "@/components/ui/Button";
+import { Eyebrow } from "./Eyebrow";
 
 const FAQ = [
   {
@@ -29,7 +30,7 @@ const FAQ = [
   },
 ];
 
-/** Section 5 - short FAQ + final call to action (the one navy band on the page). */
+/** Section 5 - short FAQ + final call to action on a vivid gradient panel. */
 export function FaqAndCta() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -45,10 +46,11 @@ export function FaqAndCta() {
 
   return (
     <>
-      <section id="faq" className="py-20 sm:py-24 bg-surface border-t border-slate-200 scroll-mt-16">
+      <section id="faq" className="py-20 sm:py-24 bg-white scroll-mt-16">
         <div className="mx-auto max-w-6xl px-5 sm:px-6 grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)]">
+          <div>
+          <Eyebrow tone="sky">FAQ</Eyebrow>
           <SectionHeader
-            eyebrow="FAQ"
             title="Questions,"
             muted="answered."
             description={
@@ -66,14 +68,17 @@ export function FaqAndCta() {
             }
             className="mb-0"
           />
-          <div className="rounded-2xl border border-slate-200 bg-white divide-y divide-slate-200">
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white divide-y divide-slate-200 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.25)]">
             {FAQ.map((f, i) => (
-              <details key={f.q} className="group px-5 sm:px-6" open={i === 0}>
+              <details key={f.q} className="group px-5 sm:px-6 open:bg-linear-to-r open:from-blue-50/60 open:to-violet-50/40 first:rounded-t-2xl last:rounded-b-2xl" open={i === 0}>
                 <summary className="flex items-center justify-between gap-4 py-5 cursor-pointer text-[15px] font-medium text-slate-900">
                   {f.q}
-                  <svg className="w-4 h-4 shrink-0 text-slate-400 transition-transform group-open:rotate-45" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true">
+                  <span className="w-7 h-7 shrink-0 rounded-full bg-violet-50 ring-1 ring-inset ring-violet-200 flex items-center justify-center group-open:bg-violet-600 group-open:ring-violet-600 transition-colors" aria-hidden="true">
+                  <svg className="w-3.5 h-3.5 text-violet-700 group-open:text-white transition-transform group-open:rotate-45" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true">
                     <path d="M8 3v10M3 8h10" />
                   </svg>
+                  </span>
                 </summary>
                 <p className="pb-5 -mt-1 text-sm text-slate-600 leading-relaxed max-w-2xl">{f.a}</p>
               </details>
@@ -82,25 +87,26 @@ export function FaqAndCta() {
         </div>
       </section>
 
-      <section className="pb-20 sm:pb-24 bg-surface">
+      <section className="pb-20 sm:pb-24 bg-white">
         <div className="mx-auto max-w-6xl px-5 sm:px-6">
-        <div className="relative overflow-hidden rounded-3xl bg-navy px-6 py-14 sm:px-14 sm:py-16">
+        <div className="relative isolate overflow-hidden rounded-3xl bg-linear-to-br from-blue-600 via-violet-600 to-fuchsia-600 px-6 py-14 sm:px-14 sm:py-16 shadow-[0_30px_70px_-30px_rgba(124,58,237,0.7)]">
+          {/* decorative glow circles + dot pattern */}
+          <div aria-hidden="true" className="pointer-events-none absolute -z-10 hidden sm:block -bottom-36 left-[20%] w-72 h-72 rounded-full bg-cyan-300/25 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -z-10 -bottom-28 right-[10%] w-96 h-96 rounded-full bg-fuchsia-400/30 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -z-10 top-[-60px] right-[-60px] w-56 h-56 rounded-full border-[28px] border-white/10" />
+          <div aria-hidden="true" className="pointer-events-none absolute -z-10 bottom-[-40px] left-[38%] w-32 h-32 rounded-full border-[18px] border-white/10" />
           <div
             aria-hidden="true"
-            className="absolute inset-0 opacity-[0.07] [mask-image:radial-gradient(ellipse_60%_80%_at_80%_20%,black,transparent)]"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
-            }}
+            className="pointer-events-none absolute inset-0 -z-10 opacity-30 [mask-image:radial-gradient(ellipse_60%_80%_at_80%_20%,black,transparent)]"
+            style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.7) 1px, transparent 1px)", backgroundSize: "20px 20px" }}
           />
           <div className="relative grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white leading-[1.1] text-balance">
                 Put your company in the global registry.{" "}
-                <span className="text-slate-400">Free until July 1, 2027.</span>
+                <span className="text-cyan-100">Free until July 1, 2027.</span>
               </h2>
-              <p className="mt-4 text-slate-300 leading-relaxed">
+              <p className="mt-4 text-white/90 leading-relaxed">
                 Get your Manufacturer ID and your first 3 product pages. No card needed, no automatic charge.
               </p>
             </div>
@@ -108,7 +114,7 @@ export function FaqAndCta() {
               {submitted ? (
                 <p className="text-white font-medium">Redirecting to registration...</p>
               ) : (
-                <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3">
+                <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-1.5 rounded-2xl bg-white/15 ring-1 ring-white/30 p-2 backdrop-blur-sm">
                   <label htmlFor="cta-email" className="sr-only">
                     Work email
                   </label>
@@ -120,19 +126,19 @@ export function FaqAndCta() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@company.com"
                     autoComplete="email"
-                    className="flex-1 min-w-0 h-12 rounded-lg border border-white/15 bg-white px-4 text-[15px] text-slate-900 placeholder:text-slate-400"
+                    className="flex-1 min-w-0 h-12 rounded-xl border border-white bg-white px-4 text-[15px] text-slate-900 placeholder:text-slate-500"
                   />
                   <button
                     type="submit"
-                    className="h-12 inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 text-[15px] font-medium text-white hover:bg-accent-hover transition-colors focus-visible:outline-white"
+                    className="h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-amber-300 to-orange-300 px-5 text-[15px] font-semibold text-slate-900 hover:from-amber-200 hover:to-orange-200 transition-colors focus-visible:outline-white shadow-[0_8px_20px_-8px_rgba(251,146,60,0.8)]"
                   >
                     Register free <ArrowRight />
                   </button>
                 </form>
               )}
-              <p className="mt-3 text-sm text-slate-400">
+              <p className="mt-3 text-sm text-white/85">
                 Already registered?{" "}
-                <Link href="/login" className="text-white hover:underline underline-offset-4">
+                <Link href="/login" className="text-white font-semibold underline underline-offset-4 decoration-white/50 hover:decoration-white">
                   Log in
                 </Link>
               </p>

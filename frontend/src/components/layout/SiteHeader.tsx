@@ -54,6 +54,8 @@ export function SiteHeader() {
         scrolled || open ? "border-slate-200" : "border-transparent",
       )}
     >
+      {/* colorful brand hairline (all pages) */}
+      <div aria-hidden="true" className="h-0.5 bg-linear-to-r from-blue-600 via-violet-600 to-teal-500" />
       <div className="mx-auto max-w-6xl px-5 sm:px-6 h-16 flex items-center gap-8">
         <Logo />
 

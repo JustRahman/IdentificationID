@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { TrustedByManufacturers } from "@/components/TrustedByManufacturers";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HowItWorks } from "@/components/home/HowItWorks";
+import { WhyJoin } from "@/components/home/WhyJoin";
 import { RegistryShowcase } from "@/components/home/RegistryShowcase";
 import { OfferPricing } from "@/components/home/OfferPricing";
 import { FaqAndCta } from "@/components/home/FaqAndCta";
@@ -25,6 +26,7 @@ export default async function LandingPage() {
       <main className="flex-1">
         <HomeHero preview={preview} examples={examples} />
         <HowItWorks />
+        <WhyJoin />
         <RegistryShowcase products={products} companies={companies} />
         {/* Feature-flagged, real customers only (hidden by default). */}
         <TrustedByManufacturers />
